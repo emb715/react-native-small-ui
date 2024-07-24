@@ -1,8 +1,28 @@
 # react-native-tinybase
 
-Small UI Lib for React Native. Inspired by [native base](https://nativebase.io/)
+> Small UI Lib for React Native. Inspired by [native base](https://nativebase.io/)
 
-## Installation
+
+Small library to create components using inline props for styling.
+
+Supported props:
+- component style props
+- light and dark for color mode appearance
+- ios, android and web for platform specific
+
+
+## Table of Contents
+
+- [Install](#install)
+- [Getting Started](#getting-started)
+    - [Basic Usage](#basic-usage)
+<!-- - [Best Practices](#best-practices) -->
+- [Known Issues](#known-issues)
+    - [Expo](#expo)
+- [Build With](#build-with)
+
+
+## Install
 
 ```sh
 npm install react-native-tinybase
@@ -11,7 +31,32 @@ npm install react-native-tinybase
 yarn install react-native-tinybase
 ```
 
-## Usage
+#### Web support
+- [React Native Web](https://necolas.github.io/react-native-web/docs/installation/)
+
+
+----
+
+## Getting Started
+
+In order to use it. Add the `useTinyBase` hook in your App file
+
+```js
+...
+import { useTinyBase } from 'react-native-tinybase';
+
+
+function App() {
+  useTinyBase()
+  return (
+    <View>
+      <Text>Example</Text>
+    </View>
+  )
+}
+```
+
+### Basic Usage
 
 
 ```js
@@ -61,10 +106,7 @@ function App() {
 }
 ```
 
-### React Native Web
-https://necolas.github.io/react-native-web/docs/installation/
-
-# Known Issues:
+## Known Issues:
 ### Expo
 
 #### Color mode detection
@@ -80,17 +122,20 @@ Or to your `app.json`
 "expo": {"userInterfaceStyle": "automatic"}
 ```
 
+----
 
 
-## Contributing
+## Build with
+- [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+- [lodash](https://lodash.com/)
+- [zustand](https://zustand-demo.pmnd.rs/)
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+
+<!-- ## Contributing
+
+See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow. -->
 
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
 
