@@ -1,5 +1,5 @@
 {
-  "name": "react-native-emb-tinybase",
+  "name": "react-native-tinybase",
   "version": "0.1.0",
   "description": "small ui lib",
   "source": "./src/index.tsx",
@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-emb-tinybase-example",
+    "example": "yarn workspace react-native-tinybase-example",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -47,14 +47,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/emb715/react-native-emb-tinybase.git"
+    "url": "git+https://github.com/emb715/react-native-tinybase.git"
   },
   "author": "Ezequiel Benitez <ezequielmartinbenitez@gmail.com> (https://github.com/emb715)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/emb715/react-native-emb-tinybase/issues"
+    "url": "https://github.com/emb715/react-native-tinybase/issues"
   },
-  "homepage": "https://github.com/emb715/react-native-emb-tinybase#readme",
+  "homepage": "https://github.com/emb715/react-native-tinybase#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -64,12 +64,15 @@
     "@react-native/eslint-config": "^0.73.1",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
+    "@types/lodash": "^4.17.7",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-testing-library": "latest",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "react": "18.2.0",
@@ -176,5 +179,10 @@
   "create-react-native-library": {
     "type": "library",
     "version": "0.38.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "z": "^1.0.9",
+    "zustand": "^4.5.4"
   }
 }

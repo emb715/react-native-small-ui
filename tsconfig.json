@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-emb-tinybase": ["./src/index"]
+      "react-native-tinybase": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
