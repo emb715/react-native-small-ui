@@ -42,8 +42,9 @@ export const getContrastColor = (color: string) => {
 };
 
 /**
- * @param hexColor {string} #fff or #ffffff
- * @param alpha {number} between 0 and 1
+ * @param {string} hexColor #fff or #ffffff
+ * @param {number} alpha between 0 and 1
+ * @return {string} new hex color with alpha
  */
 export function getHexAlpha(hexColor: string, alpha: number) {
   if (!hexColor.startsWith('#')) {
