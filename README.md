@@ -13,12 +13,13 @@ Uses typescript to bring autocompletion for styles when creating component and u
 - [Getting Started](#getting-started)
 - [Basic Usage](#usage)
   - [Create Component](#create-component)
-  - [Theme](#theme)
-    - [Theme Config](#theme-config)
-    - [Theme Utilities](#theme-utilities)
   - [Hooks](#hooks)
     - [useColorModeValue](#usecolormodevalue)
+    - [useBreakPointValue](#usebreakpointvalue)
     - [useTheme](#useTheme)
+  - [Theme](#theme)
+    - [Theme Config](#theme-config)
+    - [Utilities](#theme-utilities)
   - [Helpers](#helpers)
 - [Known Issues](#known-issues)
   - [Expo](#expo)
@@ -60,29 +61,11 @@ function App() {
 }
 ```
 
-Add a [theme config](#theme-config) for customizations.
-
-```js
-// Using you own theme config
-...
-import { useTinyBase } from 'react-native-tinybase';
-import { themeConfig } from './themeConfig'
-
-function App() {
-  useTinyBase({ themeConfig })
-  return (
-    <View>
-      <Text>Example</Text>
-    </View>
-  )
-}
-```
-
 # Usage
 
 ## Create Component
 
-You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode and inline style with props. The component will have access to the following props.
+You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props. The component will have access to the following props.
 
 **Utility Style Props**
 
@@ -99,6 +82,8 @@ Customized are prefixed with **underscore**:
 Example:
 
 ```jsx
+import { createComponent } from 'react-native-tinybase';
+
 const MyComponent = createComponent(View, {
   alignItems: 'center',
   justifyContent: 'center'
@@ -137,14 +122,17 @@ function App() {
 }
 ```
 
-### Theme access in createComponent
+### Using a theme in createComponent
 
-You can access to the theme variable and use it in your styles.
-
-**`createComponent`** can use an object with the styles or a function with theme as argument that returns an object with styles.
+You can create a theme and use it in your styles.
 
 ```typescript
-const MyComponent = createComponent(View, (theme) => (
+import { getTheme, createComponent } from 'react-native-tinybase';
+
+const theme = getTheme()
+// const myTheme = registerTheme({ ... })
+
+const MyComponent = createComponent(View, 
   {
   color: 'red', // wrong key, View doesn't have color
   borderWith: 1
@@ -154,78 +142,14 @@ const MyComponent = createComponent(View, (theme) => (
   _dark_: {
     borderColor: theme.colors.dark.border,
   },
-}
-))
+})
 ```
 
-> Note: this will suggest the values but not warn you with wrong keys.
+### Utilities
 
-> To have full inference this should `satisfies CustomStyle<ComponentProps<typeof View>>`.
+> Use it from ColorUtils.
 
-```typescript
-import { View } from 'react-native'
-import { createComponent, type CustomStyle } from 'react-native-tinybase';
-
-const MyComponent = createComponent(View, (theme) => (
-  {
-    color: 'red', // This will pop. 'color' does not exist in type 'CustomStyle<ViewProps>'
-  borderWith: 1
-  _light: {
-    borderColor: theme.colors.light.border,
-  },
-  _dark_: {
-    borderColor: theme.colors.dark.border,
-  },
-} satisfies CustomStyle<ComponentProps<typeof View>>
-))
-```
-
-## Theme
-
-### Theme Config
-
-...
-
-```typescript
-import { type ThemeConfig } from 'react-native-tinybase'
-
-const myThemeConfig = {
-  ...
-} satisfies ThemeConfig;
-```
-
-### Default theme
-
-```
-const theme = {
-  colors: {
-    light: {
-      primary: "#0f0",
-      background: "#fff",
-      // ...rest of keys
-      palette: {
-        gray: {
-          [100]: '#eee'
-        }
-      }
-
-     },
-    dark: { ... },
-  }
-  space?: {}, // Based on config, the measure units for spaces
-  utils: {
-    getHexAlpha,
-    getContrastColor
-  }
-}
-
-```
-
-### Theme Utilities
-
-This can be use from the theme variable or import directly.
-
-> There is no need to import them when are use inside the callback on createComponent. Use it from `theme.utils.`
+`import {ColorUtils} from 'react-native-tinybase'`
 
 #### Utils for colors
 
@@ -312,9 +236,33 @@ const Bar = () => {
 
 <!-- ### useColorMode -->
 
+### useBreakPointValue
+
+This hook will return one of the given values based on the current width of the device.
+
+**`useBreakPointValue()`**
+
+```jsx
+// with string or what ever value
+const aValue = useBreakPointValue({
+    'xs': 'XS value',
+    'sm': 'small value',
+    'md': 'value can be anything',
+    'lg': 'large',
+    'xl': ' XL large',
+    '2xl': ' 2XL large',
+    'default': '  DEFAULT',
+  });
+```
+
+<!-- ### useBreakPointValue -->
+
 ### useTheme
 
 A hook to retrieve all the theme values and utility helpers.
+> Be sure to  call `registerTheme` first if you want to have any customization.
+
+By default it will use [defaultTheme](#default-theme)
 
 #### Usage
 
@@ -335,6 +283,99 @@ const Taz = () => {
     </View>
   );
 };
+```
+
+
+## Theme
+
+Use custom theme example in `./example/src/customTheme.ts`
+
+### Theme Config
+
+...
+
+```typescript
+import { type ThemeConfig } from 'react-native-tinybase'
+
+const myThemeConfig = {
+  ...
+} satisfies ThemeConfig;
+```
+
+### Default theme
+
+```
+const theme = {
+  "colors": {
+    "light": {
+      "background": "#fdfbfd",
+      "foreground": "#1c1c1e",
+      "muted": "#f4f4f5",
+      "muted_foreground": "#71717a",
+      "primary": "#8b59a0",
+      "primary_foreground": "#f4eff6",
+      "secondary": "#79a964",
+      "secondary_foreground": "#fff",
+      "destructive": "#e00c2c",
+      "destructive_foreground": "#f4eff6",
+      "accent": "#19d5bc",
+      "accent_foreground": "#303835",
+      "border": "#c0a3cc",
+      "card": "#e2d6e8",
+      "card_foreground": "#1c1c1e",
+      "ring": "#c0b3cc",
+      "palette": {
+        // ...
+      }
+    },
+    "dark": {
+      "background": "#09090b",
+      "foreground": "#fafafa",
+      "muted": "#1a1a38",
+      "muted_foreground": "#a1a1aa",
+      "primary": "#756896",
+      "primary_foreground": "#f4eff6",
+      "secondary": "#899668",
+      "secondary_foreground": "#e2e5dc",
+      "destructive": "#be0a25",
+      "destructive_foreground": "#f4eff6",
+      "accent": "#16bea7",
+      "accent_foreground": "#303835",
+      "border": "#2d283a",
+      "card": "#3f3851",
+      "card_foreground": "#fafafa",
+      "ring": "#2d183a",
+      "palette": {
+        // ...
+      }
+    }
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "7": 28,
+    "8": 32,
+    "9": 36,
+    "10": 40,
+    "-1": -4,
+    "-2": -8,
+    "-3": -12,
+    "-4": -16,
+    "-5": -20,
+    "-6": -24,
+    "-7": -28,
+    "-8": -32,
+    "-9": -36,
+    "-10": -40,
+    ".25": 1,
+    ".50": 2,
+    ".75": 3
+  }
+}
 ```
 
 ## Helpers
@@ -379,7 +420,6 @@ Or to your `app.json`
 
 - [React Native](https://reactnative.dev/)
 - [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
-- [lodash](https://lodash.com/)
 - [zustand](https://zustand-demo.pmnd.rs/)
 
 <!-- ## Contributing
