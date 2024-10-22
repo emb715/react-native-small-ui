@@ -8,7 +8,7 @@ import {
   type TransformsStyle as RNTransformsStyle,
   type ViewStyle,
 } from 'react-native';
-import type { FindStyleType } from '../tinybase';
+import type { FindStyleType } from '../tinybase.types';
 
 type MatchStyleKey<T, TStyle = FindStyleType<T>> = Readonly<{
   [Property in keyof TStyle]: Property;

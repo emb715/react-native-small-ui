@@ -1,4 +1,4 @@
-import { getContrastMode } from './utils.colors';
+import { getContrastMode } from './colors.utils';
 
 export function getStatusBarStyle(bgColor: string) {
   const contrast = getContrastMode(bgColor);
