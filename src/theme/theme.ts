@@ -290,4 +290,3 @@ export function createTheme(themeConfig: ThemeConfig = _defaultThemeConfig) {
 }
 
 export const defaultTheme = createTheme(_defaultThemeConfig);
-console.log('LOG: > defaultTheme:', defaultTheme);
