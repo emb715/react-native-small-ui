@@ -67,3 +67,9 @@ export function getHexAlpha(hexColor: string, alpha: number) {
       : hexColor.slice(1);
   return `#${colorFull}${hexAlpha}`;
 }
+
+export const ColorUtils = {
+  getHexAlpha,
+  getContrastColor,
+  getContrastMode,
+};

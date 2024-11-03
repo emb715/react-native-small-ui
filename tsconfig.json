@@ -1,4 +1,5 @@
 {
+  "exclude": ["./docs", "lib"],
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
