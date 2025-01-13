@@ -78,14 +78,14 @@ export const useTinyBase = ({ config }: { config?: InitConfig } = {}) => {
   const initRef = useRef<boolean>(false);
 
   useEffect(() => {
-    let unsubscribe = null;
     if (initRef.current === false) {
-      unsubscribe = _initTinyBase(config);
+      const unsubscribe = _initTinyBase(config);
       initRef.current = true;
+      return () => {
+        unsubscribe?.();
+      };
     }
-    return () => {
-      unsubscribe?.();
-    };
+    return;
   }, [config]);
 };
 
@@ -100,7 +100,7 @@ export const createComponent =
     Component: ComponentType<TProps>,
     customized?: ComponentStyle<TProps>
   ) =>
-  (props: TProps & ExtendedProps<TProps>): React.ReactNode => {
+  (props: TProps & ExtendedProps<TProps>) => {
     const mergedProps = Object.assign({}, customized, props);
 
     const resolvedProps = resolvePropByType<TProps>(
