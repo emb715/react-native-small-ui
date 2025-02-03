@@ -86,11 +86,15 @@
     "react-native": "0.74.3",
     "react-native-builder-bob": "^0.26.0",
     "react-test-renderer": "^18.3.1",
-    "release-it": "^15.0.0",
+    "release-it": "18.1.2",
     "typescript": "^5.2.2"
   },
   "resolutions": {
-    "@types/react": "^18.2.44"
+    "@types/react": "^18.2.44",
+    "cross-spawn": "7.0.5",
+    "fast-xml-parser": "4.4.1",
+    "nanoid": "3.3.8",
+    "semver": "7.5.2"
   },
   "peerDependencies": {
     "react": "*",
@@ -202,7 +206,6 @@
     "@ctrl/tinycolor": "^4.1.0",
     "css-mediaquery": "^0.1.2",
     "lodash-es": "^4.17.21",
-    "z": "^1.0.9",
     "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
