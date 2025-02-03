@@ -34,7 +34,7 @@ npm install react-native-tinybase
 or
 
 ```sh
-yarn install react-native-tinybase
+yarn add react-native-tinybase
 ```
 
 #### Web support
@@ -153,7 +153,7 @@ const MyComponent = createComponent(View,
 
 #### Utils for colors
 
-**`getHexAlpha`**
+**`ColorUtils.getHexAlpha`**
 
 ```js
 /**
@@ -164,7 +164,7 @@ const MyComponent = createComponent(View,
  function getHexAlpha('#f00', 0.5): '#ff000080'
 ```
 
-**`getContrastColor`**
+**`ColorUtils.getContrastColor`**
 
 Accepts a color as argument to get the contrast color of it. `#fff` or `#000`
 
@@ -175,6 +175,19 @@ Accepts a color as argument to get the contrast color of it. `#fff` or `#000`
  */
  function getContrastColor('#333'): '#fff'
 ```
+
+**`ColorUtils.getContrastMode`**
+
+Accepts a color as argument to get the corresponding color mode. `light` or `dark`
+
+```js
+/**
+ * @param {string} color
+ * @return {string} light or dark
+ */
+ function getContrastMode('#333'): 'light'
+```
+
 
 ## Hooks
 
@@ -349,31 +362,6 @@ const theme = {
         // ...
       }
     }
-  },
-  "space": {
-    "1": 4,
-    "2": 8,
-    "3": 12,
-    "4": 16,
-    "5": 20,
-    "6": 24,
-    "7": 28,
-    "8": 32,
-    "9": 36,
-    "10": 40,
-    "-1": -4,
-    "-2": -8,
-    "-3": -12,
-    "-4": -16,
-    "-5": -20,
-    "-6": -24,
-    "-7": -28,
-    "-8": -32,
-    "-9": -36,
-    "-10": -40,
-    ".25": 1,
-    ".50": 2,
-    ".75": 3
   }
 }
 ```
