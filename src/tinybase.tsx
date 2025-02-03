@@ -18,10 +18,10 @@ import type { ComponentStyle, ExtendedProps } from './tinybase.types';
 
 export const _useTinyBaseStore = create<{
   init: boolean;
-  config: InitConfig | null;
+  config: InitConfig;
 }>(() => ({
   init: false,
-  config: null,
+  config: defaultConfig,
 }));
 
 type InitConfig = {
@@ -182,7 +182,12 @@ export function resolvePropByType<TProps extends object>(
   // const originalProps = {} as Partial<TProps>;
   const customProps = {} as Record<keyof typeof CustomStyleProps, object>;
 
+  const exclusionList = ['children'];
   Object.entries(props).forEach(([propKey, propValue]) => {
+    // Omit special props that should't be evaluated
+    if (exclusionList.includes(propKey)) {
+      return;
+    }
     if (propKey === 'style') {
       styleProp = propValue;
       return;
