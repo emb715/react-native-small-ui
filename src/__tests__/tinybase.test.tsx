@@ -75,6 +75,21 @@ describe('createComponent', () => {
     const element = screen.getByTestId('test-component');
     expect(element).toBeOnTheScreen();
   });
+  test('should work with inline props as styles', () => {
+    const NewComponent = createComponent(View, {
+      backgroundColor: '#f00',
+    });
+    render(
+      <NewComponent
+        testID="test-component"
+        height={32}
+        paddingHorizontal={20}
+      />
+    );
+    const element = screen.getByTestId('test-component');
+    expect(element).toBeOnTheScreen();
+    expect(element).toHaveStyle({ height: 32, paddingHorizontal: 20 });
+  });
 });
 
 describe('resolvePropByType', () => {
