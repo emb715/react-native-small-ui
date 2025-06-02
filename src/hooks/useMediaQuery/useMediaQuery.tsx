@@ -36,4 +36,4 @@ export const useMediaQuery = (mediaQueryString: string) => {
   return matches;
 };
 
-// Example: useMediaQuery('(min-width: 768px)');
+// Example: useMediaQuery('(min-width: 48rem)')

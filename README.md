@@ -14,10 +14,12 @@ Uses typescript to bring autocompletion for styles when creating component and u
 - [Basic Usage](#usage)
   - [Create Component](#create-component)
   - [Hooks](#hooks)
+    - [useOrientation](#useorientation)
+    - [useMediaQuery](#usemediaquery)
     - [useColorModeValue](#usecolormodevalue)
     - [useBreakPointValue](#usebreakpointvalue)
-    - [useTheme](#useTheme)
   - [Theme](#theme)
+    - [useTheme](#useTheme)
     - [Theme Config](#theme-config)
     - [Utilities](#theme-utilities)
   - [Helpers](#helpers)
@@ -191,6 +193,31 @@ Accepts a color as argument to get the corresponding color mode. `light` or `dar
 
 ## Hooks
 
+### useOrientation
+
+This hook will return one **landscape** or **portrait**
+
+**`useOrientation()`**
+
+```jsx
+const isLandscape = useOrientation() === 'landscape';
+```
+
+<!-- #end: useOrientation -->
+
+### useMediaQuery
+
+Simple usage for media query string. This hook will return a boolean
+
+**`useMediaQuery()`**
+
+```jsx
+useMediaQuery('(min-width: 30rem)')
+useMediaQuery('(min-width: 30rem) and (max-width: 60rem)')
+```
+
+<!-- #end: useMediaQuery -->
+
 ### useColorModeValue
 
 This hook will return one of the given values based on the current appearance mode.
@@ -247,7 +274,7 @@ const Bar = () => {
 };
 ```
 
-<!-- ### useColorMode -->
+<!-- #end: useColorMode -->
 
 ### useBreakPointValue
 
@@ -268,8 +295,11 @@ const aValue = useBreakPointValue({
   });
 ```
 
-<!-- ### useBreakPointValue -->
+<!-- ### end: useBreakPointValue -->
 
+----
+
+## Themable
 ### useTheme
 
 A hook to retrieve all the theme values and utility helpers.

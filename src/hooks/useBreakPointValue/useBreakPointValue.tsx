@@ -13,12 +13,17 @@ import { _useTinyBaseStore, type BreakPoints } from '../../tinybase';
 //   lg: 'large'
 // })
 
+type UseBreakPointValueConfig = {
+  breakPoints: BreakPoints;
+};
 type UseBreakPointValueProps<T> = Partial<Record<keyof BreakPoints, T>>;
 export const useBreakPointValue = <T,>(
-  breakpointValues: UseBreakPointValueProps<T>
+  breakpointValues: UseBreakPointValueProps<T>,
+  _config?: UseBreakPointValueConfig
 ) => {
   const dimensions = useWindowDimensions();
-  const { config } = _useTinyBaseStore.getState();
+  const store = _useTinyBaseStore.getState();
+  const config = _config || store?.config;
   if (!config || !config.breakPoints) {
     throw 'useBreakPointValue: theme.breakpoints not defined';
   }
