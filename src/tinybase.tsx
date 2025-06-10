@@ -12,6 +12,20 @@ import {
 } from './utils/utils.style-props';
 import type { ComponentStyle, ExtendedProps } from './tinybase.types';
 
+const defaultBreakPoints = {
+  'default': 0, // 100%
+  'xs': 480,
+  'sm': 640,
+  'md': 768,
+  'lg': 1024,
+  'xl': 1280,
+  '2xl': 1536,
+};
+
+const defaultConfig = {
+  breakPoints: defaultBreakPoints,
+};
+
 /*****************************
  * EMB Tiny base. Simple UI Lib
  *****************************/
@@ -36,20 +50,6 @@ export type BreakPoints = {
   'lg': number;
   'xl': number;
   '2xl': number;
-};
-
-const defaultBreakPoints = {
-  'default': 0, // 100%
-  'xs': 480,
-  'sm': 640,
-  'md': 768,
-  'lg': 1024,
-  'xl': 1280,
-  '2xl': 1536,
-};
-
-const defaultConfig = {
-  breakPoints: defaultBreakPoints,
 };
 
 export function _initTinyBase(config: InitConfig = defaultConfig) {
