@@ -1,6 +1,6 @@
 {
   "name": "react-native-tinybase",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Small UI library for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
