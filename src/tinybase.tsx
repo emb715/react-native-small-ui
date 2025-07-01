@@ -98,9 +98,11 @@ const DEBUG_MODE = false;
 export const createComponent =
   <TProps extends { style?: unknown }>(
     Component: ComponentType<TProps>,
-    customized?: ComponentStyle<TProps>
+    customized?: ComponentStyle<TProps>,
+    defaultProps?: Exclude<TProps, 'style'>
   ) =>
   (props: TProps & ExtendedProps<TProps>) => {
+    const _defaultProps = defaultProps ?? {};
     const mergedProps = Object.assign({}, customized, props);
 
     const resolvedProps = resolvePropByType<TProps>(
@@ -163,6 +165,7 @@ export const createComponent =
     DEBUG_MODE &&
       console.log('LOG: > mergedStyles:', Component.displayName, mergedStyles);
     return React.createElement(Component, {
+      ..._defaultProps,
       ...(props as TProps), // Pass all the props, it will ignore none valid
       // ...(resolvedProps.props as TProps),
       style: mergedStyles,
