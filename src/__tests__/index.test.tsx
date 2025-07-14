@@ -13,7 +13,7 @@ const expectedExports = [
   'useMediaQuery',
   'useOrientation',
   'useTheme',
-  'useTinyBase',
+  'useSmallUI',
   'getStatusBarStyle',
 ];
 test('check exports from package', () => {

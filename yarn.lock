@@ -13165,9 +13165,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-tinybase-example@workspace:example":
+"react-native-small-ui-example@workspace:example":
   version: 0.0.0-use.local
-  resolution: "react-native-tinybase-example@workspace:example"
+  resolution: "react-native-small-ui-example@workspace:example"
   dependencies:
     "@babel/core": ^7.20.0
     "@expo/metro-runtime": ~3.2.1
@@ -13186,9 +13186,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-tinybase@workspace:.":
+"react-native-small-ui@workspace:.":
   version: 0.0.0-use.local
-  resolution: "react-native-tinybase@workspace:."
+  resolution: "react-native-small-ui@workspace:."
   dependencies:
     "@commitlint/config-conventional": ^17.0.2
     "@ctrl/tinycolor": ^4.1.0

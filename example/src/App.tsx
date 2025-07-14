@@ -10,12 +10,12 @@ import {
   createComponent,
   useColorMode,
   useColorModeValue,
-  useTinyBase,
+  useSmallUI,
   ColorUtils,
   toggleColorScheme,
   useBreakPointValue,
   getTheme,
-} from 'react-native-tinybase';
+} from 'react-native-small-ui';
 import { Box, Center, Text } from './components/primitives';
 import {
   DarkTheme,
@@ -248,7 +248,7 @@ function HomeScreen() {
 }
 
 export default function App() {
-  useTinyBase();
+  useSmallUI();
 
   const navigationTheme = useColorModeValue(DefaultTheme, DarkTheme);
   return (

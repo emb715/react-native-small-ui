@@ -1,10 +1,10 @@
-# react-native-tinybase
+# react-native-small-ui
 
 Small UI Lib for React Native. Inspired by [native base](https://nativebase.io/)
 
 # Introduction
 
-The idea behind **React Native TinyBase** is being able to create components that can be easily styled. Allowing you to build universal apps in React Native with multi-platform and dark mode support.
+The idea behind **React Native Small UI** is being able to create components that can be easily styled. Allowing you to build universal apps in React Native with multi-platform and dark mode support.
 Uses typescript to bring autocompletion for styles when creating component and using them.
 
 ## Table of Contents
@@ -30,13 +30,13 @@ Uses typescript to bring autocompletion for styles when creating component and u
 ## Installation
 
 ```sh
-npm install react-native-tinybase
+npm install react-native-small-ui
 ```
 
 or
 
 ```sh
-yarn add react-native-tinybase
+yarn add react-native-small-ui
 ```
 
 #### Web support
@@ -45,16 +45,16 @@ yarn add react-native-tinybase
 
 ## Getting Started
 
-Get started by adding **`useTinyBase`** hook in your App.
+Get started by adding **`useSmallUI`** hook in your App.
 
 ```js
 // No config
 ...
-import { useTinyBase } from 'react-native-tinybase';
+import { useSmallUI } from 'react-native-small-ui';
 
 
 function App() {
-  useTinyBase()
+  useSmallUI()
   return (
     <View>
       <Text>Example</Text>
@@ -84,7 +84,7 @@ Customized are prefixed with **underscore**:
 Example:
 
 ```jsx
-import { createComponent } from 'react-native-tinybase';
+import { createComponent } from 'react-native-small-ui';
 
 const MyComponent = createComponent(View, {
   alignItems: 'center',
@@ -129,7 +129,7 @@ function App() {
 You can create a theme and use it in your styles.
 
 ```typescript
-import { getTheme, createComponent } from 'react-native-tinybase';
+import { getTheme, createComponent } from 'react-native-small-ui';
 
 const theme = getTheme()
 // const myTheme = registerTheme({ ... })
@@ -151,7 +151,7 @@ const MyComponent = createComponent(View,
 
 > Use it from ColorUtils.
 
-`import {ColorUtils} from 'react-native-tinybase'`
+`import {ColorUtils} from 'react-native-small-ui'`
 
 #### Utils for colors
 
@@ -250,7 +250,7 @@ const basedOnColorMode = useColorModeValue('#eee', '#333');
 ```jsx
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useColorModeValue } from 'react-native-tinybase';
+import { useColorModeValue } from 'react-native-small-ui';
 
 const Bar = () => {
   const color = useColorModeValue('a light color', 'a dark color');
@@ -312,7 +312,7 @@ By default it will use [defaultTheme](#default-theme)
 ```jsx
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from 'react-native-tinybase';
+import { useTheme } from 'react-native-small-ui';
 
 const Taz = () => {
   const theme = useTheme();
@@ -338,7 +338,7 @@ Use custom theme example in `./example/src/customTheme.ts`
 ...
 
 ```typescript
-import { type ThemeConfig } from 'react-native-tinybase'
+import { type ThemeConfig } from 'react-native-small-ui'
 
 const myThemeConfig = {
   ...

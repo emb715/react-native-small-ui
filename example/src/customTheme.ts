@@ -1,4 +1,4 @@
-import { registerTheme, type ThemeConfig } from 'react-native-tinybase';
+import { registerTheme, type ThemeConfig } from 'react-native-small-ui';
 
 export const customThemeConfig = {
   colors: {

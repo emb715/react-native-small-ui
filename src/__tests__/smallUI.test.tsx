@@ -1,10 +1,10 @@
 import {
-  _initTinyBase,
-  _useTinyBaseStore,
+  _initSmallUI,
+  _useSmallUIStore,
   createComponent,
   resolvePropByType,
-  useTinyBase,
-} from '../tinybase';
+  useSmallUI,
+} from '../smallUI';
 
 import * as ColorMode from '../hooks/useColorMode/useColorMode';
 import {
@@ -18,7 +18,7 @@ import { View } from 'react-native';
 const mockConsoleWarn = jest.fn();
 jest.spyOn(console, 'warn').mockImplementation(mockConsoleWarn);
 
-const mockStoreSetState = jest.spyOn(_useTinyBaseStore, 'setState');
+const mockStoreSetState = jest.spyOn(_useSmallUIStore, 'setState');
 const mockColorSchemeListener = jest.spyOn(ColorMode, 'colorSchemeListener');
 
 beforeEach(() => {
@@ -29,11 +29,11 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('_initTinyBase', () => {
+describe('_initSmallUI', () => {
   //
   test('should pass test', () => {
     const config = {};
-    const result = _initTinyBase(config);
+    const result = _initSmallUI(config);
 
     expect(mockStoreSetState).toHaveBeenCalledTimes(1);
     expect(typeof result === 'function').toBeTruthy();
@@ -42,18 +42,18 @@ describe('_initTinyBase', () => {
 
   test('should warn already initialized', () => {
     const themeConfig = undefined;
-    _initTinyBase(themeConfig);
-    const result = _initTinyBase(themeConfig);
+    _initSmallUI(themeConfig);
+    const result = _initSmallUI(themeConfig);
 
     expect(mockConsoleWarn).toHaveBeenCalledTimes(1);
-    expect(mockConsoleWarn).toHaveBeenCalledWith('TinyBase already initiated.');
+    expect(mockConsoleWarn).toHaveBeenCalledWith('SmallUI already initiated.');
     expect(result).toBeUndefined();
   });
 });
 
-describe('useTinyBase', () => {
+describe('useSmallUI', () => {
   test('should work', async () => {
-    const { result } = renderHook(() => useTinyBase());
+    const { result } = renderHook(() => useSmallUI());
     await waitFor(() => result.current);
     expect(result.current).toBe(undefined);
   });

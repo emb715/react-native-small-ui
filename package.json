@@ -1,5 +1,5 @@
 {
-  "name": "react-native-tinybase",
+  "name": "react-native-small-ui",
   "version": "0.3.7",
   "description": "Small UI library for React Native",
   "source": "./src/index.tsx",
@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace react-native-tinybase-example start",
+    "example": "yarn workspace react-native-small-ui-example start",
     "test": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -47,14 +47,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/emb715/react-native-tinybase.git"
+    "url": "git+https://github.com/emb715/react-native-small-ui.git"
   },
   "author": "Ezequiel Benitez <ezequielmartinbenitez@gmail.com> (https://github.com/emb715)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/emb715/react-native-tinybase/issues"
+    "url": "https://github.com/emb715/react-native-small-ui/issues"
   },
-  "homepage": "https://github.com/emb715/react-native-tinybase#readme",
+  "homepage": "https://github.com/emb715/react-native-small-ui#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

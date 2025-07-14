@@ -1,5 +1,5 @@
 import { useWindowDimensions } from 'react-native';
-import { _useTinyBaseStore, type BreakPoints } from '../../tinybase';
+import { _useSmallUIStore, type BreakPoints } from '../../smallUI';
 
 // Example:
 // const maxWidth = useBreakPointValue({
@@ -22,7 +22,7 @@ export const useBreakPointValue = <T,>(
   _config?: UseBreakPointValueConfig
 ) => {
   const dimensions = useWindowDimensions();
-  const store = _useTinyBaseStore.getState();
+  const store = _useSmallUIStore.getState();
   const config = _config || store?.config;
   if (!config || !config.breakPoints) {
     throw 'useBreakPointValue: theme.breakpoints not defined';

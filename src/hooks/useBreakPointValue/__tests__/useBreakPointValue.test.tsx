@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 
 import { useBreakPointValue } from '../useBreakPointValue';
 import { Dimensions } from 'react-native';
-import { _initTinyBase } from '../../../tinybase';
+import { _initSmallUI } from '../../../smallUI';
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe('useBreakPointValue ', () => {
   beforeEach(() => {
-    _initTinyBase();
+    _initSmallUI();
   });
   it('default (with: 414)', () => {
     jest.spyOn(Dimensions, 'get').mockReturnValue({

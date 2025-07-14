@@ -1,5 +1,5 @@
 import { View, Text as RNText } from 'react-native';
-import { createComponent, getTheme } from 'react-native-tinybase';
+import { createComponent, getTheme } from 'react-native-small-ui';
 
 const theme = getTheme();
 console.log('LOG: primitives > theme:', theme);
