@@ -13,14 +13,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "embtinybase.example"
+      "bundleIdentifier": "embsmallui.example"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "embtinybase.example"
+      "package": "embsmallui.example"
     },
     "web": {
       "favicon": "./assets/favicon.png"

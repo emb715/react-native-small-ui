@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-tinybase": ["./src/index"]
+      "react-native-small-ui": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

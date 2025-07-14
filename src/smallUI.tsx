@@ -10,7 +10,7 @@ import {
   StylePropsLookUp,
   type LookUpPropsComponentType,
 } from './utils/utils.style-props';
-import type { ComponentStyle, ExtendedProps } from './tinybase.types';
+import type { ComponentStyle, ExtendedProps } from './smallUI.types';
 
 const defaultBreakPoints = {
   'default': 0, // 100%
@@ -27,10 +27,10 @@ const defaultConfig = {
 };
 
 /*****************************
- * EMB Tiny base. Simple UI Lib
+ * EMB Small UI
  *****************************/
 
-export const _useTinyBaseStore = create<{
+export const _useSmallUIStore = create<{
   init: boolean;
   config: InitConfig;
 }>(() => ({
@@ -52,34 +52,34 @@ export type BreakPoints = {
   '2xl': number;
 };
 
-export function _initTinyBase(config: InitConfig = defaultConfig) {
+export function _initSmallUI(config: InitConfig = defaultConfig) {
   try {
     // check init
-    if (_useTinyBaseStore.getState().init === true) {
-      console.warn('TinyBase already initiated.');
+    if (_useSmallUIStore.getState().init === true) {
+      console.warn('SmallUI already initiated.');
       return;
     }
     // Listener to set color mode
     const appearanceListener = colorSchemeListener();
     // ...
     // After all
-    _useTinyBaseStore.setState({ init: true, config });
+    _useSmallUIStore.setState({ init: true, config });
 
     return () => {
       appearanceListener.remove();
     };
   } catch (error) {
-    console.error('_initTinyBase.error:', error);
+    console.error('_initSmallUI.error:', error);
     return;
   }
 }
 
-export const useTinyBase = ({ config }: { config?: InitConfig } = {}) => {
+export const useSmallUI = ({ config }: { config?: InitConfig } = {}) => {
   const initRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (initRef.current === false) {
-      const unsubscribe = _initTinyBase(config);
+      const unsubscribe = _initSmallUI(config);
       initRef.current = true;
       return () => {
         unsubscribe?.();

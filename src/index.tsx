@@ -1,7 +1,9 @@
-export { createComponent, useTinyBase } from './tinybase';
-export type { ComponentStyle } from './tinybase.types';
+export { createComponent, useSmallUI } from './smallUI';
+export type { ComponentStyle } from './smallUI.types';
+
 export type { ThemeConfig } from './theme/theme';
 export { useTheme, getTheme, registerTheme } from './hooks/useTheme/useTheme';
+
 export * from './utils/helpers';
 export { ColorUtils } from './utils/colors.utils';
 export {
