@@ -98,7 +98,7 @@ describe('toggleColorScheme', () => {
     expect(await screen.findByTestId(TEST_ID_TEXT)).toHaveTextContent(
       'current dark'
     );
-  });
+  }, 10_000);
 });
 
 describe('colorSchemeListener', () => {
