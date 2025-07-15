@@ -101,8 +101,7 @@
     "react-native": "*"
   },
   "workspaces": [
-    "example",
-    "docs"
+    "example"
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {
