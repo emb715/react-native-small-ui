@@ -1,0 +1,70 @@
+---
+title: React Native Small UI
+description: React Native Small UI is a versatile, lightweight component library crafted for developers who want to create stunning cross-platform mobile apps with ease. Powered by TypeScript for type-safe development, it offers a utility-first approach to building UIs, giving you the freedom to style components your way. With built-in support for light and dark modes, platform-specific optimizations, and customizable default props, this library ensures your apps are both beautiful and blazing fast. Perfect for rapid prototyping or polished production apps, React Native Small UI simplifies UI development without sacrificing flexibility.
+template: splash
+hero:
+  tagline: Build Fast, Style Freely, Performant UIs with Ease –  Lightweight, and Fully Customizable Your Go-To UI Toolkit for React Native
+  image:
+    file: ../../assets/egg-layout2.svg
+  actions:
+    - text: Get Started
+      link: /getting-started
+      icon: right-arrow
+      variant: primary
+    - text: Example & Guides
+      link: /guides/example/
+      variant: secondary
+---
+
+import { npmToBun, npmToYarn, npmToPnpm } from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+
+
+<CardGrid>
+	<Card title="Utility-Based Props" icon="rocket">
+		Streamline your workflow with a simple, declarative API for styling and customization.
+	</Card>
+	<Card title="TypeScript-Powered" icon="seti:typescript">
+		Enjoy type-safe development with intelligent type inference for faster, error-free coding
+	</Card>
+	<Card title="Light & Dark Mode Support" icon="sun">
+		Enjoy type-safe development with intelligent type inference for faster, error-free coding
+	</Card>
+	<Card title="Platform-Specific Code" icon="seti:html">
+		Optimize for iOS and Android with components that respect platform nuances.
+	</Card>
+	<Card title="Lightweight & Performant" icon="puzzle">
+		Keep your app lean and responsive with a modular, minimal-footprint design.
+	</Card>
+</CardGrid>
+
+
+## Next steps
+
+<CardGrid stagger>
+	<Card title="Installation Core package" icon="seti:html">
+		<Tabs>
+		<TabItem label="yarn" icon="seti:yarn">
+			<Code code={npmToYarn("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+		<TabItem label="npm" icon="seti:npm">
+			<Code code="npm install react-native-small-ui" lang="sh"/>
+		</TabItem>
+		<TabItem label="pnpm" icon="pnpm">
+			<Code code={npmToPnpm("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+		<TabItem label="bun" icon="bun">
+			<Code code={npmToBun("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+		</Tabs>
+	</Card>
+
+	<Card title="Getting Started" icon="comment-alt">
+		Unleash your creativity and build polished, responsive mobile apps with React Native Small UI – where simplicity meets flexibility.
+		<LinkButton href="/guides/example" variant="secondary">
+			Examples
+		</LinkButton>
+	</Card>
+
+</CardGrid>

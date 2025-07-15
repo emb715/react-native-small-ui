@@ -1,0 +1,64 @@
+---
+title: Getting Started
+---
+
+import { npmToBun, npmToYarn, npmToPnpm } from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+## Installation
+
+	<Tabs>
+		<TabItem label="yarn" icon="seti:yarn">
+			<Code code={npmToYarn("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+		<TabItem label="npm" icon="seti:npm">
+			<Code code="npm install react-native-small-ui" lang="sh"/>
+		</TabItem>
+		<TabItem label="pnpm" icon="pnpm">
+			<Code code={npmToPnpm("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+		<TabItem label="bun" icon="bun">
+			<Code code={npmToBun("npm install react-native-small-ui")} lang="sh"/>
+		</TabItem>
+	</Tabs>
+
+
+#### Web support
+<LinkButton href="https://necolas.github.io/react-native-web/docs/installation/" variant="minimal"  icon="external">
+  React Native Web
+</LinkButton>
+
+
+---
+
+## Usage
+
+Get started by adding **`useSmallUI`** hook in your App.
+
+```js
+import * as React from 'react';
+import {View} from 'react-native';
+import { useSmallUI } from 'react-native-small-ui';
+
+const Box = createComponent(View, {
+  backgroundColor: '#ccc'
+})
+
+function App() {
+  return (
+    <View>
+      <Box marginTop={112}>
+        <Text>Example</Text>
+      </Box>
+    </View>
+  );
+}
+
+export default function Main() {
+  useSmallUI()
+  return (
+    <App />
+  );
+}
+
+```
