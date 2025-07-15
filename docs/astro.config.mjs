@@ -2,8 +2,11 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+// emb715/react-native-small-ui
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://emb715.github.io',
+  base: 'react-native-small-ui',
   integrations: [
     starlight({
       customCss: ['./src/custom.css'],
