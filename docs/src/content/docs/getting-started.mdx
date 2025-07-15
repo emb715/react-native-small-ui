@@ -32,12 +32,12 @@ import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starli
 
 ## Usage
 
-Get started by adding **`useSmallUI`** hook in your App.
+Get started by adding **`useSmallUI`** hook in your App. This will enable the utilities that might be in used, detect changes and adapt the ui.
 
 ```js
 import * as React from 'react';
 import {View} from 'react-native';
-import { useSmallUI } from 'react-native-small-ui';
+import { useSmallUI, createComponent } from 'react-native-small-ui';
 
 const Box = createComponent(View, {
   backgroundColor: '#ccc'
