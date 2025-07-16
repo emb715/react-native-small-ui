@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <rect style="stroke-width: 0; stroke-linecap: round; stroke-miterlimit: 5.55; stroke-linejoin: round; stroke: rgb(27, 104, 125); fill: rgb(15, 69, 87);" x="204.241" y="191.946" width="293.962" height="147.562" rx="12" ry="12"/>
+  <ellipse style="fill: rgb(192, 237, 240);" cx="346.185" cy="334.024" rx="134.504" ry="134.504"/>
+  <rect y="-530.72" width="340.975" height="340.975" style="fill: rgb(65, 182, 202); stroke-linecap: round; stroke-miterlimit: 15.45; transform-box: fill-box; transform-origin: 50% 50%;" x="-559.11" transform="matrix(-0.707107, 0.707107, -0.707107, -0.707107, 631.032515, 610.075673)"/>
+  <rect style="stroke-width: 0px; stroke-linecap: round; stroke-miterlimit: 5.55; stroke-linejoin: round; stroke: rgb(27, 104, 125); fill: rgb(27, 104, 125);" x="41.283" y="155.878" width="293.962" height="221.414" rx="25" ry="25"/>
+  <g transform="matrix(3.281046, 0, 0, 3.281046, -1412.750244, -528.658386)" style="">
+    <title>Egg</title>
+    <path fill="#F3F3F3" d="M 523.029 292.378 C 491.354 303.246 496.745 283.641 469.897 269.364 C 443.121 255.124 457.189 226.95 488.361 208.963 C 526.073 187.203 562.934 190.976 554.541 226.95 C 546.148 262.922 549.595 282.469 523.029 292.378 L 523.029 292.378 Z" style="stroke-width: 1;"/>
+    <circle cx="505.746" cy="242.531" r="19" fill="#F0C419" style="stroke-width: 1;"/>
+    <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="4" d="M 534.746 202.562 C 540.884 202.562 548.553 208.814 549.823 217.531 M 508.746 230.909 C 512.503 231.99 515.456 234.874 516.771 238.531" style="stroke-width: 4;"/>
+  </g>
+</svg>

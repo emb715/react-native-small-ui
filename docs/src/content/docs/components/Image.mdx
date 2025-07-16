@@ -1,0 +1,32 @@
+---
+title: Image
+sidebar: {
+  order: 3
+}
+---
+
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+export const component = `
+import { Image } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const MyCustomImage = createComponent(Image, {
+  height: 128,
+  width: 128,
+}, {
+  source: require('./assets/custom-image.png')
+})
+
+`
+
+Example usage of a custom image with utility props.
+
+```tsx
+  <Center marginVertical={12}>
+    <MyCustomImage aspectRatio={1} />
+  </Box>
+```
+---
+
+<Code code={component} lang="tsx" />

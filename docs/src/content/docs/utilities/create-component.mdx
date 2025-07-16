@@ -1,0 +1,83 @@
+---
+title: Create Component
+sidebar: {
+  order: 0
+}
+---
+
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton, Aside } from '@astrojs/starlight/components';
+
+export const exampleCode = `
+import { createComponent } from 'react-native-small-ui';
+
+const MyComponent = createComponent(View, {
+  alignItems: 'center',
+  justifyContent: 'center'
+  _light: {
+    backgroundColor: '#f1f1f1',
+  },
+  _dark_: {
+    backgroundColor: '#123123',
+  },
+  _ios: {
+    marginTop: 10,
+  },
+  _android: {
+    marginTop: 16,
+  },
+  _web: {
+    marginTop: 0
+  }
+})
+`
+
+
+You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props. The component will have access to the following props.
+
+
+```
+createComponent(Component, styleObject, defaultProps)
+```
+
+
+#### Utility Style Props
+
+All available styles of the component. Like: _backgroundColor_, _alignContent_, etc.
+
+Customized are prefixed with **underscore** _
+- `_light`
+- `_dark`
+- `_ios`
+- `_android`
+- `_web`
+
+
+Example: 
+<Code code={exampleCode} lang="js" title='MyComponent'/>
+
+
+<Aside type="note">
+The new created component `MyComponent` will also extend the same props for styling.
+</Aside>
+
+--- 
+
+```typescript
+function App() {
+  const myFlag = useMemo(() => {
+    // something that will return true or false
+    return true;
+  });
+
+  return (
+    <MyComponent
+      paddingTop={myFlag ? 16 : 0}
+      _web={{
+        paddingTop: myFlag ? 8 : undefined
+      }}
+    >
+      <Text>Hi!</Text>
+    </MyComponent>
+  );
+}
+```

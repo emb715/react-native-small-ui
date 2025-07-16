@@ -1,0 +1,32 @@
+/* https://color-palette.embthings.com/#41b6ca */
+
+/* Dark mode colors. */
+:root,
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #183036;
+  --sl-color-accent: #3a9dae;
+  --sl-color-accent-high: #8bd2d9;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eeedef;
+  --sl-color-gray-2: #c2c1c4;
+  --sl-color-gray-3: #8c8a8f;
+  --sl-color-gray-4: #59575b;
+  --sl-color-gray-5: #39373b;
+  --sl-color-gray-6: #272629;
+  --sl-color-black: #181819;
+}
+/* Light mode colors. */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #91dce3;
+  --sl-color-accent: #41b6ca;
+  --sl-color-accent-high: #0f4557;
+  --sl-color-white: #181819;
+  --sl-color-gray-1: #272629;
+  --sl-color-gray-2: #39373b;
+  --sl-color-gray-3: #59575b;
+  --sl-color-gray-4: #8c8a8f;
+  --sl-color-gray-5: #c2c1c4;
+  --sl-color-gray-6: #eeedef;
+  --sl-color-gray-7: #f6f6f7;
+  --sl-color-black: #ffffff;
+}
