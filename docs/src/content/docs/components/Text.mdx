@@ -1,0 +1,33 @@
+---
+title: Text
+sidebar: {
+  order: 1
+}
+---
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+
+export const component = `
+import { Text as RNText } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Text = createComponent(RNText, {
+  _light: {
+    color: '#111',
+  },
+  _dark: {
+    color: '#eee',
+  },
+});
+`
+
+Utility prop base component to copy/paste.
+
+Example usage:
+```tsx
+  <Text marginTop={12}>Hello!</Text>
+```
+
+---
+
+<Code title="Text.tsx" code={component} lang="tsx" />

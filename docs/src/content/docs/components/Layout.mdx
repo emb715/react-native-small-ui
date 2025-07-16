@@ -1,0 +1,90 @@
+---
+title: Layout
+sidebar: {
+  order: 0
+}
+---
+
+import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+
+
+export const component = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Box = createComponent(View);
+
+const Center = createComponent(View, {
+  alignItems: 'center',
+  justifyContent: 'center'
+});
+
+const Column = createComponent(View, {
+  flexDirection: 'column'
+})
+
+const Row = createComponent(View, {
+  flexDirection: 'row'
+})
+`
+
+A collection of components that can be useful to create layouts.
+Utility prop base component to copy/paste.
+
+
+<Code title="Layout.tsx" code={component} lang="tsx" />
+
+---
+
+## Box 
+
+export const componentBox = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Box = createComponent(View);
+`
+
+A simple View component, like a div.
+
+Example usage:
+```tsx
+  <Box
+    marginTop={12}
+    _light={{backgroundColor: '#eee'}}
+    _dark={{backgroundColor: '#111'}}
+  >
+    <Content />
+  </Box>
+```
+---
+
+<Code title="Box.tsx" code={componentBox} lang="tsx" />
+
+
+----
+
+
+export const componentCenter = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Center = createComponent(View, {
+  alignItems: 'center',
+  justifyContent: 'center'
+});
+`
+
+## Center
+
+Example usage:
+```tsx
+  <Center>
+    <Content />
+  </Box>
+```
+---
+
+<Code title="Center.tsx" code={componentCenter} lang="tsx" />
+
+---
