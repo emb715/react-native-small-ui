@@ -17,6 +17,11 @@ export default defineConfig({
           label: 'GitHub',
           href: 'https://github.com/emb715/react-native-small-ui',
         },
+        {
+          icon: 'npm',
+          label: 'NPM',
+          href: 'https://www.npmjs.com/package/react-native-small-ui',
+        },
       ],
       sidebar: [
         {
