@@ -2,6 +2,8 @@
 
 Small UI Lib for React Native. Inspired by [native base](https://nativebase.io/)
 
+Unleash your creativity and build polished, responsive mobile apps with React Native Small UI – where simplicity meets flexibility
+
 # Introduction
 
 The idea behind **React Native Small UI** is being able to create components that can be easily styled. Allowing you to build universal apps in React Native with multi-platform and dark mode support.

@@ -1,4 +1,10 @@
-import React, { type ComponentType, useEffect, useMemo, useRef } from 'react';
+import React, {
+  type ComponentPropsWithRef,
+  type ComponentType,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { create } from 'zustand';
 
@@ -24,7 +30,7 @@ const defaultBreakPoints = {
 
 const defaultConfig = {
   breakPoints: defaultBreakPoints,
-};
+} satisfies InitConfig;
 
 /*****************************
  * EMB Small UI
@@ -61,6 +67,7 @@ export function _initSmallUI(config: InitConfig = defaultConfig) {
     }
     // Listener to set color mode
     const appearanceListener = colorSchemeListener();
+    // TODO: validate config
     // ...
     // After all
     _useSmallUIStore.setState({ init: true, config });
@@ -101,7 +108,11 @@ export const createComponent =
     customized?: ComponentStyle<TProps>,
     defaultProps?: Exclude<TProps, 'style'>
   ) =>
-  (props: TProps & ExtendedProps<TProps>) => {
+  (
+    props: TProps &
+      ComponentPropsWithRef<typeof Component> &
+      ExtendedProps<TProps>
+  ) => {
     const _defaultProps = defaultProps ?? {};
     const mergedProps = Object.assign({}, customized, props);
 
@@ -118,7 +129,7 @@ export const createComponent =
 
     const generatedStyles = useMemo(
       () =>
-        createStyle({
+        createStyleSheet({
           styleProp: resolvedProps.styleProp,
           atomicStyles: resolvedProps.atomic,
           light: resolvedProps.customProps?._light,
@@ -132,7 +143,7 @@ export const createComponent =
     );
     DEBUG_MODE &&
       console.log(
-        'LOG: > generatedStyles:',
+        'createComponent.generatedStyles:',
         Component.displayName,
         generatedStyles
       );
@@ -147,7 +158,7 @@ export const createComponent =
     });
     DEBUG_MODE &&
       console.log(
-        'LOG: > platformStyle:',
+        'createComponent.platformStyle:',
         Component.displayName,
         platformStyle
       );
@@ -163,7 +174,11 @@ export const createComponent =
     );
 
     DEBUG_MODE &&
-      console.log('LOG: > mergedStyles:', Component.displayName, mergedStyles);
+      console.log(
+        'createComponent.mergedStyles:',
+        Component.displayName,
+        mergedStyles
+      );
     return React.createElement(Component, {
       ..._defaultProps,
       ...(props as TProps), // Pass all the props, it will ignore none valid
@@ -237,7 +252,8 @@ type CreateStyleParams = {
   ios?: object;
   android?: object;
 };
-function createStyle({
+
+function createStyleSheet({
   styleProp = {},
   atomicStyles = {},
   light = {},

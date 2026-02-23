@@ -11,6 +11,21 @@
       "types": "./lib/typescript/src/index.d.ts",
       "import": "./lib/module/index.js",
       "require": "./lib/commonjs/index.js"
+    },
+    "./theme": {
+      "types": "./lib/typescript/src/theme-exports.d.ts",
+      "import": "./lib/module/theme-exports.js",
+      "require": "./lib/commonjs/theme-exports.js"
+    },
+    "./utils": {
+      "types": "./lib/typescript/src/utils-exports.d.ts",
+      "import": "./lib/module/utils-exports.js",
+      "require": "./lib/commonjs/utils-exports.js"
+    },
+    "./colormode": {
+      "types": "./lib/typescript/src/colormode.d.ts",
+      "import": "./lib/module/colormode.js",
+      "require": "./lib/commonjs/colormode.js"
     }
   },
   "files": [
@@ -206,7 +221,6 @@
   "dependencies": {
     "@ctrl/tinycolor": "^4.1.0",
     "css-mediaquery": "^0.1.2",
-    "lodash-es": "^4.17.21",
     "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
