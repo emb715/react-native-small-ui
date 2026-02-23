@@ -9,14 +9,15 @@ import { Card, CardGrid, Code, Tabs, TabItem, LinkButton, Aside } from '@astrojs
 
 export const exampleCode = `
 import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
 
 const MyComponent = createComponent(View, {
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
   _light: {
     backgroundColor: '#f1f1f1',
   },
-  _dark_: {
+  _dark: {
     backgroundColor: '#123123',
   },
   _ios: {
@@ -31,8 +32,57 @@ const MyComponent = createComponent(View, {
 })
 `
 
+## Overview
 
-You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props. The component will have access to the following props.
+`createComponent` is the core utility that wraps React Native components with enhanced styling capabilities including platform-specific styles, color mode support, and TypeScript autocomplete.
+
+## Installation
+
+```js
+import { createComponent } from 'react-native-small-ui';
+```
+
+This is part of the core package (~15KB) and has no heavy dependencies.
+
+---
+
+<Aside type="caution" title="Performance Warning">
+**Always create components OUTSIDE the render cycle.**
+
+Creating components inside function components causes React to create a new component type on every render, breaking reconciliation and causing unnecessary re-mounts.
+
+**❌ Wrong:**
+```jsx
+function MyComponent() {
+  const Box = createComponent(View, { padding: 16 }); // New component every render!
+  return <Box />;
+}
+```
+
+**✅ Correct:**
+```jsx
+const Box = createComponent(View, { padding: 16 }); // Created once
+
+function MyComponent() {
+  return <Box />;
+}
+```
+
+For dynamic styling, use **props** instead of creating new components:
+```jsx
+const Box = createComponent(View, {});
+
+function MyComponent({ theme }) {
+  return <Box padding={theme.space[4]} />; // Dynamic via props
+}
+```
+</Aside>
+
+---
+
+## Basic Usage
+
+You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props.
 
 
 ```
