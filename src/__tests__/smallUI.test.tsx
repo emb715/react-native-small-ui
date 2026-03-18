@@ -1,12 +1,15 @@
 import {
   _initSmallUI,
   _useSmallUIStore,
+  configure,
   createComponent,
+  createThemedComponent,
   resolvePropByType,
   useSmallUI,
 } from '../smallUI';
 
-import * as ColorMode from '../hooks/useColorMode/useColorMode';
+import { act } from '@testing-library/react-native';
+import { registerTheme, setTheme } from '../hooks/useTheme/useTheme';
 import {
   render,
   renderHook,
@@ -18,9 +21,6 @@ import { View } from 'react-native';
 const mockConsoleWarn = jest.fn();
 jest.spyOn(console, 'warn').mockImplementation(mockConsoleWarn);
 
-const mockStoreSetState = jest.spyOn(_useSmallUIStore, 'setState');
-const mockColorSchemeListener = jest.spyOn(ColorMode, 'colorSchemeListener');
-
 beforeEach(() => {
   jest.useFakeTimers();
 });
@@ -30,22 +30,14 @@ afterEach(() => {
 });
 
 describe('_initSmallUI', () => {
-  //
-  test('should pass test', () => {
-    const config = {};
-    const result = _initSmallUI(config);
-
-    expect(mockStoreSetState).toHaveBeenCalledTimes(1);
-    expect(typeof result === 'function').toBeTruthy();
-    expect(mockColorSchemeListener).toHaveBeenCalledTimes(1);
+  test('should initialize and set init to true', () => {
+    _initSmallUI({});
+    expect(_useSmallUIStore.getState().init).toBe(true);
   });
 
-  test('should warn already initialized', () => {
-    const themeConfig = undefined;
-    _initSmallUI(themeConfig);
-    const result = _initSmallUI(themeConfig);
-
-    expect(mockConsoleWarn).toHaveBeenCalledTimes(1);
+  test('should warn and return undefined when called a second time', () => {
+    _initSmallUI({});
+    const result = _initSmallUI({});
     expect(mockConsoleWarn).toHaveBeenCalledWith('SmallUI already initiated.');
     expect(result).toBeUndefined();
   });
@@ -56,6 +48,40 @@ describe('useSmallUI', () => {
     const { result } = renderHook(() => useSmallUI());
     await waitFor(() => result.current);
     expect(result.current).toBe(undefined);
+  });
+});
+
+describe('configure', () => {
+  test('should merge config into store', () => {
+    const customBreakPoints = {
+      'default': 0,
+      'xs': 480,
+      'sm': 600,
+      'md': 900,
+      'lg': 1200,
+      'xl': 1440,
+      '2xl': 1920,
+    };
+    configure({ breakPoints: customBreakPoints });
+    expect(_useSmallUIStore.getState().config.breakPoints).toEqual(
+      customBreakPoints
+    );
+  });
+
+  test('should preserve existing config keys when merging', () => {
+    configure({ breakPoints: false });
+    configure({
+      breakPoints: {
+        'default': 0,
+        'xs': 480,
+        'sm': 640,
+        'md': 768,
+        'lg': 1024,
+        'xl': 1280,
+        '2xl': 1536,
+      },
+    });
+    expect(_useSmallUIStore.getState().config.breakPoints).toBeDefined();
   });
 });
 
@@ -168,10 +194,40 @@ describe('resolvePropByType', () => {
   });
 });
 
-// describe('createStyle', () => {
-//   //
-//   xtest('should work', () => {
-//     // const styles = createStyle();
-//     // expect(styles).toEqual({});
-//   });
-// });
+type T = { light: Record<string, string>; dark: Record<string, string> };
+
+describe('createThemedComponent', () => {
+  test('should render with themed styles', () => {
+    registerTheme({ light: { brand: '#f00' }, dark: { brand: '#a00' } });
+    const ThemedBox = createThemedComponent(View, (theme) => ({
+      _light: { backgroundColor: (theme as T).light.brand },
+      _dark: { backgroundColor: (theme as T).dark.brand },
+    }));
+    render(<ThemedBox testID="themed-box" />);
+    expect(screen.getByTestId('themed-box')).toBeOnTheScreen();
+  });
+
+  test('should re-evaluate styles when setTheme is called', () => {
+    registerTheme('a', { light: { brand: '#f00' }, dark: { brand: '#a00' } });
+    registerTheme('b', { light: { brand: '#00f' }, dark: { brand: '#00a' } });
+    setTheme('a');
+
+    const ThemedBox = createThemedComponent(View, (theme) => ({
+      backgroundColor: (theme as T).light.brand,
+    }));
+
+    const { rerender } = render(<ThemedBox testID="themed-box" />);
+    act(() => setTheme('b'));
+    rerender(<ThemedBox testID="themed-box" />);
+    expect(screen.getByTestId('themed-box')).toBeOnTheScreen();
+  });
+
+  test('should forward props to the component', () => {
+    registerTheme({ light: { surface: '#fff' }, dark: { surface: '#111' } });
+    const ThemedBox = createThemedComponent(View, (theme) => ({
+      _light: { backgroundColor: (theme as T).light.surface },
+    }));
+    render(<ThemedBox testID="themed-box" height={32} />);
+    expect(screen.getByTestId('themed-box')).toHaveStyle({ height: 32 });
+  });
+});

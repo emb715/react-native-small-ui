@@ -10,7 +10,12 @@
  */
 
 // Core component creation
-export { createComponent, useSmallUI } from './smallUI';
+export {
+  createComponent,
+  createThemedComponent,
+  useSmallUI,
+  configure,
+} from './smallUI';
 export type { ComponentStyle } from './smallUI.types';
 
 // Lightweight helper utilities
@@ -20,11 +25,6 @@ export * from './utils/helpers';
 // LEGACY EXPORTS (Deprecated - for backward compatibility)
 // ============================================================
 // Import from specific paths for better tree-shaking:
-
-/**
- * @deprecated Import from 'react-native-small-ui/theme' instead
- */
-export type { ThemeConfig } from './theme/theme';
 
 /**
  * @deprecated Import from 'react-native-small-ui/theme' instead

@@ -1,7 +1,15 @@
 import { create } from 'zustand';
-import { defaultTheme } from '../../theme/theme';
 
-const initialState = {
-  theme: defaultTheme,
+export const DEFAULT_THEME_NAME = 'default';
+
+type ThemeStoreState = {
+  themes: Record<string, unknown>;
+  activeThemeName: string;
 };
-export const useThemeStore = create(() => initialState);
+
+const initialState: ThemeStoreState = {
+  themes: { [DEFAULT_THEME_NAME]: {} },
+  activeThemeName: DEFAULT_THEME_NAME,
+};
+
+export const useThemeStore = create<ThemeStoreState>(() => initialState);

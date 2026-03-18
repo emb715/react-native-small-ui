@@ -221,7 +221,6 @@
   "dependencies": {
     "@ctrl/tinycolor": "^4.1.0",
     "css-mediaquery": "^0.1.2",
-    "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
   "directories": {

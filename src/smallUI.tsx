@@ -12,6 +12,7 @@ import {
   colorSchemeListener,
   useColorModeValue,
 } from './hooks/useColorMode/useColorMode';
+import { useTheme } from './hooks/useTheme/useTheme';
 import {
   StylePropsLookUp,
   type LookUpPropsComponentType,
@@ -81,6 +82,10 @@ export function _initSmallUI(config: InitConfig = defaultConfig) {
   }
 }
 
+/**
+ * @deprecated No longer required. The library auto-initializes on import.
+ * Use `configure()` for custom options instead.
+ */
 export const useSmallUI = ({ config }: { config?: InitConfig } = {}) => {
   const initRef = useRef<boolean>(false);
 
@@ -97,10 +102,38 @@ export const useSmallUI = ({ config }: { config?: InitConfig } = {}) => {
 };
 
 /**
+ * Configure library options. Call at module level before your app renders.
+ * Safe to call multiple times — options are merged.
+ *
+ * @example
+ * configure({ breakPoints: { sm: 600, md: 900, lg: 1200 } });
+ */
+export function configure(config: InitConfig) {
+  const current = _useSmallUIStore.getState().config;
+  _useSmallUIStore.setState({ config: { ...current, ...config } });
+}
+
+/**
  * COMPONENT CREATION
  ***********************/
 
 const DEBUG_MODE = false;
+
+export const createThemedComponent =
+  <TProps extends { style?: unknown }>(
+    Component: ComponentType<TProps>,
+    themedStyles: (theme: unknown) => ComponentStyle<TProps>,
+    defaultProps?: Exclude<TProps, 'style'>
+  ) =>
+  (
+    props: TProps &
+      ComponentPropsWithRef<typeof Component> &
+      ExtendedProps<TProps>
+  ) => {
+    const theme = useTheme();
+    const customized = themedStyles(theme);
+    return createComponent(Component, customized, defaultProps)(props);
+  };
 
 export const createComponent =
   <TProps extends { style?: unknown }>(
@@ -273,3 +306,15 @@ function createStyleSheet({
     android,
   });
 }
+
+// Auto-initialize on import: attaches the Appearance listener for runtime
+// light/dark system changes. The colorMode store already reads the initial
+// value from Appearance.getColorScheme() at module load, so components work
+// correctly from the first render even without this listener.
+function _autoInit() {
+  if (_useSmallUIStore.getState().init) return;
+  colorSchemeListener();
+  _useSmallUIStore.setState({ init: true, config: defaultConfig });
+}
+
+_autoInit();
