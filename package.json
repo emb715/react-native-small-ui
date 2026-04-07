@@ -26,6 +26,11 @@
       "types": "./lib/typescript/src/colormode.d.ts",
       "import": "./lib/module/colormode.js",
       "require": "./lib/commonjs/colormode.js"
+    },
+    "./testing": {
+      "types": "./lib/typescript/src/testing.d.ts",
+      "import": "./lib/module/testing.js",
+      "require": "./lib/commonjs/testing.js"
     }
   },
   "files": [

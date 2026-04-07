@@ -70,6 +70,7 @@ import { useBreakPointValue } from 'react-native-small-ui/utils';
 ```
 
 **Breakpoints:**
+
 - `default` - Base value (0px+)
 - `xs` - 480px+
 - `sm` - 640px+
@@ -85,11 +86,11 @@ import { useBreakPointValue } from 'react-native-small-ui/utils';
 
 function ResponsiveCard() {
   const padding = useBreakPointValue({
-    default: 8,
-    sm: 12,
-    md: 16,
-    lg: 20,
-    xl: 24,
+    'default': 8,
+    'sm': 12,
+    'md': 16,
+    'lg': 20,
+    'xl': 24,
     '2xl': 32,
   });
 
@@ -176,6 +177,7 @@ import { useColorMode } from 'react-native-small-ui/colormode';
 ```
 
 **Returns:**
+
 - `colorMode` - Current mode: `'light'`, `'dark'`, or `'auto'`
 
 **Usage:**
@@ -254,6 +256,119 @@ function ThemeToggle() {
 
 ---
 
+### setCustomColorMode
+
+Activates a custom app-managed color mode by name. The name must be registered via `configure({ colorModes: { ... } })`. Pass `null` to clear any active custom mode.
+
+Custom modes layer **on top of** the built-in light/dark system — they don't replace it.
+
+```js
+import {
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+```
+
+**Setup:**
+
+```ts
+import { configure } from 'react-native-small-ui';
+
+// Register custom modes once at startup
+configure({
+  colorModes: {
+    highContrast: true,
+    sepia: true,
+    dim: true,
+  },
+});
+```
+
+**Usage:**
+
+```tsx
+import {
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+// Components use _<modeName> props for custom mode styles
+const Card = createComponent(View, {
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _highContrast: {
+    backgroundColor: '#000',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  _sepia: { backgroundColor: '#f4e4c1' },
+});
+
+// Activate a custom mode
+setCustomColorMode('highContrast');
+
+// Clear — returns to OS-driven light/dark only
+clearCustomColorMode();
+```
+
+---
+
+### clearCustomColorMode
+
+Clears the active custom color mode, returning to OS-driven light/dark only.
+
+```js
+import { clearCustomColorMode } from 'react-native-small-ui/colormode';
+
+clearCustomColorMode();
+```
+
+---
+
+### useCustomColorMode
+
+Reactive hook. Returns the currently active custom color mode name, or `null` when none is active.
+
+```js
+import { useCustomColorMode } from 'react-native-small-ui/colormode';
+```
+
+**Usage:**
+
+```tsx
+import {
+  useCustomColorMode,
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+import { TouchableOpacity, Text, View } from 'react-native';
+
+function AccessibilityPanel() {
+  const { activeMode } = useCustomColorMode();
+
+  return (
+    <View>
+      <Text>Active mode: {activeMode ?? 'default'}</Text>
+      <TouchableOpacity onPress={() => setCustomColorMode('highContrast')}>
+        <Text>High Contrast</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setCustomColorMode('sepia')}>
+        <Text>Sepia</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={clearCustomColorMode}>
+        <Text>Reset</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+```
+
+See the [Platform & Color Mode Registry Guide](/guides/platform-registry) for full setup and usage patterns.
+
+---
+
 ## Theme Hooks
 
 Import from `'react-native-small-ui/theme'` for the full theming system.
@@ -275,7 +390,7 @@ import { TouchableOpacity, Text } from 'react-native';
 
 type AppTheme = {
   light: { primary: string; background: string };
-  dark:  { primary: string; background: string };
+  dark: { primary: string; background: string };
 };
 
 // Create component outside render

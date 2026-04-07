@@ -2,8 +2,20 @@
 title: Getting Started
 ---
 
-import { npmToBun, npmToYarn, npmToPnpm } from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton, Aside } from '@astrojs/starlight/components';
+import {
+  npmToBun,
+  npmToYarn,
+  npmToPnpm,
+} from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
+import {
+  Card,
+  CardGrid,
+  Code,
+  Tabs,
+  TabItem,
+  LinkButton,
+  Aside,
+} from '@astrojs/starlight/components';
 
 ## Installation
 
@@ -14,18 +26,18 @@ React Native Small UI uses a modular architecture. Install only what you need to
 The core package provides `createComponent` and essential utilities with minimal footprint (~15KB).
 
 <Tabs>
-	<TabItem label="yarn" icon="seti:yarn">
-		<Code code={npmToYarn("npm install react-native-small-ui")} lang="sh"/>
-	</TabItem>
-	<TabItem label="npm" icon="seti:npm">
-		<Code code="npm install react-native-small-ui" lang="sh"/>
-	</TabItem>
-	<TabItem label="pnpm" icon="pnpm">
-		<Code code={npmToPnpm("npm install react-native-small-ui")} lang="sh"/>
-	</TabItem>
-	<TabItem label="bun" icon="bun">
-		<Code code={npmToBun("npm install react-native-small-ui")} lang="sh"/>
-	</TabItem>
+  <TabItem label="yarn" icon="seti:yarn">
+    <Code code={npmToYarn('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
+  <TabItem label="npm" icon="seti:npm">
+    <Code code="npm install react-native-small-ui" lang="sh" />
+  </TabItem>
+  <TabItem label="pnpm" icon="pnpm">
+    <Code code={npmToPnpm('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
+  <TabItem label="bun" icon="bun">
+    <Code code={npmToBun('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
 </Tabs>
 
 ### Optional Features
@@ -33,38 +45,37 @@ The core package provides `createComponent` and essential utilities with minimal
 Import additional features as needed through modular paths:
 
 <CardGrid>
-	<Card title="Core Only (~15KB)" icon="rocket">
-		Basic component creation with platform-specific and color mode styling
-		```js
-		import { createComponent } from 'react-native-small-ui';
-		```
-	</Card>
-	<Card title="+ Color Mode (~18KB)" icon="sun">
-		Programmatic theme switching and color mode utilities
-		```js
-		import { useColorMode } from 'react-native-small-ui/colormode';
-		```
-	</Card>
-	<Card title="+ Responsive (~22KB)" icon="laptop">
-		Breakpoints, media queries, and orientation detection
-		```js
-		import { useBreakPointValue } from 'react-native-small-ui/utils';
-		```
-	</Card>
-	<Card title="+ Theme System (~122KB)" icon="seti:config">
-		Full theming with color generation and semantic tokens
-		```js
-		import { useTheme } from 'react-native-small-ui/theme';
-		```
-	</Card>
+  <Card title="Core Only (~15KB)" icon="rocket">
+    Basic component creation with platform-specific and color mode styling ```js
+    import {createComponent} from 'react-native-small-ui'; ```
+  </Card>
+  <Card title="+ Color Mode (~18KB)" icon="sun">
+    Programmatic theme switching and color mode utilities ```js import{' '}
+    {useColorMode} from 'react-native-small-ui/colormode'; ```
+  </Card>
+  <Card title="+ Responsive (~22KB)" icon="laptop">
+    Breakpoints, media queries, and orientation detection ```js import{' '}
+    {useBreakPointValue} from 'react-native-small-ui/utils'; ```
+  </Card>
+  <Card title="+ Theme System (~122KB)" icon="seti:config">
+    Full theming with color generation and semantic tokens ```js import{' '}
+    {useTheme} from 'react-native-small-ui/theme'; ```
+  </Card>
 </CardGrid>
 
 <Aside type="tip" title="Bundle Size">
-The modular import system ensures you only bundle what you use. See the [Bundle Optimization](/guides/bundle-optimization) guide for more details.
+  The modular import system ensures you only bundle what you use. See the
+  [Bundle Optimization](/guides/bundle-optimization) guide for more details.
 </Aside>
 
 #### Web Support
-<LinkButton href="https://necolas.github.io/react-native-web/docs/installation/" variant="minimal" icon="external" target="_blank">
+
+<LinkButton
+  href="https://necolas.github.io/react-native-web/docs/installation/"
+  variant="minimal"
+  icon="external"
+  target="_blank"
+>
   React Native Web
 </LinkButton>
 
@@ -118,7 +129,10 @@ Add programmatic theme control:
 
 ```js
 import { createComponent } from 'react-native-small-ui';
-import { useColorMode, toggleColorScheme } from 'react-native-small-ui/colormode';
+import {
+  useColorMode,
+  toggleColorScheme,
+} from 'react-native-small-ui/colormode';
 import { View, Text, TouchableOpacity } from 'react-native';
 
 const Box = createComponent(View, {
@@ -220,22 +234,28 @@ export default function ThemedButtonScreen() {
 ## Next Steps
 
 <CardGrid>
-	<Card title="Learn createComponent" icon="rocket">
-		Master the core component factory function
-		<LinkButton href="/utilities/create-component" variant="secondary">
-			Read More
-		</LinkButton>
-	</Card>
-	<Card title="Explore Hooks" icon="puzzle">
-		Discover responsive and theme utilities
-		<LinkButton href="/utilities/hooks" variant="secondary">
-			View Hooks
-		</LinkButton>
-	</Card>
-	<Card title="Optimize Bundle Size" icon="seti:config">
-		Learn how to minimize your app's footprint
-		<LinkButton href="/guides/bundle-optimization" variant="secondary">
-			Optimize Now
-		</LinkButton>
-	</Card>
+  <Card title="createComponent" icon="rocket">
+    Variants, slots, .extend(), and the reactive ctx API
+    <LinkButton href="/utilities/create-component" variant="secondary">
+      Read More
+    </LinkButton>
+  </Card>
+  <Card title="Variant System" icon="puzzle">
+    Type-safe variants, compound variants, and defaults
+    <LinkButton href="/guides/variants" variant="secondary">
+      View Guide
+    </LinkButton>
+  </Card>
+  <Card title="Platform & Color Mode Registry" icon="laptop">
+    Custom platforms and app-managed color modes
+    <LinkButton href="/guides/platform-registry" variant="secondary">
+      View Guide
+    </LinkButton>
+  </Card>
+  <Card title="Helpers" icon="seti:config">
+    cs(), getResolvedStyles(), getStatusBarStyle
+    <LinkButton href="/utilities/helpers" variant="secondary">
+      View Helpers
+    </LinkButton>
+  </Card>
 </CardGrid>

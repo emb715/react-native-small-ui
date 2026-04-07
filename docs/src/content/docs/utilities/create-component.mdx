@@ -1,40 +1,21 @@
 ---
 title: Create Component
-sidebar: {
-  order: 0
-}
+sidebar: { order: 0 }
 ---
 
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton, Aside } from '@astrojs/starlight/components';
-
-export const exampleCode = `
-import { createComponent } from 'react-native-small-ui';
-import { View } from 'react-native';
-
-const MyComponent = createComponent(View, {
-  alignItems: 'center',
-  justifyContent: 'center',
-  _light: {
-    backgroundColor: '#f1f1f1',
-  },
-  _dark: {
-    backgroundColor: '#123123',
-  },
-  _ios: {
-    marginTop: 10,
-  },
-  _android: {
-    marginTop: 16,
-  },
-  _web: {
-    marginTop: 0
-  }
-})
-`
+import {
+  Card,
+  CardGrid,
+  Code,
+  Tabs,
+  TabItem,
+  LinkButton,
+  Aside,
+} from '@astrojs/starlight/components';
 
 ## Overview
 
-`createComponent` is the core utility that wraps React Native components with enhanced styling capabilities including platform-specific styles, color mode support, and TypeScript autocomplete.
+`createComponent` is the core utility that wraps any React Native component with enhanced styling capabilities: platform-specific styles, color mode support, reactive context, variants, slots, and TypeScript autocomplete.
 
 ## Installation
 
@@ -52,6 +33,7 @@ This is part of the core package (~15KB) and has no heavy dependencies.
 Creating components inside function components causes React to create a new component type on every render, breaking reconciliation and causing unnecessary re-mounts.
 
 **❌ Wrong:**
+
 ```jsx
 function MyComponent() {
   const Box = createComponent(View, { padding: 16 }); // New component every render!
@@ -60,6 +42,7 @@ function MyComponent() {
 ```
 
 **✅ Correct:**
+
 ```jsx
 const Box = createComponent(View, { padding: 16 }); // Created once
 
@@ -69,65 +52,344 @@ function MyComponent() {
 ```
 
 For dynamic styling, use **props** instead of creating new components:
+
 ```jsx
 const Box = createComponent(View, {});
 
-function MyComponent({ theme }) {
-  return <Box padding={theme.space[4]} />; // Dynamic via props
+function MyComponent({ isActive }) {
+  return <Box padding={isActive ? 16 : 8} />;
 }
 ```
+
 </Aside>
 
 ---
 
 ## Basic Usage
 
-You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props.
-
-
 ```
-createComponent(Component, styleObject, defaultProps)
+createComponent(Component, styleObject)
+createComponent(Component, config)
 ```
 
+### Style Props
 
-#### Utility Style Props
+All React Native style properties are available as direct props. Underscore-prefixed props are context-aware:
 
-All available styles of the component. Like: _backgroundColor_, _alignContent_, etc.
+| Prop       | When applied                             |
+| ---------- | ---------------------------------------- |
+| `_light`   | Light color mode                         |
+| `_dark`    | Dark color mode                          |
+| `_ios`     | iOS platform                             |
+| `_android` | Android platform                         |
+| `_web`     | Web platform                             |
+| `_native`  | iOS + Android (non-web)                  |
+| `_<key>`   | Custom registered platform or color mode |
 
-Customized are prefixed with **underscore** _
-- `_light`
-- `_dark`
-- `_ios`
-- `_android`
-- `_web`
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
 
+const Card = createComponent(View, {
+  padding: 16,
+  borderRadius: 8,
+  _light: { backgroundColor: '#fff', borderColor: '#e5e5e5' },
+  _dark: { backgroundColor: '#1a1a1a', borderColor: '#333' },
+  _ios: { shadowOpacity: 0.1, shadowRadius: 4 },
+  _android: { elevation: 2 },
+});
 
-Example: 
-<Code code={exampleCode} lang="js" title='MyComponent'/>
-
+// Props override base styles at render time
+<Card marginTop={20} borderWidth={1} />;
+```
 
 <Aside type="note">
-The new created component `MyComponent` will also extend the same props for styling.
+  The created component exposes the same underscore props — you can override
+  them inline at usage time.
 </Aside>
 
---- 
+---
 
-```typescript
-function App() {
-  const myFlag = useMemo(() => {
-    // something that will return true or false
-    return true;
-  });
+## Reactive Style Factory (ctx)
 
+Pass a function instead of a style object to access the reactive context. The function is called at render time with a stable `ctx` object — only re-evaluated when `colorMode` or breakpoints actually change.
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+const Card = createComponent(View, (ctx) => ({
+  padding: ctx.breakpoint({ default: 8, md: 16, lg: 24 }),
+  backgroundColor: ctx.colorMode === 'dark' ? '#1a1a1a' : '#fff',
+}));
+```
+
+### `ctx` properties
+
+| Property             | Type                         | Description                                               |
+| -------------------- | ---------------------------- | --------------------------------------------------------- |
+| `colorMode`          | `'light' \| 'dark'`          | Current color scheme                                      |
+| `breakpoint(values)` | `(values) => T \| undefined` | Resolves a responsive value map to the current breakpoint |
+
+`ctx.breakpoint()` uses lazy subscription — components only subscribe to the breakpoints they actually read, paying zero cost for unused breakpoints.
+
+---
+
+## Variant System
+
+`createComponent` accepts a `ComponentConfig` object with `variants`, `compoundVariants`, and `defaultVariants` for a complete cva-style variant API. All variant props are **fully type-inferred** — no manual type declarations needed.
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { TouchableOpacity, Text } from 'react-native';
+
+const Button = createComponent(TouchableOpacity, {
+  base: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  variants: {
+    size: {
+      sm: { paddingVertical: 6,  paddingHorizontal: 12 },
+      md: { paddingVertical: 10, paddingHorizontal: 20 },
+      lg: { paddingVertical: 14, paddingHorizontal: 28 },
+    },
+    intent: {
+      primary: {
+        _light: { backgroundColor: '#007AFF' },
+        _dark:  { backgroundColor: '#0A84FF' },
+      },
+      danger: {
+        _light: { backgroundColor: '#e00c2c' },
+        _dark:  { backgroundColor: '#be0a25' },
+      },
+      ghost: { backgroundColor: 'transparent' },
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+    intent: 'primary',
+  },
+});
+
+// Variant props are autocompleted: size?, intent?
+<Button size="lg" intent="danger">
+  <Text>Delete</Text>
+</Button>
+
+// Defaults apply — no props needed
+<Button>
+  <Text>Submit</Text>
+</Button>
+```
+
+### Compound Variants
+
+Apply styles only when a specific **combination** of variants is active. Resolved after individual variants — compound styles always win on conflict.
+
+```tsx
+const Button = createComponent(TouchableOpacity, {
+  variants: {
+    size: {
+      sm: { padding: 6 },
+      lg: { padding: 14 },
+    },
+    intent: {
+      danger: { borderRadius: 4 },
+      ghost: { borderRadius: 0 },
+    },
+  },
+  compoundVariants: [
+    {
+      variants: { size: 'sm', intent: 'danger' },
+      style: { borderWidth: 2, borderColor: '#e00c2c' }, // only sm + danger
+    },
+  ],
+});
+```
+
+### Resolution Order
+
+Styles are merged in this order (later wins on conflict):
+
+1. `base` styles
+2. `defaultVariants` styles
+3. Prop-supplied variant styles
+4. `compoundVariants` styles (all matching entries, declaration order)
+5. Direct style props (always win)
+
+See the [Variant System Guide](/guides/variants) for full documentation.
+
+---
+
+## `.extend()`
+
+Every `createComponent` output has an `.extend()` method for ergonomic composition. Returns a new component — the original is unchanged.
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+// Base component
+const Box = createComponent(View, {
+  padding: 8,
+  borderRadius: 4,
+});
+
+// Extend with additional styles — base styles preserved, extension wins on conflict
+const Card = Box.extend({
+  padding: 16, // overrides base padding
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#1a1a1a' },
+});
+
+// Extend with a full config — variants merged on top of base
+const VariantCard = Box.extend({
+  variants: {
+    elevated: {
+      yes: { _ios: { shadowOpacity: 0.15 }, _android: { elevation: 4 } },
+      no: {},
+    },
+  },
+  defaultVariants: { elevated: 'yes' },
+});
+```
+
+`.extend()` accepts either a plain style object or a full `ComponentConfig`. When extending configs, variants and `defaultVariants` are shallowly merged — extension values override base values on conflict.
+
+---
+
+## `.withSlots()`
+
+Attach named sub-components as dot-notation properties on a parent component. Slots share reactive context (colorMode, breakpoints) implicitly — no prop drilling or providers needed.
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View, Text } from 'react-native';
+
+const Card = createComponent(View, {
+  borderRadius: 8,
+  overflow: 'hidden',
+  _light: { backgroundColor: '#fff', borderColor: '#e5e5e5' },
+  _dark: { backgroundColor: '#1a1a1a', borderColor: '#333' },
+  borderWidth: 1,
+}).withSlots({
+  Header: createComponent(View, {
+    padding: 16,
+    borderBottomWidth: 1,
+    _light: { borderBottomColor: '#e5e5e5' },
+    _dark: { borderBottomColor: '#333' },
+  }),
+  Body: createComponent(View, { padding: 16 }),
+  Footer: createComponent(View, {
+    padding: 12,
+    borderTopWidth: 1,
+    _light: { borderTopColor: '#e5e5e5' },
+    _dark: { borderTopColor: '#333' },
+  }),
+});
+
+// Usage — all slots share colorMode with the parent automatically
+function ProfileCard() {
   return (
-    <MyComponent
-      paddingTop={myFlag ? 16 : 0}
-      _web={{
-        paddingTop: myFlag ? 8 : undefined
-      }}
-    >
-      <Text>Hi!</Text>
-    </MyComponent>
+    <Card>
+      <Card.Header>
+        <Text>Title</Text>
+      </Card.Header>
+      <Card.Body>
+        <Text>Content</Text>
+      </Card.Body>
+      <Card.Footer>
+        <Text>Actions</Text>
+      </Card.Footer>
+    </Card>
   );
 }
 ```
+
+---
+
+## `createComponentGroup()`
+
+Creates a named group of sibling components that all share reactive context without a parent-child hierarchy. Useful for form systems, navigation bars, or any set of related components that need consistent styling.
+
+```tsx
+import { createComponentGroup } from 'react-native-small-ui';
+import { View, Text, TextInput } from 'react-native';
+
+const { FormLabel, FormInput, FormError } = createComponentGroup({
+  FormLabel: {
+    Component: Text,
+    style: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 4,
+      _light: { color: '#1c1c1e' },
+      _dark: { color: '#fafafa' },
+    },
+  },
+  FormInput: {
+    Component: View,
+    style: {
+      borderWidth: 1,
+      borderRadius: 6,
+      padding: 10,
+      _light: { borderColor: '#c0a3cc', backgroundColor: '#fdfbfd' },
+      _dark: { borderColor: '#2d283a', backgroundColor: '#09090b' },
+    },
+  },
+  FormError: {
+    Component: Text,
+    style: {
+      fontSize: 12,
+      marginTop: 4,
+      _light: { color: '#e00c2c' },
+      _dark: { color: '#be0a25' },
+    },
+  },
+});
+
+// All three respond to colorMode changes without any wrapper
+function EmailField() {
+  return (
+    <View>
+      <FormLabel>Email</FormLabel>
+      <FormInput>
+        <TextInput placeholder="you@example.com" />
+      </FormInput>
+      <FormError>This field is required</FormError>
+    </View>
+  );
+}
+```
+
+**Difference from `.withSlots()`:**
+
+- `.withSlots()` — parent-child relationship, dot-notation access from parent
+- `createComponentGroup()` — sibling relationship, destructured from factory call, no required parent
+
+---
+
+## Full API Reference
+
+```
+createComponent(Component, styleObject?, defaultProps?)
+createComponent(Component, config, defaultProps?)
+```
+
+### `ComponentConfig`
+
+| Field              | Type                    | Description                                                |
+| ------------------ | ----------------------- | ---------------------------------------------------------- |
+| `base`             | `ComponentStyle`        | Base styles applied to every instance                      |
+| `variants`         | `VariantConfig`         | Named variant groups. Keys become typed component props.   |
+| `compoundVariants` | `CompoundVariant[]`     | Styles applied only when a combination of variants matches |
+| `defaultVariants`  | `Partial<VariantProps>` | Default values for variant props                           |
+
+### `SmallUIComponent` methods
+
+| Method         | Signature                             | Description                                            |
+| -------------- | ------------------------------------- | ------------------------------------------------------ |
+| `.extend()`    | `(styleOrConfig) => SmallUIComponent` | Create a new component inheriting this one's styles    |
+| `.withSlots()` | `(slots) => SmallUIComponent & S`     | Attach named sub-components as dot-notation properties |

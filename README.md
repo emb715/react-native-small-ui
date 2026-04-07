@@ -10,12 +10,20 @@ A utility-first toolkit for React Native. Gives you the tools to build styled co
 - [Modular Imports](#modular-imports)
 - [Quick Start](#quick-start)
 - [createComponent](#createcomponent)
+  - [Reactive Style Factory](#reactive-style-factory-ctx)
+  - [Variant System](#variant-system)
+  - [.extend()](#extend)
+  - [.withSlots()](#withslots)
+- [createComponentGroup](#createcomponentgroup)
 - [Hooks](#hooks)
   - [useColorModeValue](#usecolormodevalue)
   - [useColorMode](#usecolormode)
+  - [useCustomColorMode](#usecustomcolormode)
   - [useOrientation](#useorientation)
   - [useMediaQuery](#usemediaquery)
   - [useBreakPointValue](#usebreakpointvalue)
+- [Platform Registry](#platform-registry)
+- [Custom Color Mode Registry](#custom-color-mode-registry)
 - [Theme System (Optional)](#theme-system-optional)
   - [registerTheme](#registertheme)
   - [setTheme](#settheme)
@@ -116,13 +124,14 @@ export default function App() {
 
 ## createComponent
 
-Wraps any React Native component with enhanced styling capabilities.
+Wraps any React Native component with enhanced styling capabilities. Accepts either a plain style object or a full `ComponentConfig` with variants.
 
 **Style props available:**
 
 - All React Native style properties as direct props
 - `_light` / `_dark` — color mode conditional styles
 - `_ios` / `_android` / `_web` / `_native` — platform-specific styles
+- `_<key>` — custom registered platform or color mode keys
 
 ```tsx
 import { createComponent } from 'react-native-small-ui';
@@ -138,6 +147,125 @@ const Box = createComponent(View, {
 
 // Props override base styles at render time
 <Box padding={24} marginTop={8} />;
+```
+
+### Reactive Style Factory (ctx)
+
+Pass a function to access the reactive context — `colorMode` and `breakpoint()`:
+
+```tsx
+const Card = createComponent(View, (ctx) => ({
+  padding: ctx.breakpoint({ default: 8, md: 16, lg: 24 }),
+  backgroundColor: ctx.colorMode === 'dark' ? '#1a1a1a' : '#fff',
+}));
+```
+
+### Variant System
+
+Full cva-style variants with full TypeScript inference — no manual type declarations:
+
+```tsx
+const Button = createComponent(TouchableOpacity, {
+  base: { borderRadius: 8, alignItems: 'center' },
+  variants: {
+    size: {
+      sm: { paddingVertical: 6,  paddingHorizontal: 12 },
+      md: { paddingVertical: 10, paddingHorizontal: 20 },
+      lg: { paddingVertical: 14, paddingHorizontal: 28 },
+    },
+    intent: {
+      primary: { _light: { backgroundColor: '#007AFF' }, _dark: { backgroundColor: '#0A84FF' } },
+      danger:  { _light: { backgroundColor: '#e00c2c' }, _dark: { backgroundColor: '#be0a25' } },
+    },
+  },
+  compoundVariants: [
+    { variants: { size: 'sm', intent: 'danger' }, style: { borderWidth: 2 } },
+  ],
+  defaultVariants: { size: 'md', intent: 'primary' },
+});
+
+// size and intent props are fully typed and autocompleted
+<Button size="lg" intent="danger" />
+<Button /> // uses defaultVariants
+```
+
+**Resolution order:** base → defaultVariants → prop variants → compoundVariants → direct props (direct always wins).
+
+### .extend()
+
+Compose components without re-calling `createComponent`. The original is unchanged:
+
+```tsx
+const Base = createComponent(View, { padding: 8, borderRadius: 4 });
+
+const Card = Base.extend({
+  padding: 16, // overrides base
+  _light: { backgroundColor: '#fff' }, // added
+});
+
+const VariantCard = Base.extend({
+  variants: { elevated: { yes: { _android: { elevation: 4 } }, no: {} } },
+  defaultVariants: { elevated: 'yes' },
+});
+```
+
+### .withSlots()
+
+Attach named sub-components as dot-notation properties. Slots share reactive context automatically:
+
+```tsx
+const Card = createComponent(View, { borderRadius: 8 }).withSlots({
+  Header: createComponent(View, { padding: 16, borderBottomWidth: 1 }),
+  Body: createComponent(View, { padding: 16 }),
+  Footer: createComponent(View, { padding: 12 }),
+});
+
+<Card>
+  <Card.Header>
+    <Text>Title</Text>
+  </Card.Header>
+  <Card.Body>
+    <Text>Content</Text>
+  </Card.Body>
+  <Card.Footer>
+    <Text>Actions</Text>
+  </Card.Footer>
+</Card>;
+```
+
+## createComponentGroup
+
+Creates sibling components that share reactive context — no parent-child hierarchy required:
+
+```tsx
+import { createComponentGroup } from 'react-native-small-ui';
+
+const { FormLabel, FormInput, FormError } = createComponentGroup({
+  FormLabel: { Component: Text, style: { fontSize: 14, fontWeight: '600' } },
+  FormInput: {
+    Component: View,
+    style: { borderWidth: 1, borderRadius: 6, padding: 10 },
+  },
+  FormError: {
+    Component: Text,
+    style: {
+      fontSize: 12,
+      _light: { color: '#e00c2c' },
+      _dark: { color: '#be0a25' },
+    },
+  },
+});
+
+// All three respond to colorMode changes — no wrapper needed
+function EmailField() {
+  return (
+    <View>
+      <FormLabel>Email</FormLabel>
+      <FormInput />
+      <FormError>Required</FormError>
+    </View>
+  );
+}
 ```
 
 ## Hooks
@@ -186,6 +314,25 @@ setColorScheme('light');
 setColorScheme('auto'); // follow system
 ```
 
+### useCustomColorMode
+
+Reactive hook returning the active custom color mode name, or `null` when none is active.
+
+```tsx
+import {
+  useCustomColorMode,
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+
+const { activeMode } = useCustomColorMode(); // string | null
+
+setCustomColorMode('highContrast'); // activate
+clearCustomColorMode(); // clear
+```
+
+See [Custom Color Mode Registry](#custom-color-mode-registry) for full setup.
+
 ### useOrientation
 
 Returns `'portrait'` or `'landscape'`.
@@ -223,6 +370,66 @@ const padding = useBreakPointValue({
   lg: 24,
 });
 ```
+
+## Platform Registry
+
+Register custom platform predicates via `configure()`. Each key becomes a valid `_<key>` style prop on all `createComponent` outputs.
+
+```ts
+import { configure } from 'react-native-small-ui';
+import { Dimensions, Platform } from 'react-native';
+
+configure({
+  platforms: {
+    tablet: () => Dimensions.get('window').width >= 768,
+    tv: () => Platform.isTV,
+  },
+});
+```
+
+```tsx
+const Card = createComponent(View, {
+  padding: 12,
+  _tablet: { padding: 24, maxWidth: 800, alignSelf: 'center' },
+  _tv: { padding: 48 },
+});
+```
+
+Predicates are evaluated synchronously at render time. Custom platform styles merge after built-in `_ios`/`_android` styles.
+
+## Custom Color Mode Registry
+
+Register app-managed color modes (high contrast, sepia, dim, etc.) that layer on top of OS light/dark without replacing it. Only one custom mode can be active at a time.
+
+```ts
+import { configure } from 'react-native-small-ui';
+import {
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+
+// Register at startup
+configure({ colorModes: { highContrast: true, sepia: true } });
+
+// Activate / clear programmatically
+setCustomColorMode('highContrast');
+clearCustomColorMode();
+```
+
+```tsx
+const Card = createComponent(View, {
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _highContrast: {
+    backgroundColor: '#000',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  _sepia: { backgroundColor: '#f4e4c1' },
+});
+```
+
+Unregistered keys are silently ignored — typos don't produce unexpected styles.
 
 ## Theme System (Optional)
 
@@ -322,14 +529,57 @@ ColorUtils.getContrastMode('#fff'); // 'light'
 
 ## Helpers
 
+```ts
+import {
+  getStatusBarStyle,
+  cs,
+  getResolvedStyles,
+} from 'react-native-small-ui';
+```
+
 ### getStatusBarStyle
 
 Returns `'light-content'` or `'dark-content'` based on the background color contrast.
 
 ```ts
-import { getStatusBarStyle } from 'react-native-small-ui';
-
 const barStyle = getStatusBarStyle('#8b59a0'); // 'light-content'
+const barStyle2 = getStatusBarStyle('#fdfbfd'); // 'dark-content'
+```
+
+### cs()
+
+Merges style objects, filtering falsy values. Last-write-wins on conflict. The React Native equivalent of `cn()`.
+
+```ts
+const style = cs(
+  { padding: 8, borderRadius: 4 },
+  isActive && { borderColor: '#007AFF', borderWidth: 2 },
+  isDisabled && { opacity: 0.5 }
+);
+
+// Works with _light/_dark and custom platform props
+const themed = cs(baseStyles, {
+  _light: { color: '#000' },
+  _dark: { color: '#fff' },
+});
+```
+
+### getResolvedStyles()
+
+Pure-function style resolver — no rendering required. Useful for testing and tooling.
+
+```ts
+const styleDef = (ctx) => ({
+  padding: ctx.breakpoint({ default: 8, md: 16 }),
+  backgroundColor: ctx.colorMode === 'dark' ? '#000' : '#fff',
+});
+
+// Inspect at specific conditions
+const styles = getResolvedStyles(styleDef, {
+  colorMode: 'dark',
+  breakpointWidth: 800,
+});
+// => { padding: 16, backgroundColor: '#000' }
 ```
 
 ## Migration Guide
