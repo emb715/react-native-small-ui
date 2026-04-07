@@ -13,54 +13,24 @@
 export {
   createComponent,
   createThemedComponent,
-  useSmallUI,
+  createComponentGroup,
   configure,
 } from './smallUI';
-export type { ComponentStyle } from './smallUI.types';
+export type {
+  SmallUIComponent,
+  PlatformRegistry,
+  ColorModeRegistry,
+  SlotMap,
+  ComponentGroupInput,
+  ComponentGroup,
+} from './smallUI';
+export type {
+  ComponentStyle,
+  ComponentConfig,
+  VariantConfig,
+  VariantProps,
+  CompoundVariant,
+} from './smallUI.types';
 
 // Lightweight helper utilities
-export * from './utils/helpers';
-
-// ============================================================
-// LEGACY EXPORTS (Deprecated - for backward compatibility)
-// ============================================================
-// Import from specific paths for better tree-shaking:
-
-/**
- * @deprecated Import from 'react-native-small-ui/theme' instead
- */
-export { useTheme, getTheme, registerTheme } from './hooks/useTheme/useTheme';
-
-/**
- * @deprecated Import from 'react-native-small-ui/theme' instead
- */
-export { ColorUtils } from './utils/colors.utils';
-
-/**
- * @deprecated Import from 'react-native-small-ui/colormode' instead
- */
-export {
-  useColorMode,
-  useColorModeValue,
-  setColorScheme,
-  toggleColorScheme,
-} from './hooks/useColorMode/useColorMode';
-
-/**
- * @deprecated Import from 'react-native-small-ui/utils' instead
- */
-export { useOrientation } from './hooks/useOrientation';
-
-/**
- * @deprecated Import from 'react-native-small-ui/utils' instead
- */
-export { useMediaQuery } from './hooks/useMediaQuery/useMediaQuery';
-
-/**
- * @deprecated Import from 'react-native-small-ui/utils' instead
- */
-export { useBreakPointValue } from './hooks/useBreakPointValue/useBreakPointValue';
-
-// Components
-// export * from './components/primitives';
-// export * from './components/Typography';
+export { getStatusBarStyle, cs, getResolvedStyles } from './utils/helpers';

@@ -74,29 +74,21 @@ The modular import system ensures you only bundle what you use. See the [Bundle 
 
 ### Minimal Setup (Core Only)
 
-Get started by adding the `useSmallUI` hook in your App and create styled components.
+Import `createComponent` and start building. The library auto-initializes on import — no setup hook required.
 
 ```js
 import * as React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useSmallUI, createComponent } from 'react-native-small-ui';
+import { createComponent } from 'react-native-small-ui';
 
-// Create styled components
+// Create styled components outside render
 const Box = createComponent(View, {
   padding: 16,
   borderRadius: 8,
-  _light: {
-    backgroundColor: '#f5f5f5',
-  },
-  _dark: {
-    backgroundColor: '#1a1a1a',
-  },
-  _ios: {
-    shadowOpacity: 0.1,
-  },
-  _android: {
-    elevation: 2,
-  },
+  _light: { backgroundColor: '#f5f5f5' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _ios: { shadowOpacity: 0.1 },
+  _android: { elevation: 2 },
 });
 
 const Button = createComponent(TouchableOpacity, {
@@ -106,7 +98,7 @@ const Button = createComponent(TouchableOpacity, {
   alignItems: 'center',
 });
 
-function App() {
+export default function App() {
   return (
     <View>
       <Box marginTop={112}>
@@ -118,11 +110,6 @@ function App() {
     </View>
   );
 }
-
-export default function Main() {
-  useSmallUI();
-  return <App />;
-}
 ```
 
 ### With Color Mode
@@ -130,7 +117,7 @@ export default function Main() {
 Add programmatic theme control:
 
 ```js
-import { useSmallUI, createComponent } from 'react-native-small-ui';
+import { createComponent } from 'react-native-small-ui';
 import { useColorMode, toggleColorScheme } from 'react-native-small-ui/colormode';
 import { View, Text, TouchableOpacity } from 'react-native';
 
@@ -140,7 +127,7 @@ const Box = createComponent(View, {
   _dark: { backgroundColor: '#000' },
 });
 
-function ThemeToggle() {
+export default function ThemeToggle() {
   const { colorMode } = useColorMode();
 
   return (
@@ -152,11 +139,6 @@ function ThemeToggle() {
     </Box>
   );
 }
-
-export default function Main() {
-  useSmallUI();
-  return <ThemeToggle />;
-}
 ```
 
 ### With Responsive Utilities
@@ -164,16 +146,15 @@ export default function Main() {
 Build responsive layouts:
 
 ```js
-import { useSmallUI, createComponent } from 'react-native-small-ui';
+import { createComponent } from 'react-native-small-ui';
 import { useBreakPointValue } from 'react-native-small-ui/utils';
 import { View, Text } from 'react-native';
 
-// Create component outside render
 const Box = createComponent(View, {
   backgroundColor: '#f5f5f5',
 });
 
-function ResponsiveBox() {
+export default function ResponsiveBox() {
   const padding = useBreakPointValue({
     default: 8,
     sm: 12,
@@ -187,43 +168,49 @@ function ResponsiveBox() {
     </Box>
   );
 }
-
-export default function Main() {
-  useSmallUI();
-  return <ResponsiveBox />;
-}
 ```
 
 ### With Theme System
 
-Use semantic colors and design tokens:
+Register your own colors and access them via `useTheme`. The theme is shape-agnostic — store whatever your app needs:
 
 ```js
-import { useSmallUI, createComponent } from 'react-native-small-ui';
-import { useTheme } from 'react-native-small-ui/theme';
+import { createComponent } from 'react-native-small-ui';
+import { registerTheme, useTheme } from 'react-native-small-ui/theme';
 import { View, Text, TouchableOpacity } from 'react-native';
+
+// Register at startup — any shape you want
+registerTheme({
+  light: { primary: '#007AFF', background: '#fff' },
+  dark:  { primary: '#0A84FF', background: '#000' },
+});
+
+// Define your type once
+type AppTheme = {
+  light: { primary: string; background: string };
+  dark:  { primary: string; background: string };
+};
 
 // Create component outside render
 const Button = createComponent(TouchableOpacity, {
   borderRadius: 8,
+  padding: 12,
 });
 
 function ThemedButton() {
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
 
   return (
     <Button
-      padding={theme.space?.[4]}
-      _light={{ backgroundColor: theme.colors.light.primary }}
-      _dark={{ backgroundColor: theme.colors.dark.primary }}
+      _light={{ backgroundColor: theme.light.primary }}
+      _dark={{ backgroundColor: theme.dark.primary }}
     >
       <Text style={{ color: '#fff' }}>Themed Button</Text>
     </Button>
   );
 }
 
-export default function Main() {
-  useSmallUI();
+export default function ThemedButtonScreen() {
   return <ThemedButton />;
 }
 ```

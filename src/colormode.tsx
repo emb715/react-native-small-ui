@@ -10,4 +10,7 @@ export {
   useColorModeValue,
   setColorScheme,
   toggleColorScheme,
+  setCustomColorMode,
+  clearCustomColorMode,
+  useCustomColorMode,
 } from './hooks/useColorMode/useColorMode';

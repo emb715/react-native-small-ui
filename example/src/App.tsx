@@ -46,7 +46,7 @@ const theme = getTheme();
 // TEST
 const ExampleComponent = createComponent(View, {
   // color: theme.colors.light.primary, // Uncomment this will warn with: 'color' does not exist
-  borderColor: ColorUtils.getHexAlpha(theme.colors.light.border, 0.5),
+  borderColor: ColorUtils.getHexAlpha(theme?.light.border ?? '#000000', 0.5),
   borderWidth: 10,
   padding: 150,
   backgroundColor: 'blue',
@@ -141,7 +141,7 @@ function AppInner() {
       </ExamplePressable>
       <ExampleComponent>
         <ExampleText>
-          {ColorUtils.getHexAlpha(theme.colors.dark.primary, 0.5)}
+          {ColorUtils.getHexAlpha(theme?.dark.primary ?? '#000000', 0.5)}
         </ExampleText>
       </ExampleComponent>
     </View>

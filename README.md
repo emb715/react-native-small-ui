@@ -1,450 +1,434 @@
 # react-native-small-ui
 
-Small UI Lib for React Native. Inspired by [native base](https://nativebase.io/)
+A utility-first toolkit for React Native. Gives you the tools to build styled components with platform-specific styling, dark mode, and responsive design — without locking you into pre-built components or coupled theming systems.
 
-Unleash your creativity and build polished, responsive mobile apps with React Native Small UI – where simplicity meets flexibility
-
-# Introduction
-
-The idea behind **React Native Small UI** is being able to create components that can be easily styled. Allowing you to build universal apps in React Native with multi-platform and dark mode support.
-Uses typescript to bring autocompletion for styles when creating component and using them.
+**Philosophy: utilities, not opinions.** This is a component factory and hook toolkit, not a design system. You control every styling decision.
 
 ## Table of Contents
 
 - [Installation](#installation)
-- [Getting Started](#getting-started)
-- [Basic Usage](#usage)
-  - [Create Component](#create-component)
-  - [Hooks](#hooks)
-    - [useOrientation](#useorientation)
-    - [useMediaQuery](#usemediaquery)
-    - [useColorModeValue](#usecolormodevalue)
-    - [useBreakPointValue](#usebreakpointvalue)
-  - [Theme](#theme)
-    - [useTheme](#useTheme)
-    - [Theme Config](#theme-config)
-    - [Utilities](#theme-utilities)
-  - [Helpers](#helpers)
+- [Modular Imports](#modular-imports)
+- [Quick Start](#quick-start)
+- [createComponent](#createcomponent)
+- [Hooks](#hooks)
+  - [useColorModeValue](#usecolormodevalue)
+  - [useColorMode](#usecolormode)
+  - [useOrientation](#useorientation)
+  - [useMediaQuery](#usemediaquery)
+  - [useBreakPointValue](#usebreakpointvalue)
+- [Theme System (Optional)](#theme-system-optional)
+  - [registerTheme](#registertheme)
+  - [setTheme](#settheme)
+  - [getTheme](#gettheme)
+  - [useTheme](#usetheme)
+  - [useThemeName](#usethemename)
+  - [generateSpaceUnits](#generatespaceunits)
+- [Color Utilities](#color-utilities)
+- [Helpers](#helpers)
+- [Migration Guide](#migration-guide)
 - [Known Issues](#known-issues)
-  - [Expo](#expo)
-- [Built With](#built-with)
 
 ## Installation
 
 ```sh
 npm install react-native-small-ui
-```
-
-or
-
-```sh
+# or
 yarn add react-native-small-ui
 ```
 
-#### Web support
+#### Web Support
 
 - [React Native Web](https://necolas.github.io/react-native-web/docs/installation/)
 
-## Getting Started
+## Modular Imports
 
-Get started by adding **`useSmallUI`** hook in your App.
+Import only what you need to keep bundle size minimal:
 
 ```js
-// No config
-...
-import { useSmallUI } from 'react-native-small-ui';
+// Core (~15KB) — always needed
+import { createComponent, configure } from 'react-native-small-ui';
 
+// Color mode (~18KB total)
+import {
+  useColorMode,
+  useColorModeValue,
+  setColorScheme,
+  toggleColorScheme,
+} from 'react-native-small-ui/colormode';
 
-function App() {
-  useSmallUI()
-  return (
-    <View>
-      <Text>Example</Text>
-    </View>
-  )
-}
+// Responsive utilities (~22KB total)
+import {
+  useBreakPointValue,
+  useMediaQuery,
+  useOrientation,
+} from 'react-native-small-ui/utils';
+
+// Theme system (~122KB total) — optional
+import {
+  useTheme,
+  registerTheme,
+  setTheme,
+  getTheme,
+  useThemeName,
+  generateSpaceUnits,
+  ColorUtils,
+} from 'react-native-small-ui/theme';
 ```
 
-# Usage
+## Quick Start
 
-## Create Component
+The library auto-initializes on import. No setup hook required.
 
-You can use the `createComponent` helper function to extend the styling capabilities to platform specifics, color mode, and inline style with props. The component will have access to the following props.
-
-**Utility Style Props**
-
-All available styles of the component. Like: _backgroundColor_, _alignContent_, etc.
-
-Customized are prefixed with **underscore**:
-
-- \_light
-- \_dark
-- \_ios
-- \_android
-- \_web
-
-Example:
-
-```jsx
+```tsx
 import { createComponent } from 'react-native-small-ui';
+import { View, Text, TouchableOpacity } from 'react-native';
 
-const MyComponent = createComponent(View, {
+// Create components OUTSIDE render — once, at module level
+const Card = createComponent(View, {
+  padding: 16,
+  borderRadius: 8,
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _ios: { shadowOpacity: 0.1 },
+  _android: { elevation: 2 },
+});
+
+const Button = createComponent(TouchableOpacity, {
+  padding: 12,
+  borderRadius: 6,
+  backgroundColor: '#007AFF',
   alignItems: 'center',
-  justifyContent: 'center'
-  _light: {
-    backgroundColor: '#f1f1f1',
-  },
-  _dark_: {
-    backgroundColor: '#123123',
-  },
-  _ios: {
-    marginTop: 10,
-  },
-  _android: {
-    marginTop: 16,
-  },
-  _web: {
-    marginTop: 0
-  }
-})
-```
+});
 
-The new created component `MyComponent` will also extend the same props for styling.
-
-```typescript
-function App() {
-  const myFlag = useMemo(() => {
-    // something that will return true or false
-    return true;
-  });
-
+export default function App() {
   return (
-    <MyComponent paddingTop={myFlag ? 16 : 0}>
-      <Text>Hi!</Text>
-    </MyComponent>
+    <Card marginTop={20}>
+      <Text>Hello!</Text>
+      <Button>
+        <Text style={{ color: '#fff' }}>Press me</Text>
+      </Button>
+    </Card>
   );
 }
 ```
 
-### Using a theme in createComponent
+> **Critical**: Always create components **outside** render functions. Creating inside a render causes remounts on every render, losing state and animations.
 
-You can create a theme and use it in your styles.
+## createComponent
 
-```typescript
-import { getTheme, createComponent } from 'react-native-small-ui';
+Wraps any React Native component with enhanced styling capabilities.
 
-const theme = getTheme()
-// const myTheme = registerTheme({ ... })
+**Style props available:**
 
-const MyComponent = createComponent(View, 
-  {
-  color: 'red', // wrong key, View doesn't have color
-  borderWith: 1
-  _light: {
-    borderColor: theme.colors.light.border,
-  },
-  _dark_: {
-    borderColor: theme.colors.dark.border,
-  },
-})
+- All React Native style properties as direct props
+- `_light` / `_dark` — color mode conditional styles
+- `_ios` / `_android` / `_web` / `_native` — platform-specific styles
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+const Box = createComponent(View, {
+  padding: 16,
+  _light: { backgroundColor: '#f5f5f5' },
+  _dark: { backgroundColor: '#111' },
+  _ios: { shadowOpacity: 0.1 },
+  _android: { elevation: 2 },
+});
+
+// Props override base styles at render time
+<Box padding={24} marginTop={8} />;
 ```
-
-### Utilities
-
-> Use it from ColorUtils.
-
-`import {ColorUtils} from 'react-native-small-ui'`
-
-#### Utils for colors
-
-**`ColorUtils.getHexAlpha`**
-
-```js
-/**
- * @param {string} hexColor #fff or #ffffff
- * @param {number} alpha between 0 and 1
- * @return {string} new hex color with alpha
- */
- function getHexAlpha('#f00', 0.5): '#ff000080'
-```
-
-**`ColorUtils.getContrastColor`**
-
-Accepts a color as argument to get the contrast color of it. `#fff` or `#000`
-
-```js
-/**
- * @param {string} color
- * @return {string} #fff or #000
- */
- function getContrastColor('#333'): '#fff'
-```
-
-**`ColorUtils.getContrastMode`**
-
-Accepts a color as argument to get the corresponding color mode. `light` or `dark`
-
-```js
-/**
- * @param {string} color
- * @return {string} light or dark
- */
- function getContrastMode('#333'): 'light'
-```
-
 
 ## Hooks
 
-### useOrientation
+### useColorModeValue
 
-This hook will return one **landscape** or **portrait**
-
-**`useOrientation()`**
+Returns one of two values based on the current color scheme.
 
 ```jsx
-const isLandscape = useOrientation() === 'landscape';
+import { useColorModeValue } from 'react-native-small-ui/colormode';
+
+// With strings
+const bgColor = useColorModeValue('#fff', '#000');
+
+// With style objects
+const cardStyle = useColorModeValue(
+  { backgroundColor: '#eee', color: '#000' },
+  { backgroundColor: '#333', color: '#fff' }
+);
 ```
 
-<!-- #end: useOrientation -->
+### useColorMode
+
+Access the current color scheme.
+
+```jsx
+import {
+  useColorMode,
+  setColorScheme,
+  toggleColorScheme,
+} from 'react-native-small-ui/colormode';
+
+function ThemeToggle() {
+  const { colorMode } = useColorMode(); // 'light' | 'dark' | 'auto'
+
+  return (
+    <TouchableOpacity onPress={toggleColorScheme}>
+      <Text>Current: {colorMode}</Text>
+    </TouchableOpacity>
+  );
+}
+
+// Programmatic control
+setColorScheme('dark');
+setColorScheme('light');
+setColorScheme('auto'); // follow system
+```
+
+### useOrientation
+
+Returns `'portrait'` or `'landscape'`.
+
+```jsx
+import { useOrientation } from 'react-native-small-ui/utils';
+
+const orientation = useOrientation();
+const isLandscape = orientation === 'landscape';
+```
 
 ### useMediaQuery
 
-Simple usage for media query string. This hook will return a boolean
-
-**`useMediaQuery()`**
+CSS-like media query matching. Returns a boolean.
 
 ```jsx
-useMediaQuery('(min-width: 30rem)')
-useMediaQuery('(min-width: 30rem) and (max-width: 60rem)')
+import { useMediaQuery } from 'react-native-small-ui/utils';
+
+const isLargeScreen = useMediaQuery('(min-width: 768px)');
 ```
-
-<!-- #end: useMediaQuery -->
-
-### useColorModeValue
-
-This hook will return one of the given values based on the current appearance mode.
-Accepts 2 arguments, the first for light and the second for dark.
-
-**`useColorModeValue(light, dark)`**
-
-```jsx
-// with object
-const lightStyle = {
-  color: '#f90',
-  backgroundColor: '#eee',
-  borderColor: '#999',
-};
-const darkStyle = {
-  color: '#f60',
-  backgroundColor: '#333',
-  borderColor: '#777',
-};
-const basedOnColorMode = useColorModeValue(lightStyle, darkStyle);
-```
-
-```js
-// with string
-const basedOnColorMode = useColorModeValue('#eee', '#333');
-```
-
-#### Usage
-
-```jsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { useColorModeValue } from 'react-native-small-ui';
-
-const Bar = () => {
-  const color = useColorModeValue('a light color', 'a dark color');
-  const foo = useColorModeValue(
-    {
-      color: '#f00',
-      backgroundColor: '#f1f1f1',
-    },
-    {
-      color: '#f09',
-      backgroundColor: '#333',
-    }
-  );
-
-  return (
-    <View>
-      <Text>The color should be: {color}</Text>
-      <Text style={foo}>Other style for text</Text>
-    </View>
-  );
-};
-```
-
-<!-- #end: useColorMode -->
 
 ### useBreakPointValue
 
-This hook will return one of the given values based on the current width of the device.
+Returns different values based on screen width breakpoint.
 
-**`useBreakPointValue()`**
+**Breakpoints:** `default`, `xs` (480px+), `sm` (640px+), `md` (768px+), `lg` (1024px+), `xl` (1280px+), `2xl` (1536px+)
 
 ```jsx
-// with string or what ever value
-const aValue = useBreakPointValue({
-    'xs': 'XS value',
-    'sm': 'small value',
-    'md': 'value can be anything',
-    'lg': 'large',
-    'xl': ' XL large',
-    '2xl': ' 2XL large',
-    'default': '  DEFAULT',
-  });
+import { useBreakPointValue } from 'react-native-small-ui/utils';
+
+const padding = useBreakPointValue({
+  default: 8,
+  sm: 12,
+  md: 16,
+  lg: 24,
+});
 ```
 
-<!-- ### end: useBreakPointValue -->
+## Theme System (Optional)
 
-----
+A shape-agnostic named-slot registry. No enforced structure — store whatever your app needs.
 
-## Themable
+### registerTheme
+
+```ts
+import { registerTheme } from 'react-native-small-ui/theme';
+
+// Unnamed — registers and activates as 'default'
+registerTheme({
+  light: { primary: '#007AFF', background: '#fff', text: '#000' },
+  dark: { primary: '#0A84FF', background: '#000', text: '#fff' },
+});
+
+// Named — silent registration, does not switch active theme
+registerTheme('ocean', {
+  light: { primary: '#0af', background: '#f0faff' },
+  dark: { primary: '#08c', background: '#001a33' },
+});
+```
+
+### setTheme
+
+Switch the active theme by name. Throws if the name is not registered.
+
+```ts
+import { setTheme } from 'react-native-small-ui/theme';
+
+setTheme('ocean'); // returns true on success, throws otherwise
+```
+
+### getTheme
+
+Get the active theme value outside of React.
+
+```ts
+import { getTheme } from 'react-native-small-ui/theme';
+
+const theme = getTheme(); // returns unknown — cast to your type
+```
+
 ### useTheme
 
-A hook to retrieve all the theme values and utility helpers.
-> Be sure to  call `registerTheme` first if you want to have any customization.
+Reactive hook. Returns the registered theme object. The default slot is initialized as an empty object `{}` — cast to your own type for full inference.
 
-By default it will use [defaultTheme](#default-theme)
+```tsx
+import { useTheme } from 'react-native-small-ui/theme';
 
-#### Usage
-
-```jsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { useTheme } from 'react-native-small-ui';
-
-const Taz = () => {
-  const theme = useTheme();
-
-  return (
-    <View>
-      <Text>
-        Theme primary: Light: {theme.colors.light.primary}, Dark:{' '}
-        {theme.colors.dark.primary}
-      </Text>
-    </View>
-  );
+type AppTheme = {
+  light: { primary: string; background: string };
+  dark: { primary: string; background: string };
 };
+
+// Full theme — cast to your type
+const theme = useTheme() as AppTheme;
+theme.light.primary; // '#007AFF'
+
+// Selector — typed slice, re-renders only when selected value changes
+const primary = useTheme((t) => (t as AppTheme).light.primary);
 ```
 
+### useThemeName
 
-## Theme
+Returns the active theme name.
 
-Use custom theme example in `./example/src/customTheme.ts`
+```ts
+import { useThemeName } from 'react-native-small-ui/theme';
 
-### Theme Config
-
-...
-
-```typescript
-import { type ThemeConfig } from 'react-native-small-ui'
-
-const myThemeConfig = {
-  ...
-} satisfies ThemeConfig;
+const name = useThemeName(); // 'default' | 'ocean' | ...
 ```
 
-### Default theme
+### generateSpaceUnits
 
+Standalone spacing scale utility. No theme coupling.
+
+```ts
+import { generateSpaceUnits } from 'react-native-small-ui/theme';
+
+const space = generateSpaceUnits(4);
+// { '.25': 1, '.50': 2, '.75': 3, '1': 4, '2': 8, ..., '10': 40 }
+
+const space8 = generateSpaceUnits(8, { maxAmount: 20, withNegatives: true });
+// { '1': 8, '-1': -8, '2': 16, '-2': -16, ... }
 ```
-const theme = {
-  "colors": {
-    "light": {
-      "background": "#fdfbfd",
-      "foreground": "#1c1c1e",
-      "muted": "#f4f4f5",
-      "muted_foreground": "#71717a",
-      "primary": "#8b59a0",
-      "primary_foreground": "#f4eff6",
-      "secondary": "#79a964",
-      "secondary_foreground": "#fff",
-      "destructive": "#e00c2c",
-      "destructive_foreground": "#f4eff6",
-      "accent": "#19d5bc",
-      "accent_foreground": "#303835",
-      "border": "#c0a3cc",
-      "card": "#e2d6e8",
-      "card_foreground": "#1c1c1e",
-      "ring": "#c0b3cc",
-      "palette": {
-        // ...
-      }
-    },
-    "dark": {
-      "background": "#09090b",
-      "foreground": "#fafafa",
-      "muted": "#1a1a38",
-      "muted_foreground": "#a1a1aa",
-      "primary": "#756896",
-      "primary_foreground": "#f4eff6",
-      "secondary": "#899668",
-      "secondary_foreground": "#e2e5dc",
-      "destructive": "#be0a25",
-      "destructive_foreground": "#f4eff6",
-      "accent": "#16bea7",
-      "accent_foreground": "#303835",
-      "border": "#2d283a",
-      "card": "#3f3851",
-      "card_foreground": "#fafafa",
-      "ring": "#2d183a",
-      "palette": {
-        // ...
-      }
-    }
-  }
-}
+
+## Color Utilities
+
+```ts
+import { ColorUtils } from 'react-native-small-ui/theme';
+
+ColorUtils.getHexAlpha('#f00', 0.5); // '#ff000080'
+ColorUtils.getContrastColor('#333'); // '#fff'
+ColorUtils.getContrastMode('#fff'); // 'light'
 ```
 
 ## Helpers
 
-### getStatusBarColor
+### getStatusBarStyle
 
-To retrieve `light-content` or `dark-content` based on the appearance mode (dark mode).
-This is helpful for updating the status bar style.
+Returns `'light-content'` or `'dark-content'` based on the background color contrast.
 
-[React Native status bar style](https://reactnative.dev/docs/statusbar#statusbarstyle)
+```ts
+import { getStatusBarStyle } from 'react-native-small-ui';
 
-### getTheme
-
-Get values of the current theme
-
----
-
-## Known Issues:
-
-### Expo
-
-#### Color mode detection
-
-If changing the appearance settings on the devices does no effect. Take a look at this.
-
-`ios/Info.plist`
-
+const barStyle = getStatusBarStyle('#8b59a0'); // 'light-content'
 ```
+
+## Migration Guide
+
+### Upgrading from monolithic imports (pre-modular)
+
+Imports that previously came from `'react-native-small-ui'` directly are now split across subpaths. Update as follows:
+
+```ts
+// Before
+import {
+  createComponent,
+  useColorMode,
+  useColorModeValue,
+  setColorScheme,
+  toggleColorScheme,
+  useTheme,
+  registerTheme,
+  getTheme,
+  setTheme,
+  useThemeName,
+  generateSpaceUnits,
+  ColorUtils,
+  useBreakPointValue,
+  useMediaQuery,
+  useOrientation,
+  getStatusBarColor,
+} from 'react-native-small-ui';
+
+// After
+import { createComponent, configure } from 'react-native-small-ui';
+import {
+  useColorMode,
+  useColorModeValue,
+  setColorScheme,
+  toggleColorScheme,
+} from 'react-native-small-ui/colormode';
+import {
+  useTheme,
+  registerTheme,
+  getTheme,
+  setTheme,
+  useThemeName,
+  generateSpaceUnits,
+  ColorUtils,
+} from 'react-native-small-ui/theme';
+import {
+  useBreakPointValue,
+  useMediaQuery,
+  useOrientation,
+} from 'react-native-small-ui/utils';
+```
+
+### Renamed APIs
+
+| Old                   | New                   | Notes                                                                         |
+| --------------------- | --------------------- | ----------------------------------------------------------------------------- |
+| `useSmallUI()`        | _(removed)_           | Library auto-initializes on import. Use `configure()` for custom breakpoints. |
+| `getStatusBarColor()` | `getStatusBarStyle()` | Same behavior, corrected name.                                                |
+
+### Renamed theme token keys
+
+Snake_case foreground tokens are now camelCase:
+
+| Old                      | New                     |
+| ------------------------ | ----------------------- |
+| `primary_foreground`     | `primaryForeground`     |
+| `secondary_foreground`   | `secondaryForeground`   |
+| `destructive_foreground` | `destructiveForeground` |
+| `accent_foreground`      | `accentForeground`      |
+| `muted_foreground`       | `mutedForeground`       |
+| `card_foreground`        | `cardForeground`        |
+
+## Known Issues
+
+### Expo — Color Mode Detection
+
+If changing appearance settings on device has no effect:
+
+`ios/Info.plist`:
+
+```xml
 <key>UIUserInterfaceStyle</key>
 <string>Automatic</string>
 ```
 
-Or to your `app.json`
+Or `app.json`:
 
-```
-"expo": {"userInterfaceStyle": "automatic"}
+```json
+{ "expo": { "userInterfaceStyle": "automatic" } }
 ```
 
 ---
 
-## Built with
+## Built With
 
 - [React Native](https://reactnative.dev/)
-- [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
 - [zustand](https://zustand-demo.pmnd.rs/)
-
-<!-- ## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow. -->
+- [react-native-builder-bob](https://github.com/callstack/react-native-builder-bob)
 
 ## License
 

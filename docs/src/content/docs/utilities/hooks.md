@@ -260,32 +260,34 @@ Import from `'react-native-small-ui/theme'` for the full theming system.
 
 ### useTheme
 
-Access theme colors, spacing units, and design tokens.
+Reactive hook to access the active theme. Returns `unknown` — cast to your own type.
 
 ```js
 import { useTheme } from 'react-native-small-ui/theme';
 ```
 
-**Usage:**
+**Usage — full theme:**
 
-```jsx
+```tsx
 import { useTheme } from 'react-native-small-ui/theme';
 import { createComponent } from 'react-native-small-ui';
 import { TouchableOpacity, Text } from 'react-native';
 
+type AppTheme = {
+  light: { primary: string; background: string };
+  dark:  { primary: string; background: string };
+};
+
 // Create component outside render
-const Button = createComponent(TouchableOpacity, {
-  borderRadius: 8,
-});
+const Button = createComponent(TouchableOpacity, { borderRadius: 8 });
 
 function ThemedButton() {
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
 
   return (
     <Button
-      padding={theme.space?.[4]}
-      _light={{ backgroundColor: theme.colors.light.primary }}
-      _dark={{ backgroundColor: theme.colors.dark.primary }}
+      _light={{ backgroundColor: theme.light.primary }}
+      _dark={{ backgroundColor: theme.dark.primary }}
     >
       <Text>Themed Button</Text>
     </Button>
@@ -293,4 +295,24 @@ function ThemedButton() {
 }
 ```
 
-See the [Theming Guide](/guides/theming) for more details on the theme system.
+**Usage — selector (typed slice):**
+
+```tsx
+const primary = useTheme((t) => (t as AppTheme).light.primary);
+```
+
+The selector re-renders only when the selected value changes.
+
+---
+
+### useThemeName
+
+Returns the active theme name as a string.
+
+```js
+import { useThemeName } from 'react-native-small-ui/theme';
+
+const name = useThemeName(); // 'default' | 'ocean' | ...
+```
+
+See the [Theming Guide](/guides/theming) for the full theme system including `registerTheme`, `setTheme`, and `generateSpaceUnits`.

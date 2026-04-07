@@ -5,17 +5,11 @@ import {
   createComponent,
   createThemedComponent,
   resolvePropByType,
-  useSmallUI,
 } from '../smallUI';
 
 import { act } from '@testing-library/react-native';
 import { registerTheme, setTheme } from '../hooks/useTheme/useTheme';
-import {
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 const mockConsoleWarn = jest.fn();
@@ -40,14 +34,6 @@ describe('_initSmallUI', () => {
     const result = _initSmallUI({});
     expect(mockConsoleWarn).toHaveBeenCalledWith('SmallUI already initiated.');
     expect(result).toBeUndefined();
-  });
-});
-
-describe('useSmallUI', () => {
-  test('should work', async () => {
-    const { result } = renderHook(() => useSmallUI());
-    await waitFor(() => result.current);
-    expect(result.current).toBe(undefined);
   });
 });
 

@@ -1,0 +1,253 @@
+# react-native-small-ui
+
+> A utility-first toolkit for React Native. A component factory and hook toolkit — not a design system or component library. Utilities, not opinions.
+
+## Key facts for LLMs
+
+- The library **auto-initializes on import**. There is no `useSmallUI()` — it has been removed.
+- `useTheme()` returns the registered theme object (`unknown` typed). The default slot is `{}`. The consumer owns the type entirely — always cast.
+- There is no default theme, no `defaultTheme`, no `defaultThemeColors`, no enforced color shape.
+- There is no `ThemeConfig` type, no `usePalette`, no `useThemeSchema`, no `createTheme`.
+- `ThemeSnapshot` type does not exist. The theme is `unknown`.
+- `theme.colors`, `theme.space`, `theme.palette` do not exist. Those were removed.
+- `generateSpaceUnits` is a standalone utility — it does NOT couple to the theme store.
+- Components must be created **outside render functions**. Never inside a component body.
+
+## Install
+
+```sh
+npm install react-native-small-ui
+```
+
+## Modular import paths
+
+```js
+import { createComponent, createThemedComponent, configure } from 'react-native-small-ui';
+import { useColorMode, useColorModeValue, setColorScheme, toggleColorScheme } from 'react-native-small-ui/colormode';
+import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
+import { useTheme, getTheme, registerTheme, setTheme, useThemeName, generateSpaceUnits, ColorUtils } from 'react-native-small-ui/theme';
+```
+
+## Core — `react-native-small-ui`
+
+### `createComponent(Component, styles?)`
+
+Wraps any React Native component. Adds platform and color-mode style props.
+
+```tsx
+import { createComponent } from 'react-native-small-ui';
+import { View, TouchableOpacity } from 'react-native';
+
+// MUST be outside render
+const Card = createComponent(View, {
+  padding: 16,
+  borderRadius: 8,
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _ios: { shadowOpacity: 0.1 },
+  _android: { elevation: 2 },
+});
+
+// All style props available at render time too
+<Card marginTop={20} padding={24} />
+```
+
+Special style props (prefixed with `_`):
+- `_light` / `_dark` — applied based on current color scheme
+- `_ios` / `_android` / `_web` / `_native` — platform-specific
+
+### `createThemedComponent(Component, (theme) => styles)`
+
+Like `createComponent` but receives the active theme as `unknown`. Cast to your type.
+
+```tsx
+import { createThemedComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+type AppTheme = { light: { card: string }; dark: { card: string } };
+
+// MUST be outside render
+const Card = createThemedComponent(View, (theme) => ({
+  _light: { backgroundColor: (theme as AppTheme).light.card },
+  _dark:  { backgroundColor: (theme as AppTheme).dark.card },
+}));
+```
+
+### `configure(config)`
+
+Override library defaults. Call at module level before your app renders.
+
+```ts
+import { configure } from 'react-native-small-ui';
+configure({ breakPoints: { sm: 600, md: 900, lg: 1200 } });
+```
+
+### `ComponentStyle<TProps>` type
+
+The style type accepted by `createComponent` / `createThemedComponent`.
+
+```ts
+import type { ComponentStyle } from 'react-native-small-ui';
+```
+
+## Color Mode — `react-native-small-ui/colormode`
+
+### `useColorMode()`
+
+```ts
+const { colorMode, isDark } = useColorMode();
+// colorMode: 'light' | 'dark' | null
+```
+
+### `useColorModeValue(light, dark)`
+
+```ts
+const bg = useColorModeValue('#fff', '#000');
+const style = useColorModeValue({ color: '#000' }, { color: '#fff' });
+```
+
+### `setColorScheme(mode)` / `toggleColorScheme()`
+
+```ts
+setColorScheme('dark');   // 'light' | 'dark' | 'auto'
+toggleColorScheme();
+```
+
+## Responsive — `react-native-small-ui/utils`
+
+### `useBreakPointValue(values)`
+
+Breakpoints: `default`, `xs` (480), `sm` (640), `md` (768), `lg` (1024), `xl` (1280), `2xl` (1536)
+
+```ts
+const padding = useBreakPointValue({ default: 8, sm: 12, md: 16, lg: 24 });
+```
+
+### `useMediaQuery(query)`
+
+```ts
+const isWide = useMediaQuery('(min-width: 768px)');
+```
+
+### `useOrientation()`
+
+```ts
+const orientation = useOrientation(); // 'portrait' | 'landscape'
+```
+
+## Theme — `react-native-small-ui/theme`
+
+The theme system is a **shape-agnostic named-slot registry**. Any value can be stored. No enforced structure.
+
+### `registerTheme(theme)` / `registerTheme(name, theme)`
+
+```ts
+// Unnamed — activates immediately as 'default'
+registerTheme({
+  light: { primary: '#007AFF', background: '#fff' },
+  dark:  { primary: '#0A84FF', background: '#000' },
+});
+
+// Named — silent, does not switch active theme
+registerTheme('ocean', {
+  light: { primary: '#0af' },
+  dark:  { primary: '#08c' },
+});
+```
+
+### `setTheme(name)`
+
+```ts
+setTheme('ocean'); // returns true, throws if name not registered
+// Error: theme "ocean" not found. Available: default
+```
+
+### `getTheme()` — outside React
+
+```ts
+const theme = getTheme(); // unknown — cast to your type
+```
+
+### `useTheme()` / `useTheme(selector)` — in React
+
+Returns the registered theme object. Typed as `unknown` — always cast. Before `registerTheme` is called the default slot is `{}`.
+
+```tsx
+type AppTheme = {
+  light: { primary: string; background: string };
+  dark:  { primary: string; background: string };
+};
+
+// Full theme — cast to your type
+const theme = useTheme() as AppTheme;
+theme.light.primary; // '#007AFF'
+
+// Selector — typed slice, re-renders only on value change
+const primary = useTheme((t) => (t as AppTheme).light.primary);
+```
+
+### `useThemeName()`
+
+```ts
+const name = useThemeName(); // 'default' | 'ocean' | ...
+```
+
+### `generateSpaceUnits(unit?, opts?)` — standalone, no store coupling
+
+```ts
+const space = generateSpaceUnits(4);
+// { '.25': 1, '.50': 2, '.75': 3, '1': 4, '2': 8, ..., '10': 40 }
+
+const space = generateSpaceUnits(8, { maxAmount: 20, withNegatives: true });
+// { '1': 8, '-1': -8, '2': 16, ... }
+
+generateSpaceUnits(0);  // throws
+generateSpaceUnits(-1); // throws
+```
+
+### `ColorUtils`
+
+```ts
+ColorUtils.getHexAlpha('#f00', 0.5);  // '#ff000080'
+ColorUtils.getContrastColor('#333');  // '#ffffff'
+ColorUtils.getContrastMode('#fff');   // 'light'
+```
+
+## Helpers — `react-native-small-ui`
+
+### `getStatusBarColor()`
+
+Returns `'light-content'` or `'dark-content'` based on current color mode.
+
+## Common mistakes to avoid
+
+```tsx
+// ❌ WRONG — creates new component type every render
+function MyComponent() {
+  const Box = createComponent(View, { padding: 16 }); // never do this
+  return <Box />;
+}
+
+// ✅ CORRECT — created once at module level
+const Box = createComponent(View, { padding: 16 });
+function MyComponent() {
+  return <Box />;
+}
+
+// ❌ WRONG — these do not exist
+import { defaultTheme } from 'react-native-small-ui/theme';
+import { ThemeConfig } from 'react-native-small-ui/theme';
+const theme = useTheme();
+theme.colors.light.primary; // ❌ theme is unknown
+
+// ✅ CORRECT
+type AppTheme = { light: { primary: string } };
+const theme = useTheme() as AppTheme;
+theme.light.primary; // ✅
+
+// ❌ WRONG — useSmallUI does not exist
+useSmallUI();
+
+// ✅ CORRECT — just import, library auto-inits
+import { createComponent } from 'react-native-small-ui';
+```

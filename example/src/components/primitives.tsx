@@ -20,9 +20,9 @@ export const Box = createComponent(View);
 
 export const Text = createComponent(RNText, {
   _light: {
-    color: theme.colors.light.foreground,
+    color: theme?.light.foreground,
   },
   _dark: {
-    color: theme.colors.dark.foreground,
+    color: theme?.dark.foreground,
   },
 });

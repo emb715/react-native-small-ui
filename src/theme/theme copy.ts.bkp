@@ -1,0 +1,496 @@
+import {
+  // colorsToObject,
+  // generateColor,
+  preset_palettes_dark,
+  preset_palettes_light,
+  // presetBaseColors,
+} from './colors';
+import { type Palette, type ThemeColors } from './colors.schema';
+
+type UnitConfig = {
+  unit: number;
+  maxAmount?: number; // The amount of generated sizes based on unit value
+  withNegatives?: boolean; // If the generated sizes will go under 0
+};
+
+// const OptionalShortHands = {
+//   mx: 'marginHorizontal' // mh: 'marginHorizontal'
+// } as const
+
+type ShorthandsConfig = object;
+
+export type BreakPoints = {
+  'default': number;
+  'xs': number;
+  'sm': number;
+  'md': number;
+  'lg': number;
+  'xl': number;
+  '2xl': number;
+};
+
+type color<T extends string = string> = `#${T}`;
+
+// type BaseColors<T extends string = color> = {
+//   [P in keyof typeof presetBaseColors]?: T;
+// };
+
+type PaletteConfig = {
+  // INFO: colors for generating the palette for different color modes
+  baseColors?: Record<string, color>; // { 'red': '#f00'  }
+  customColors?: Palette;
+};
+
+type SchemeColors = {
+  background: string;
+  foreground: string;
+  muted: string;
+  muted_foreground: string;
+  primary: string;
+  primary_foreground: string;
+  secondary: string;
+  secondary_foreground: string;
+  destructive: string;
+  destructive_foreground: string;
+  accent: string;
+  accent_foreground: string;
+  border: string;
+  card: string;
+  card_foreground: string;
+  ring: string;
+};
+
+export type ThemeConfig = {
+  breakPoints?: BreakPoints;
+  useShorthands?: boolean | ShorthandsConfig;
+  useUnits?: boolean | UnitConfig;
+  colors: typeof defaultThemeColors; //ThemeColorsConfig; // TODO: change to support custom color generation
+  usePalette?: PaletteConfig; //
+};
+
+// type ColorPalette = Record<string | number, string>;
+// type Palette = Record<string, ColorPalette>;
+
+// type ThemeSchemeColors = SchemeColors & {
+//   palette: Palette;
+// };
+// type ThemeSchemeColors2<T extends unknown = Record<string, string>> = T & {
+//   palette?: Palette;
+// };
+
+export type ThemeColorsConfig = {
+  light: SchemeColors;
+  dark: SchemeColors;
+};
+// export type ThemeColors = {
+//   light: ThemeSchemeColors;
+//   dark: ThemeSchemeColors;
+// };
+
+// const rootStyles = {
+//   '--background': theme.colors.light.background,
+//   '--foreground': theme.colors.light.foreground,
+//   '--primary': theme.colors.light.primary,
+//   '--primary-foreground': theme.colors.light.palette.primary[100],
+//   '--secondary': theme.colors.light.secondary,
+//   '--secondary-foreground': '#ffffff' as const,
+//   '--destructive': theme.colors.light.palette.primary[900],
+//   '--destructive-foreground': theme.colors.light.palette.primary[100],
+//   '--accent': theme.colors.light.accent,
+//   '--accent-foreground': theme.utils.getContrastColor(
+//     theme.colors.light.accent
+//   ),
+//   '--border': theme.colors.light.border,
+// } as const;
+// const rootStylesDark = {
+//   '--background': theme.colors.dark.background,
+//   '--foreground': theme.colors.dark.foreground,
+//   '--primary': theme.colors.dark.primary,
+//   '--primary-foreground': theme.colors.dark.palette.primary[100],
+//   '--secondary': theme.colors.dark.secondary,
+//   '--secondary-foreground': '#ffffff' as const,
+//   '--destructive': theme.colors.dark.palette.primary[900],
+//   '--destructive-foreground': theme.colors.dark.palette.primary[100],
+//   '--accent': theme.colors.dark.accent,
+//   '--accent-foreground': theme.utils.getContrastColor(theme.colors.dark.accent),
+//   '--border': theme.colors.dark.border,
+// } as const;
+
+// function getRootVarStyles(mode: 'light' | 'dark'): typeof rootStylesDark;
+// function getRootVarStyles(mode: 'light' | 'dark'): typeof rootStyles;
+// function getRootVarStyles(mode: any) {
+//   if (mode === 'dark') {
+//     return rootStylesDark;
+//   }
+//   return rootStyles;
+// }
+
+// const getRootVarStyles = (mode: 'light' | 'dark') => ({
+//   '--background': theme.colors[mode].background,
+//   '--foreground': theme.colors[mode].foreground,
+//   '--primary': theme.colors[mode].primary,
+//   '--primary-foreground': theme.colors[mode].palette.primary[100],
+//   '--secondary': theme.colors[mode].secondary,
+//   '--secondary-foreground': '#ffffff',
+//   '--destructive': theme.colors[mode].palette.primary[900],
+//   '--destructive-foreground': theme.colors[mode].palette.primary[100],
+//   '--accent': theme.colors[mode].accent,
+//   '--accent-foreground': theme.utils.getContrastColor(
+//     theme.colors[mode].accent
+//   ),
+//   '--border': theme.colors[mode].border,
+// });
+
+// --background: 240 10% 3.9%; // #09090b
+// --foreground: 0 0% 98%; // #fafafa
+// --muted: 240 3.7% 15.9%; // #1a1a38
+// --muted-foreground: 240 5% 64.9%; // #a1a1aa
+// --popover: 240 10% 3.9%;
+// --popover-foreground: 0 0% 98%;
+// --card: 240 10% 3.9%;
+// --card-foreground: 0 0% 98%;
+// --border: 240 3.7% 15.9%;
+// --input: 240 3.7% 15.9%;
+// --primary: 0 0% 98%;
+// --primary-foreground: 240 5.9% 10%;
+// --secondary: 240 3.7% 15.9%;
+// --secondary-foreground: 0 0% 98%;
+// --accent: 240 3.7% 15.9%;
+// --accent-foreground: 0 0% 98%;
+// --destructive: 0 62.8% 30.6%;
+// --destructive-foreground: 0 0% 98%;
+// --ring: 240 4.9% 83.9%;
+
+//     --chart-1: 220 70% 50%;
+//     --chart-2: 160 60% 45%;
+//     --chart-3: 30 80% 55%;
+//     --chart-4: 280 65% 60%;
+//     --chart-5: 340 75% 55%;
+
+export const defaultThemeColors = {
+  light: {
+    background: '#fdfbfd',
+    foreground: '#1c1c1e', // should work as text color for background
+    muted: '#f4f4f5',
+    muted_foreground: '#71717a',
+    primary: '#8b59a0',
+    primary_foreground: '#f4eff6',
+    secondary: '#79a964',
+    secondary_foreground: '#fff', // TODO: change color
+    destructive: '#e00c2c', // TODO: change color
+    destructive_foreground: '#f4eff6',
+    accent: '#19d5bc', // TODO: change color
+    accent_foreground: '#303835',
+    border: '#c0a3cc',
+    card: '#e2d6e8',
+    card_foreground: '#1c1c1e',
+    ring: '#c0b3cc',
+    // ...
+    // palette: preset_palettes_light,
+  },
+  dark: {
+    background: '#09090b',
+    foreground: '#fafafa',
+    muted: '#1a1a38',
+    muted_foreground: '#a1a1aa',
+    primary: '#756896',
+    primary_foreground: '#f4eff6',
+    secondary: '#899668',
+    secondary_foreground: '#e2e5dc', // TODO: change color
+    destructive: '#be0a25', // TODO: change color
+    destructive_foreground: '#f4eff6',
+    accent: '#16bea7', // TODO: change color
+    accent_foreground: '#303835',
+    border: '#2d283a',
+    card: '#3f3851',
+    card_foreground: '#fafafa',
+    ring: '#2d183a',
+    // ...
+    // palette: preset_palettes_dark,
+  },
+} as const satisfies ThemeColors;
+
+// text_light: {
+//   100: '#ECECED',
+//   300: '#868E96',
+//   600: '#3F4A55',
+//   900: '#11141E',
+// },
+// text_dark: {
+//   100: '#D9D9DB',
+//   300: '#B3B4B7',
+//   600: '#707278',
+//   900: '#3F4A55',
+// },
+
+// const defaultBreakPoints = {
+//   'default': 0, // 100%
+//   'xs': 480,
+//   'sm': 640,
+//   'md': 768,
+//   'lg': 1024,
+//   'xl': 1280,
+//   '2xl': 1536,
+// };
+
+export const _defaultThemeConfig = (() =>
+  ({
+    useShorthands: false,
+    useUnits: true,
+    colors: defaultThemeColors,
+    // breakPoints: defaultBreakPoints,
+    // usePalette: {
+    //   baseColors: presetBaseColors,
+    //   customColors: {
+    //     redflare: {
+    //       0: '#fff',
+    //     },
+    //   },
+    //   // baseColors: {
+    //   //   funny: '#0f9',
+    //   //   blue: '#f0f',
+    //   //   sunset: '#0f0f',
+    //   // },
+    // },
+  }) satisfies ThemeConfig)();
+
+/**
+ * Create sizes for unit from 1 to maxAmount with fractions between 0 and 1
+ *
+ * Example:  given 4 as unit > {'.25': 1, '.50': 2, '.75': 3, 1: 4, 2: 8, ...}
+ * @param unit
+ * @param maxAmount
+ * @returns
+ */
+function generateMeasureUnit(
+  unit: number = 4,
+  { maxAmount = 10, withNegatives = false } = {}
+) {
+  // Safe check
+  if (!(unit > 0)) {
+    throw new Error(
+      `generateMeasureUnit: Unit must be bigger than 0. Given: ${unit} `
+    );
+  }
+
+  const sizesSmall = {
+    ['.25']: unit * 0.25,
+    ['.50']: unit * 0.5,
+    ['.75']: unit * 0.75,
+  };
+
+  const sizes: Record<string, number> = {};
+
+  for (let index = 1; index < maxAmount + 1; index++) {
+    sizes[index.toString()] = unit * index;
+  }
+
+  if (withNegatives) {
+    Object.entries(sizes).forEach(([k, v]) => {
+      const key = `-${k}`;
+      sizes[key] = -v;
+    });
+  }
+
+  return { ...sizes, ...sizesSmall };
+}
+
+const UNIT_DEFAULT = 4;
+function getUnitConfig(useUnits?: boolean | UnitConfig) {
+  const unitConfig = {
+    enabled: !!useUnits,
+    unit: UNIT_DEFAULT,
+    maxAmount: 10,
+    withNegatives: true,
+  };
+  if (typeof useUnits === 'object') {
+    unitConfig.maxAmount = useUnits?.maxAmount ?? unitConfig.maxAmount;
+    unitConfig.withNegatives =
+      useUnits?.withNegatives ?? unitConfig.withNegatives;
+  }
+  return unitConfig;
+}
+
+function getUnits(useUnits?: boolean | UnitConfig) {
+  const unitConfig = getUnitConfig(useUnits);
+  if (!unitConfig.enabled) {
+    return undefined;
+  }
+
+  return generateMeasureUnit(unitConfig.unit, {
+    maxAmount: unitConfig.maxAmount,
+    withNegatives: unitConfig.withNegatives,
+  });
+}
+
+export type ThemeSnapshot = {
+  colors: ThemeColors;
+  space?: ReturnType<typeof getUnits>;
+  // breakpoints: BreakPoints;
+  // utils: ThemeUtils;
+};
+
+// type ThemeUtils = {
+//   getHexAlpha: typeof getHexAlpha;
+//   getContrastColor: typeof getContrastColor;
+// };
+
+function validateThemeConfigValues(themeConfig: ThemeConfig) {
+  // TODO: parse zod schema and validate
+  return themeConfig;
+}
+
+// type ColorId = string & { readonly _brand: unique symbol };
+// const ColorId = (id: string): ColorId => id as ColorId;
+
+// function generateBaseColorsPalettes(config: ThemeConfig) {
+//   if (typeof config.usePalette !== 'object') {
+//     return;
+//   }
+//   if (!config.usePalette.baseColors) {
+//     return;
+//   }
+
+//   const palette_light: Palette = {};
+//   const palette_dark: Palette = {};
+//   const baseColors = config.usePalette.baseColors;
+//   const baseColorsKeys = Object.keys(baseColors);
+
+//   for (let index = 0; index < baseColorsKeys.length; index++) {
+//     const _color = baseColors[index] as string;
+//     const _colorKey = ColorId(baseColorsKeys[index] as string);
+//     // const _color = baseColors[colorKey] as string
+//     const light = generateColor(_color, {
+//       theme: 'default',
+//       backgroundColor: config.colors.light.background,
+//     });
+
+//     // palette_light[_colorKey] = colorsToObject(light);
+//   }
+
+//   // const asd = paletteSchema.parse(palette_light)
+//   // palette_light.
+
+//   // Object.keys(baseColors).forEach(colorKey => {
+//   //   //
+//   //   const _color = baseColors[colorKey] as string
+//   //   const light = generateColor(_color, {
+//   //     theme: 'default',
+//   //     backgroundColor: config.colors.light.background,
+//   //   });
+//   //   palette_light[colorKey] = colorsToObject(light);
+//   // })
+
+//   // Object.keys(config.usePalette.baseColors).forEach((color) => {
+//   //   const light = generateColor(color, {
+//   //     theme: 'default',
+//   //     backgroundColor: config.colors.light.background,
+//   //   });
+//   //   palette_light[color] = colorsToObject(light);
+
+//   //   const dark = generateColor(color, {
+//   //     theme: 'dark',
+//   //     backgroundColor: config.colors.dark.background,
+//   //   });
+//   //   palette_dark[color] = colorsToObject(dark);
+//   // });
+
+//   return {
+//     light: palette_light,
+//     dark: palette_dark,
+//   };
+// }
+
+// function validateCustomPalette(config: ThemeConfig) {
+//   if (typeof config.usePalette !== 'object') {
+//     return;
+//   }
+//   if (!config.usePalette.customColors) {
+//     return;
+//   }
+//   // TODO: validate config.usePalette.customColors
+//   return config.usePalette.customColors;
+// }
+
+function getColorsForTheme(config: ThemeConfig) {
+  // const primaryLight = generateColor(config.colors.light.primary, {
+  //   theme: 'default',
+  //   backgroundColor: config.colors.light.background,
+  // });
+  // const primaryDark = generateColor(config.colors.dark.primary, {
+  //   theme: 'dark',
+  //   backgroundColor: config.colors.dark.background,
+  // });
+  const colors = {
+    light: {
+      ...config.colors.light,
+      palette: preset_palettes_light,
+    },
+    dark: {
+      ...config.colors.dark,
+      palette: preset_palettes_dark,
+    },
+  };
+  // Add preset palettes
+  // colors.light.palette = preset_palettes_light;
+  // colors.dark.palette = preset_palettes_dark;
+  // colors.light.palette.primary = colorsToObject(primaryLight);
+  return colors;
+
+  // if (!config.usePalette) {
+  //   // Add preset palettes
+  //   // colors.light.palette = preset_palettes_light;
+  //   // colors.dark.palette = preset_palettes_dark;
+  //   return colors;
+  // }
+
+  // if (typeof config.usePalette === 'object') {
+  //   if (config.usePalette.baseColors) {
+  //     // TODO: validate baseColors
+  //     const baseColorsPalettes = generateBaseColorsPalettes(config);
+  //     if (baseColorsPalettes) {
+  //       colors.light.palette = {};
+  //       // colors.light.palette = baseColorsPalettes.light;
+  //       // colors.dark.palette = baseColorsPalettes.dark;
+  //     }
+  //   }
+
+  //   if (config.usePalette.customColors) {
+  //     const customColors = validateCustomPalette(config);
+  //     if (customColors) {
+  //       colors.light.palette = {
+  //         ...colors.light.palette,
+  //         ...customColors,
+  //       } as const;
+  //       colors.dark.palette = {
+  //         ...colors.dark.palette,
+  //         ...customColors,
+  //       } as const;
+  //     }
+  //   }
+  // }
+  // return colors satisfies ThemeColors;
+}
+
+// TODO: add breakpoint usage
+export function createTheme(themeConfig: ThemeConfig = _defaultThemeConfig) {
+  const config = validateThemeConfigValues(themeConfig);
+
+  const generatedSpaceUnits = getUnits(config.useUnits);
+
+  const generatedColors = getColorsForTheme(config);
+  // themeColorsSchema.parse(generatedColors);
+
+  const spaceUnits = generatedSpaceUnits ? { space: generatedSpaceUnits } : {};
+  // const breakpointUnits = { breakpoints: defaultBreakPoints };
+  const theme = {
+    // colors: config.colors,
+    colors: generatedColors,
+    ...spaceUnits,
+    // ...breakpointUnits,
+    // TODO: ?? look to add useMaxWith or useBreakPoints or useBreakPointValue
+  } satisfies ThemeSnapshot;
+  return theme;
+}
+
+export const defaultTheme = createTheme(_defaultThemeConfig);

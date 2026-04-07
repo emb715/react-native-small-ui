@@ -2,16 +2,12 @@ import { renderHook } from '@testing-library/react-hooks';
 
 import { useBreakPointValue } from '../useBreakPointValue';
 import { Dimensions } from 'react-native';
-import { _initSmallUI } from '../../../smallUI';
 
 afterEach(() => {
   jest.clearAllMocks();
 });
 
 describe('useBreakPointValue ', () => {
-  beforeEach(() => {
-    _initSmallUI();
-  });
   it('default (with: 414)', () => {
     jest.spyOn(Dimensions, 'get').mockReturnValue({
       width: 414,
