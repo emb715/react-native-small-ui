@@ -18,6 +18,7 @@ import {
   StylePropsLookUp,
   type LookUpPropsComponentType,
 } from './utils/utils.style-props';
+import { getResolvedStyles } from './utils/helpers';
 import type {
   BreakPointKey,
   ComponentConfig,
@@ -420,6 +421,31 @@ type WithVariantProps<
 /** Map of slot names to component functions (SmallUIComponent instances) */
 export type SlotMap = Record<string, (props: any) => React.ReactElement | null>; // any: slots accept heterogeneous prop types
 
+/**
+ * Optional metadata descriptor for a createComponent output.
+ * Stored as `__meta` on the component — readable by tooling, DevTools,
+ * and the future CLI scaffolder.
+ *
+ * @example
+ * const Button = createComponent(
+ *   TouchableOpacity,
+ *   { borderRadius: 8 },
+ *   undefined,
+ *   { name: 'Button', description: 'Primary action button', tags: ['action'] }
+ * );
+ * console.log(Button.__meta.name); // 'Button'
+ */
+export type ComponentMeta = {
+  /** Human-readable component name (for documentation / DevTools). */
+  name?: string;
+  /** Description of the component's purpose. */
+  description?: string;
+  /** Free-form tags for categorization (e.g. ['layout', 'card']). */
+  tags?: string[];
+  /** Any additional developer-defined metadata. */
+  [key: string]: unknown;
+};
+
 export type SmallUIComponent<
   TProps extends { style?: unknown },
   V extends VariantConfig<TProps> = VariantConfig<TProps>,
@@ -460,6 +486,50 @@ export type SmallUIComponent<
    * </Card>
    */
   withSlots: <S extends SlotMap>(slots: S) => SmallUIComponent<TProps, V> & S;
+
+  // ---------------------------------------------------------------------------
+  // Metadata properties (#16 — Component Metadata & Self-Documentation)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Optional metadata descriptor passed as the fourth argument to createComponent.
+   * Readable by tooling, DevTools, CLI scaffolders. Undefined if no meta was passed.
+   *
+   * Zero runtime overhead — static property assignment, never read during render.
+   */
+  __meta: ComponentMeta | undefined;
+
+  /**
+   * Snapshot of the variant configuration keys for this component.
+   * Shape: `{ [groupName]: string[] }` — maps each variant group to its possible values.
+   * Undefined when the component has no variants.
+   *
+   * @example
+   * const Button = createComponent(TouchableOpacity, {
+   *   variants: { size: { sm: {}, md: {}, lg: {} } },
+   * });
+   * console.log(Button.__variants); // { size: ['sm', 'md', 'lg'] }
+   */
+  __variants: Record<string, string[]> | undefined;
+
+  /**
+   * Bound style resolver. Returns the fully resolved flat style object for
+   * this component's base style definition given a context.
+   * No rendering required — pure function.
+   *
+   * @example
+   * const Box = createComponent(View, (ctx) => ({
+   *   padding: ctx.breakpoint({ default: 8, md: 16 }),
+   * }));
+   *
+   * const resolved = Box.__resolveStyles({ colorMode: 'dark', breakpointWidth: 800 });
+   * // => { padding: 16 }
+   */
+  __resolveStyles: (ctx?: {
+    colorMode?: 'light' | 'dark';
+    breakpointWidth?: number;
+    breakpoints?: Record<string, number>;
+  }) => Record<string, unknown>;
 };
 
 // ---------------------------------------------------------------------------
@@ -510,7 +580,8 @@ export function createComponent<
 >(
   Component: ComponentType<TProps>,
   styleOrConfig?: ComponentStyle<TProps> | ComponentConfig<TProps, V>,
-  defaultProps?: Exclude<TProps, 'style'>
+  defaultProps?: Exclude<TProps, 'style'>,
+  meta?: ComponentMeta
 ): SmallUIComponent<TProps, V> {
   // ------------------------------------------------------------------
   // Definition-time setup (runs once at module level, never per render)
@@ -851,6 +922,30 @@ export function createComponent<
     }
     return withSlotsComp;
   };
+
+  // ----------------------------------------------------------------
+  // Static metadata properties (#16 — Component Metadata)
+  // Zero runtime overhead: assigned once at definition time, never
+  // read during render.
+  // ----------------------------------------------------------------
+
+  // __meta: pass-through of the optional meta descriptor.
+  SmallUIComp.__meta = meta;
+
+  // __variants: snapshot of variant group names → their value keys.
+  SmallUIComp.__variants = config?.variants
+    ? (Object.fromEntries(
+        Object.entries(config.variants).map(([group, values]) => [
+          group,
+          Object.keys(values),
+        ])
+      ) as Record<string, string[]>)
+    : undefined;
+
+  // __resolveStyles: bound resolver for the component's base style definition.
+  // Delegates to the standalone getResolvedStyles utility.
+  SmallUIComp.__resolveStyles = (ctx = {}) =>
+    getResolvedStyles(baseStyle as ComponentStyle<TProps>, ctx);
 
   return SmallUIComp as SmallUIComponent<TProps, V>;
 }

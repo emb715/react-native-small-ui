@@ -12,13 +12,14 @@ const ruleTester = new RuleTester({
 });
 
 ruleTester.run('no-createcomponent-in-render', rule, {
-  // -------------------------------------------------------------------------
+  // =========================================================================
   // VALID — must NOT trigger the rule
-  // -------------------------------------------------------------------------
+  // =========================================================================
   valid: [
-    // Module-level call — the canonical correct pattern
+    // ── Module-level patterns (all correct) ──────────────────────────────────
+
     {
-      name: 'module-level createComponent call',
+      name: 'createComponent at module level — canonical correct pattern',
       code: `
         import { createComponent } from 'react-native-small-ui';
         import { View } from 'react-native';
@@ -31,18 +32,62 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // Module-level in a non-component file (utility file)
     {
-      name: 'module-level call with no component present',
+      name: 'createComponentGroup at module level',
       code: `
-        const Box = createComponent(View, { padding: 16 });
-        const Card = createComponent(View, { borderRadius: 8 });
+        const { Label, Input } = createComponentGroup({
+          Label: { Component: Text, style: { fontSize: 14 } },
+          Input: { Component: TextInput, style: { borderWidth: 1 } },
+        });
+
+        function MyForm() {
+          return <Label>Name</Label>;
+        }
       `,
     },
 
-    // createComponent in a non-component function (lowercase name)
     {
-      name: 'inside a regular (non-component) function — allowed',
+      name: 'createThemedComponent at module level',
+      code: `
+        const ThemedBox = createThemedComponent(View, (theme) => ({
+          _light: { backgroundColor: theme.colors.light.background },
+        }));
+
+        function MyScreen() {
+          return <ThemedBox />;
+        }
+      `,
+    },
+
+    {
+      name: '.extend() at module level',
+      code: `
+        const Base = createComponent(View, { padding: 8 });
+        const Card = Base.extend({ borderRadius: 8 });
+
+        function MyComponent() {
+          return <Card />;
+        }
+      `,
+    },
+
+    {
+      name: 'multiple factories and .extend() all at module level',
+      code: `
+        const Box = createComponent(View, { padding: 8 });
+        const Card = Box.extend({ borderRadius: 4 });
+        const { Row, Col } = createComponentGroup({
+          Row: { Component: View, style: { flexDirection: 'row' } },
+          Col: { Component: View, style: { flexDirection: 'column' } },
+        });
+        const ThemedCard = createThemedComponent(View, (t) => ({ padding: t.space }));
+      `,
+    },
+
+    // ── Non-component functions (lowercase names) ────────────────────────────
+
+    {
+      name: 'createComponent inside a regular lowercase function — allowed',
       code: `
         function buildComponents() {
           const Box = createComponent(View, { padding: 16 });
@@ -51,9 +96,39 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // createComponent inside an object method that is NOT render
     {
-      name: 'inside an object method named setup — allowed',
+      name: '.extend() inside a regular lowercase function — allowed',
+      code: `
+        function buildExtended(Base) {
+          return Base.extend({ margin: 8 });
+        }
+      `,
+    },
+
+    {
+      name: 'createComponentGroup inside a lowercase factory function — allowed',
+      code: `
+        function makeFormComponents(theme) {
+          return createComponentGroup({
+            Input: { Component: TextInput, style: { borderColor: theme.border } },
+          });
+        }
+      `,
+    },
+
+    {
+      name: 'createThemedComponent inside a lowercase utility function — allowed',
+      code: `
+        function withTheme(Component) {
+          return createThemedComponent(Component, (t) => ({ color: t.text }));
+        }
+      `,
+    },
+
+    // ── Object methods / Arrow functions assigned to lowercase ────────────────
+
+    {
+      name: 'inside an object method NOT named render — allowed',
       code: `
         const api = {
           setup() {
@@ -63,17 +138,22 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // Arrow function assigned to lowercase — not a component
     {
       name: 'arrow function assigned to lowercase variable — allowed',
       code: `
-        const factory = () => {
-          return createComponent(View, { padding: 8 });
-        };
+        const factory = () => createComponent(View, { padding: 8 });
       `,
     },
 
-    // Nested inside another module-level IIFE (not a component)
+    {
+      name: '.extend() on arrow function assigned to lowercase — allowed',
+      code: `
+        const makeCard = (Base) => Base.extend({ borderRadius: 4 });
+      `,
+    },
+
+    // ── IIFE ──────────────────────────────────────────────────────────────────
+
     {
       name: 'inside IIFE at module level — allowed',
       code: `
@@ -81,20 +161,10 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // Different call name — not createComponent
-    {
-      name: 'unrelated function call named createSomethingElse — ignored',
-      code: `
-        function MyComponent() {
-          const x = createSomethingElse(View, { padding: 16 });
-          return null;
-        }
-      `,
-    },
+    // ── Unrelated calls (must not be flagged) ────────────────────────────────
 
-    // createComponent via member expression on unrelated object
     {
-      name: 'member expression not named createComponent — ignored',
+      name: 'member expression with unrelated method name — ignored',
       code: `
         function MyComponent() {
           const x = SomeLib.buildComponent(View, { padding: 16 });
@@ -103,12 +173,23 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // createComponent inside useCallback (anonymous arrow) inside a component —
-    // nearest enclosing named function of the createComponent call is the
-    // anonymous arrow (assigned to lowercase 'handler'), not MyComponent.
-    // Rule does NOT fire — this is documented behaviour (use module level).
+    {
+      name: '.extend() on an unrelated method name not in additionalMethodNames — ignored',
+      // 'pipe' is not in the default or additional method name sets
+      code: `
+        function MyComponent() {
+          const x = someObservable.pipe(map(v => v));
+          return null;
+        }
+      `,
+    },
+
+    // ── Anonymous arrows inside hooks (documented limitation) ─────────────────
+
     {
       name: 'createComponent inside anonymous arrow inside useCallback — not detected',
+      // Nearest enclosing named function of the call is the anonymous arrow
+      // assigned to lowercase 'handler' → not flagged (documented limitation).
       code: `
         function MyComponent() {
           const handler = React.useCallback(() => {
@@ -120,26 +201,53 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
     },
 
-    // additionalFunctionNames option — name not in list, inside component
     {
-      name: 'custom name not in additionalFunctionNames — ignored',
+      name: '.extend() inside anonymous arrow inside useCallback — not detected',
       code: `
         function MyComponent() {
-          const Box = styledView(View, { padding: 8 });
+          const get = React.useCallback(() => {
+            return Base.extend({ margin: 4 });
+          }, []);
           return null;
         }
       `,
-      options: [{ additionalFunctionNames: ['createStyledView'] }],
+    },
+
+    // ── additionalFunctionNames option ────────────────────────────────────────
+
+    {
+      name: 'custom factory name not in additionalFunctionNames — ignored',
+      code: `
+        function MyComponent() {
+          const Box = myFactory(View, { padding: 8 });
+          return null;
+        }
+      `,
+      options: [{ additionalFunctionNames: ['otherFactory'] }],
+    },
+
+    // ── additionalMethodNames option ──────────────────────────────────────────
+
+    {
+      name: 'custom method name not in additionalMethodNames — ignored',
+      code: `
+        function MyComponent() {
+          const x = Base.customExtend({ margin: 8 });
+          return null;
+        }
+      `,
+      options: [{ additionalMethodNames: ['withBase'] }],
     },
   ],
 
-  // -------------------------------------------------------------------------
+  // =========================================================================
   // INVALID — must trigger the rule
-  // -------------------------------------------------------------------------
+  // =========================================================================
   invalid: [
-    // Inside a named function component
+    // ── createComponent ───────────────────────────────────────────────────────
+
     {
-      name: 'inside named function component',
+      name: 'createComponent inside named function component',
       code: `
         function MyComponent() {
           const Box = createComponent(View, { padding: 16 });
@@ -148,15 +256,14 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // Inside an arrow function component assigned to uppercase
     {
-      name: 'inside arrow function assigned to PascalCase — component',
+      name: 'createComponent inside arrow function component (PascalCase)',
       code: `
         const MyComponent = () => {
           const Box = createComponent(View, { padding: 16 });
@@ -165,33 +272,30 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // Inside an arrow function component using JSX with forwardRef pattern
     {
-      name: 'inside function component with props/ref pattern',
+      name: 'createComponent inside function component that renders JSX',
       code: `
         const Card = (props) => {
           const Inner = createComponent(View, { borderRadius: 8 });
           return <Inner {...props} />;
         };
       `,
-      // 'Card' starts uppercase → detected as component
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // Inside a hook
     {
-      name: 'inside a custom hook',
+      name: 'createComponent inside a custom hook',
       code: `
         function useMyHook() {
           const Box = createComponent(View, { padding: 8 });
@@ -200,15 +304,14 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'hook' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'hook' },
         },
       ],
     },
 
-    // Inside a class render method
     {
-      name: 'inside class component render method',
+      name: 'createComponent inside class render method',
       code: `
         class MyClass extends React.Component {
           render() {
@@ -219,15 +322,14 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'render method' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'render method' },
         },
       ],
     },
 
-    // Multiple calls inside one component — each is reported
     {
-      name: 'multiple createComponent calls inside one component',
+      name: 'createComponent — multiple calls in one component, each reported',
       code: `
         function MyComponent() {
           const Box = createComponent(View, { padding: 8 });
@@ -237,55 +339,34 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // Inside a named function expression (not arrow) assigned to uppercase
     {
-      name: 'named function expression assigned to PascalCase variable',
+      name: 'createComponent via named function expression assigned to PascalCase',
       code: `
         const Button = function ButtonInner() {
           const Wrapper = createComponent(View, { padding: 8 });
           return null;
         };
       `,
-      // 'ButtonInner' starts uppercase → detected as component
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // additionalFunctionNames option
     {
-      name: 'aliased createComponent via additionalFunctionNames option',
-      code: `
-        function MyComponent() {
-          const Box = styledView(View, { padding: 8 });
-          return null;
-        }
-      `,
-      options: [{ additionalFunctionNames: ['styledView'] }],
-      errors: [
-        {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
-        },
-      ],
-    },
-
-    // MemberExpression call: SmallUI.createComponent(...)
-    {
-      name: 'member expression call SmallUI.createComponent inside component',
+      name: 'SmallUI.createComponent(...) member expression inside component',
       code: `
         function MyComponent() {
           const Box = SmallUI.createComponent(View, { padding: 8 });
@@ -294,15 +375,14 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
         },
       ],
     },
 
-    // Arrow function component — createComponent at top of body
     {
-      name: 'export default arrow function component',
+      name: 'export default function component with createComponent inside',
       code: `
         export default function Screen() {
           const Row = createComponent(View, { flexDirection: 'row' });
@@ -311,8 +391,264 @@ ruleTester.run('no-createcomponent-in-render', rule, {
       `,
       errors: [
         {
-          messageId: 'noCreateComponentInRender',
-          data: { kind: 'function component' },
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
+        },
+      ],
+    },
+
+    // ── createComponentGroup ──────────────────────────────────────────────────
+
+    {
+      name: 'createComponentGroup inside a function component',
+      code: `
+        function MyForm() {
+          const { Label, Input } = createComponentGroup({
+            Label: { Component: Text, style: { fontSize: 14 } },
+            Input: { Component: TextInput, style: { borderWidth: 1 } },
+          });
+          return null;
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponentGroup', kind: 'function component' },
+        },
+      ],
+    },
+
+    {
+      name: 'createComponentGroup inside a hook',
+      code: `
+        function useFormComponents() {
+          const group = createComponentGroup({
+            Field: { Component: View, style: { marginBottom: 8 } },
+          });
+          return group;
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponentGroup', kind: 'hook' },
+        },
+      ],
+    },
+
+    {
+      name: 'createComponentGroup inside class render method',
+      code: `
+        class MyScreen extends React.Component {
+          render() {
+            const { Row } = createComponentGroup({
+              Row: { Component: View, style: { flexDirection: 'row' } },
+            });
+            return <Row />;
+          }
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponentGroup', kind: 'render method' },
+        },
+      ],
+    },
+
+    // ── createThemedComponent ─────────────────────────────────────────────────
+
+    {
+      name: 'createThemedComponent inside a function component',
+      code: `
+        function MyScreen() {
+          const ThemedBox = createThemedComponent(View, (theme) => ({
+            backgroundColor: theme.colors.background,
+          }));
+          return null;
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createThemedComponent', kind: 'function component' },
+        },
+      ],
+    },
+
+    {
+      name: 'createThemedComponent inside a hook',
+      code: `
+        function useThemedCard() {
+          return createThemedComponent(View, (t) => ({ padding: t.space[4] }));
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createThemedComponent', kind: 'hook' },
+        },
+      ],
+    },
+
+    // ── .extend() ─────────────────────────────────────────────────────────────
+
+    {
+      name: '.extend() inside a function component',
+      code: `
+        const Base = createComponent(View, { padding: 8 });
+
+        function MyComponent() {
+          const Card = Base.extend({ borderRadius: 8 });
+          return null;
+        }
+      `,
+      errors: [
+        { messageId: 'noExtendInRender', data: { kind: 'function component' } },
+      ],
+    },
+
+    {
+      name: '.extend() inside an arrow function component',
+      code: `
+        const Base = createComponent(View, { padding: 8 });
+
+        const MyComponent = () => {
+          const Card = Base.extend({ margin: 4 });
+          return null;
+        };
+      `,
+      errors: [
+        { messageId: 'noExtendInRender', data: { kind: 'function component' } },
+      ],
+    },
+
+    {
+      name: '.extend() inside a hook',
+      code: `
+        const Base = createComponent(View, { padding: 8 });
+
+        function useCard() {
+          return Base.extend({ borderRadius: 4 });
+        }
+      `,
+      errors: [{ messageId: 'noExtendInRender', data: { kind: 'hook' } }],
+    },
+
+    {
+      name: '.extend() inside class render method',
+      code: `
+        const Base = createComponent(View, { padding: 8 });
+
+        class MyClass extends React.Component {
+          render() {
+            const Card = Base.extend({ borderRadius: 8 });
+            return <Card />;
+          }
+        }
+      `,
+      errors: [
+        { messageId: 'noExtendInRender', data: { kind: 'render method' } },
+      ],
+    },
+
+    {
+      name: '.extend() chained on inline createComponent inside component — both reported',
+      code: `
+        function MyComponent() {
+          const Card = createComponent(View, { padding: 8 }).extend({ borderRadius: 4 });
+          return null;
+        }
+      `,
+      // ESLint visits CallExpression nodes outer-first:
+      //   1. The outer .extend(...) call → noExtendInRender
+      //   2. The inner createComponent(...) (receiver of .extend) → noFactoryInRender
+      errors: [
+        { messageId: 'noExtendInRender', data: { kind: 'function component' } },
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
+        },
+      ],
+    },
+
+    // ── Mixed: multiple factory types in one component ────────────────────────
+
+    {
+      name: 'createComponent + createComponentGroup + .extend() all inside one component',
+      code: `
+        const Base = createComponent(View, { margin: 4 });
+
+        function MyScreen() {
+          const Box = createComponent(View, { padding: 8 });
+          const { Row } = createComponentGroup({ Row: { Component: View } });
+          const Card = Base.extend({ borderRadius: 8 });
+          return null;
+        }
+      `,
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponent', kind: 'function component' },
+        },
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'createComponentGroup', kind: 'function component' },
+        },
+        { messageId: 'noExtendInRender', data: { kind: 'function component' } },
+      ],
+    },
+
+    // ── additionalFunctionNames option ────────────────────────────────────────
+
+    {
+      name: 'aliased factory name via additionalFunctionNames inside component',
+      code: `
+        function MyComponent() {
+          const Box = myFactory(View, { padding: 8 });
+          return null;
+        }
+      `,
+      options: [{ additionalFunctionNames: ['myFactory'] }],
+      errors: [
+        {
+          messageId: 'noFactoryInRender',
+          data: { callee: 'myFactory', kind: 'function component' },
+        },
+      ],
+    },
+
+    // ── additionalMethodNames option ──────────────────────────────────────────
+
+    {
+      name: 'custom method name via additionalMethodNames inside component',
+      code: `
+        function MyComponent() {
+          const Card = Base.customExtend({ margin: 8 });
+          return null;
+        }
+      `,
+      options: [{ additionalMethodNames: ['customExtend'] }],
+      errors: [
+        {
+          messageId: 'noMethodInRender',
+          data: { method: 'customExtend', kind: 'function component' },
+        },
+      ],
+    },
+
+    {
+      name: 'custom method name via additionalMethodNames inside a hook',
+      code: `
+        function useWidget() {
+          return Base.withBase({ padding: 4 });
+        }
+      `,
+      options: [{ additionalMethodNames: ['withBase'] }],
+      errors: [
+        {
+          messageId: 'noMethodInRender',
+          data: { method: 'withBase', kind: 'hook' },
         },
       ],
     },

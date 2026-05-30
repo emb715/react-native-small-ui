@@ -31,6 +31,11 @@
       "types": "./lib/typescript/src/testing.d.ts",
       "import": "./lib/module/testing.js",
       "require": "./lib/commonjs/testing.js"
+    },
+    "./presets": {
+      "types": "./lib/typescript/src/presets.d.ts",
+      "import": "./lib/module/presets.js",
+      "require": "./lib/commonjs/presets.js"
     }
   },
   "files": [

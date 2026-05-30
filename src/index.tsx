@@ -23,6 +23,7 @@ export type {
   SlotMap,
   ComponentGroupInput,
   ComponentGroup,
+  ComponentMeta,
 } from './smallUI';
 export type {
   ComponentStyle,

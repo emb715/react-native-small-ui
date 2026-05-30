@@ -2,25 +2,31 @@
 
 ESLint plugin for [react-native-small-ui](https://github.com/emb715/react-native-small-ui).
 
-**Single focused rule:** detects `createComponent()` called inside React component bodies, hooks, or render methods — the most damaging misuse pattern.
+**Single focused rule** that detects all react-native-small-ui component factory calls made inside React component bodies, hooks, or render methods — the most damaging misuse pattern.
 
 ## Why
 
-Creating components inside a render cycle causes:
+Every call that creates a new component type inside a render cycle causes:
 
-- New component identity on every render → React forces **unmount/remount** instead of update
+- New component **identity** on every render → React forces **unmount/remount** instead of update
 - **Loss of state, refs, and animations** on every parent render
-- Severe performance degradation
+- Severe **performance degradation**
 
 ```jsx
 // ❌ WRONG — triggers this rule
 function MyComponent() {
-  const Box = createComponent(View, { padding: 16 }); // ERROR
+  const Box = createComponent(View, { padding: 16 });         // ERROR
+  const Card = Base.extend({ borderRadius: 8 });              // ERROR
+  const { Row } = createComponentGroup({ Row: { ... } });    // ERROR
+  const T = createThemedComponent(View, (t) => ({ ... }));   // ERROR
   return <Box />;
 }
 
-// ✅ CORRECT — module level, created once
+// ✅ CORRECT — all at module level, created once
 const Box = createComponent(View, { padding: 16 });
+const Card = Base.extend({ borderRadius: 8 });
+const { Row } = createComponentGroup({ Row: { ... } });
+const T = createThemedComponent(View, (t) => ({ ... }));
 
 function MyComponent() {
   return <Box />;
@@ -75,29 +81,71 @@ export default [
 
 ## Rules
 
-| Rule                                                            | Description                                                                   | Recommended |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------- |
-| [`no-createcomponent-in-render`](#no-createcomponent-in-render) | Disallow `createComponent()` inside component bodies / hooks / render methods | ✅ error    |
+| Rule                                                            | Description                                                                       | Recommended |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| [`no-createcomponent-in-render`](#no-createcomponent-in-render) | Disallow component factory calls inside component bodies / hooks / render methods | ✅ error    |
 
 ### `no-createcomponent-in-render`
 
-Detects `createComponent(...)` called inside:
+Detects the following calls made inside:
 
-- Function components (functions with PascalCase names)
-- Custom hooks (functions starting with `use`)
+- Function components (PascalCase names)
+- Custom hooks (`use*` names)
 - Class component `render()` methods
+
+**Detected factory functions** (bare calls):
+
+| Call                         | Why it's caught                                |
+| ---------------------------- | ---------------------------------------------- |
+| `createComponent(...)`       | Core factory — new component type every render |
+| `createComponentGroup(...)`  | Returns multiple new component identities      |
+| `createThemedComponent(...)` | Creates a new themed component type            |
+
+**Detected chained methods** (MemberExpression calls):
+
+| Call               | Why it's caught                      |
+| ------------------ | ------------------------------------ |
+| `Base.extend(...)` | Creates a new derived component type |
 
 **Options:**
 
 ```js
 'react-native-small-ui/no-createcomponent-in-render': ['error', {
-  // Additional function names to treat as createComponent calls.
-  // Useful if you aliased createComponent in your codebase.
-  additionalFunctionNames: ['createStyledComponent', 'styledView'],
+  // Additional bare function names to treat as component factories.
+  // Useful if you aliased createComponent or createComponentGroup.
+  additionalFunctionNames: ['createStyledComponent', 'myFactory'],
+
+  // Additional method names (on a MemberExpression receiver) to treat
+  // as component factories. Defaults cover .extend().
+  additionalMethodNames: ['customExtend', 'withBase'],
 }]
 ```
 
-**Known limitation:** calls inside anonymous arrow functions passed to `useCallback`, `useMemo`, or similar are not detected because the nearest enclosing function is the anonymous arrow (no name → not a component). Don't use `createComponent` there either.
+**Chained calls — both violations reported:**
+
+When `.extend()` is chained directly on an inline `createComponent(...)` call inside a component, both violations are reported independently:
+
+```jsx
+function MyComponent() {
+  // Two errors:
+  //   1. .extend() creates a new derived component on every render
+  //   2. createComponent() creates a new base component on every render
+  const Card = createComponent(View, {}).extend({ borderRadius: 8 });
+}
+```
+
+**Known limitation:** Calls inside anonymous arrow functions passed to `useCallback`, `useMemo`, or similar are not detected because the nearest enclosing function is the anonymous arrow (no name → not identifiable as a component). Don't call factory functions there either — move them to module level.
+
+```jsx
+// Not detected (documented limitation) — still incorrect, move to module level
+function MyComponent() {
+  const x = useCallback(() => {
+    const Box = createComponent(View, {}); // not flagged ← limitation
+  }, []);
+}
+```
+
+**False positives:** `.extend()` is flagged on any receiver object inside a component body. If you have unrelated code that calls `.extend()` inside a component for a different purpose, use `// eslint-disable-next-line react-native-small-ui/no-createcomponent-in-render` to suppress it.
 
 ## License
 

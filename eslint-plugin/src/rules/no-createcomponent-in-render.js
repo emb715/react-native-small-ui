@@ -3,16 +3,55 @@
 /**
  * Rule: no-createcomponent-in-render
  *
- * Detects `createComponent(...)` calls made inside a React function component
- * body, hook body, or class render method.
+ * Detects react-native-small-ui component factory calls made inside a React
+ * function component body, hook body, or class render method.
  *
- * Creating components inside a render cycle causes:
- *   - New component identity on every render → React forces unmount/remount
- *   - Loss of state, refs, and animations
- *   - Severe performance degradation
+ * Detected patterns (all cause new component identity on every render):
  *
- * Fix: move the createComponent call to module level (outside any function).
+ *   Factory functions (bare calls):
+ *     createComponent(...)          — core factory
+ *     createComponentGroup(...)     — group factory (returns multiple components)
+ *     createThemedComponent(...)    — themed factory
+ *
+ *   Chained methods (MemberExpression calls):
+ *     SomeComponent.extend(...)     — creates a new derived component
+ *
+ * All of the above create new component type identities when called inside
+ * render. React cannot reconcile these — it forces unmount + remount on every
+ * parent render, breaking state, refs, animations, and performance.
+ *
+ * Fix: move all calls to module level (outside any function).
  */
+
+// ---------------------------------------------------------------------------
+// Default target sets
+// ---------------------------------------------------------------------------
+
+/**
+ * Bare function names that are always treated as component factories.
+ * Extend via the `additionalFunctionNames` rule option.
+ */
+const DEFAULT_FACTORY_NAMES = new Set([
+  'createComponent',
+  'createComponentGroup',
+  'createThemedComponent',
+]);
+
+/**
+ * Method names on a MemberExpression receiver that are treated as component
+ * factories when called inside a component/hook/render body.
+ * Extend via the `additionalMethodNames` rule option.
+ *
+ * Note: `extend` is deliberately flagged even on arbitrary receiver objects
+ * because calling `.extend()` inside a component body has no valid use case
+ * in a react-native-small-ui codebase. False positives can be suppressed
+ * with eslint-disable-next-line if genuinely needed.
+ */
+const DEFAULT_METHOD_NAMES = new Set(['extend']);
+
+// ---------------------------------------------------------------------------
+// AST helpers
+// ---------------------------------------------------------------------------
 
 /** Names that, when a function is named with them, signal a React component. */
 function isComponentName(name) {
@@ -28,7 +67,7 @@ function isHookName(name) {
 
 /**
  * Walk up the ancestor chain to find the nearest enclosing function node.
- * Returns null if no enclosing function exists (i.e. call is at module level).
+ * Returns { node, index } or null if at module level.
  */
 function findNearestFunction(ancestors) {
   for (let i = ancestors.length - 1; i >= 0; i--) {
@@ -45,15 +84,18 @@ function findNearestFunction(ancestors) {
 }
 
 /**
- * Given a function node and its ancestors, determine the name the function
- * was assigned to (if any).
+ * Given a function node and its position in the ancestor chain, determine
+ * the name the function was assigned to (if any).
  *
  * Handles:
- *   - FunctionDeclaration: name is node.id.name
- *   - FunctionExpression / ArrowFunctionExpression assigned to variable:
- *       const Foo = () => { ... }  →  'Foo'
- *   - FunctionExpression as object method or class method:
- *       render() { ... }  →  'render'
+ *   - FunctionDeclaration:          function Foo() {}  →  'Foo'
+ *   - Arrow / FunctionExpression assigned to variable:
+ *       const Foo = () => {}        →  'Foo'
+ *   - Arrow / FunctionExpression via assignment:
+ *       Foo = () => {}              →  'Foo'
+ *   - Object property / class method:
+ *       { render() {} }             →  'render'
+ *       class X { render() {} }     →  'render'
  */
 function getFunctionName(funcNode, ancestors, funcIndex) {
   // Named function declaration
@@ -61,7 +103,6 @@ function getFunctionName(funcNode, ancestors, funcIndex) {
     return funcNode.id.name;
   }
 
-  // Look at the parent to determine the assigned name
   const parent = ancestors[funcIndex - 1];
   if (!parent) return null;
 
@@ -79,7 +120,7 @@ function getFunctionName(funcNode, ancestors, funcIndex) {
     return parent.left.name;
   }
 
-  // Property or method: { render() {} } or class render() {}
+  // { render() {} }  or  class MyClass { render() {} }
   if (parent.type === 'Property' || parent.type === 'MethodDefinition') {
     const keyNode = parent.key;
     if (keyNode && keyNode.type === 'Identifier') {
@@ -91,8 +132,10 @@ function getFunctionName(funcNode, ancestors, funcIndex) {
 }
 
 /**
- * Returns true when the function is a React component (uppercase name),
+ * Returns true when the function is a React component (PascalCase name),
  * a hook (useFoo name), or a class render method.
+ *
+ * Also walks further up to catch nested functions inside a render method.
  */
 function isReactComponentOrHookOrRender(funcNode, ancestors, funcIndex) {
   const name = getFunctionName(funcNode, ancestors, funcIndex);
@@ -103,8 +146,7 @@ function isReactComponentOrHookOrRender(funcNode, ancestors, funcIndex) {
     if (name === 'render') return true;
   }
 
-  // Check if any outer class method is named render (for nested functions
-  // inside render). Walk further up.
+  // Walk further up to catch nested functions inside a class render method.
   for (let i = funcIndex - 1; i >= 0; i--) {
     const ancestor = ancestors[i];
     if (
@@ -119,13 +161,31 @@ function isReactComponentOrHookOrRender(funcNode, ancestors, funcIndex) {
   return false;
 }
 
+/**
+ * Determine the human-readable "kind" label for the enclosing function,
+ * used in error messages.
+ */
+function getKindLabel(funcNode, ancestors, funcIndex) {
+  const name = getFunctionName(funcNode, ancestors, funcIndex);
+  if (!name) return 'function component';
+  if (isHookName(name)) return 'hook';
+  if (name === 'render') return 'render method';
+  return 'function component';
+}
+
+// ---------------------------------------------------------------------------
+// Rule definition
+// ---------------------------------------------------------------------------
+
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
       description:
-        'Disallow createComponent() calls inside React component bodies, hooks, or render methods. ' +
-        'Creating components inside the render cycle forces unmount/remount on every render, ' +
+        'Disallow react-native-small-ui component factory calls (createComponent, ' +
+        'createComponentGroup, createThemedComponent, .extend()) inside React ' +
+        'component bodies, hooks, or render methods. These calls create new component ' +
+        'identities on every render, forcing React to unmount/remount instead of update, ' +
         'breaking state, refs, animations, and performance.',
       recommended: true,
       url: 'https://github.com/emb715/react-native-small-ui#critical-createcomponent-performance-pattern',
@@ -137,11 +197,22 @@ module.exports = {
         type: 'object',
         properties: {
           /**
-           * Additional function names to treat as createComponent calls.
-           * Useful if the developer aliased createComponent.
-           * @example ["createStyledComponent", "styledView"]
+           * Additional bare function names to treat as component factories.
+           * Useful if you aliased createComponent or createComponentGroup.
+           * @example ["createStyledComponent", "myFactory"]
            */
           additionalFunctionNames: {
+            type: 'array',
+            items: { type: 'string' },
+            uniqueItems: true,
+            default: [],
+          },
+          /**
+           * Additional method names (on a MemberExpression receiver) to treat
+           * as component factories. Defaults cover `.extend()`.
+           * @example ["customExtend", "withBase"]
+           */
+          additionalMethodNames: {
             type: 'array',
             items: { type: 'string' },
             uniqueItems: true,
@@ -152,81 +223,158 @@ module.exports = {
       },
     ],
     messages: {
-      noCreateComponentInRender:
-        'createComponent() must be called at module level, not inside a {{kind}} body. ' +
-        'Creating components inside render causes new component identity on every render, ' +
-        'forcing React to unmount and remount instead of update. ' +
-        'Move this call to module level. ' +
+      noFactoryInRender:
+        '{{callee}}() must be called at module level, not inside a {{kind}} body. ' +
+        'Each call creates a new component identity — React cannot reconcile it ' +
+        'and forces unmount/remount on every render, breaking state, refs, ' +
+        'animations, and performance. Move this call to module level. ' +
         'See: https://github.com/emb715/react-native-small-ui#critical-createcomponent-performance-pattern',
-      suggestion:
-        'Move createComponent() call to module level (outside this function).',
+      noExtendInRender:
+        '.extend() must be called at module level, not inside a {{kind}} body. ' +
+        'Each call creates a new derived component identity — React cannot reconcile ' +
+        'it and forces unmount/remount on every render. Move this call to module level. ' +
+        'See: https://github.com/emb715/react-native-small-ui#critical-createcomponent-performance-pattern',
+      noMethodInRender:
+        '.{{method}}() must be called at module level, not inside a {{kind}} body. ' +
+        'Each call creates a new component identity — React cannot reconcile it ' +
+        'and forces unmount/remount on every render. Move this call to module level. ' +
+        'See: https://github.com/emb715/react-native-small-ui#critical-createcomponent-performance-pattern',
+      suggestionFactory:
+        'Move {{callee}}() call to module level (outside this function).',
+      suggestionMethod:
+        'Move .{{method}}() call to module level (outside this function).',
     },
   },
 
   create(context) {
     const options = context.options[0] || {};
-    const additionalNames = options.additionalFunctionNames || [];
-    const targetNames = new Set(['createComponent', ...additionalNames]);
+
+    // Build effective target sets by merging defaults with user-configured extras.
+    const factoryNames = new Set([
+      ...DEFAULT_FACTORY_NAMES,
+      ...(options.additionalFunctionNames || []),
+    ]);
+    const methodNames = new Set([
+      ...DEFAULT_METHOD_NAMES,
+      ...(options.additionalMethodNames || []),
+    ]);
+
+    /**
+     * Shared check: given a CallExpression node, determine whether it's
+     * a flagged call inside a component/hook/render body and report if so.
+     *
+     * @param {object} callNode  - The CallExpression AST node
+     * @param {string|null} detectedName - The bare function name (factory path)
+     * @param {string|null} detectedMethod - The method name (chained path)
+     */
+    function checkCall(callNode, detectedName, detectedMethod) {
+      // Use sourceCode.getAncestors() (ESLint v9+) with fallback to the
+      // deprecated context.getAncestors() for ESLint v7/v8 compatibility.
+      const sourceCode = context.getSourceCode?.() ?? context;
+      const ancestors = (sourceCode.getAncestors ?? context.getAncestors).call(
+        sourceCode,
+        callNode
+      );
+
+      const result = findNearestFunction(ancestors);
+      if (!result) return; // Module level — fine
+
+      const { node: funcNode, index: funcIndex } = result;
+      if (!isReactComponentOrHookOrRender(funcNode, ancestors, funcIndex))
+        return;
+
+      const kind = getKindLabel(funcNode, ancestors, funcIndex);
+
+      if (detectedName) {
+        // Factory function path: createComponent(...), createComponentGroup(...), etc.
+        context.report({
+          node: callNode,
+          messageId: 'noFactoryInRender',
+          data: { callee: detectedName, kind },
+          suggest: [
+            {
+              messageId: 'suggestionFactory',
+              data: { callee: detectedName },
+              fix(fixer) {
+                return fixer.insertTextBefore(
+                  callNode,
+                  `/* TODO: move ${detectedName}() to module level */ `
+                );
+              },
+            },
+          ],
+        });
+      } else if (detectedMethod === 'extend') {
+        // .extend() gets its own focused message (most common chained method).
+        context.report({
+          node: callNode,
+          messageId: 'noExtendInRender',
+          data: { kind },
+          suggest: [
+            {
+              messageId: 'suggestionMethod',
+              data: { method: 'extend' },
+              fix(fixer) {
+                return fixer.insertTextBefore(
+                  callNode,
+                  '/* TODO: move .extend() to module level */ '
+                );
+              },
+            },
+          ],
+        });
+      } else {
+        // Other flagged method names (via additionalMethodNames).
+        context.report({
+          node: callNode,
+          messageId: 'noMethodInRender',
+          data: { method: detectedMethod, kind },
+          suggest: [
+            {
+              messageId: 'suggestionMethod',
+              data: { method: detectedMethod },
+              fix(fixer) {
+                return fixer.insertTextBefore(
+                  callNode,
+                  `/* TODO: move .${detectedMethod}() to module level */ `
+                );
+              },
+            },
+          ],
+        });
+      }
+    }
 
     return {
       CallExpression(node) {
-        // Check if this is a createComponent() call
         const callee = node.callee;
-        let calleeName = null;
 
+        // ── Path 1: Bare identifier call — createComponent(...), etc.
         if (callee.type === 'Identifier') {
-          calleeName = callee.name;
-        } else if (
-          callee.type === 'MemberExpression' &&
-          callee.property.type === 'Identifier'
-        ) {
-          // Handles SmallUI.createComponent(...) patterns
-          calleeName = callee.property.name;
+          if (factoryNames.has(callee.name)) {
+            checkCall(node, callee.name, null);
+          }
+          return;
         }
 
-        if (!calleeName || !targetNames.has(calleeName)) return;
+        // ── Path 2: MemberExpression call — foo.extend(...), SmallUI.createComponent(...), etc.
+        if (
+          callee.type === 'MemberExpression' &&
+          !callee.computed && // skip foo[bar]() patterns
+          callee.property.type === 'Identifier'
+        ) {
+          const methodName = callee.property.name;
 
-        // Walk ancestors to find nearest enclosing function.
-        // Use sourceCode.getAncestors() (ESLint v9+) with fallback to the
-        // deprecated context.getAncestors() for ESLint v7/v8 compatibility.
-        const sourceCode = context.getSourceCode?.() ?? context;
-        const ancestors = (
-          sourceCode.getAncestors ?? context.getAncestors
-        ).call(sourceCode, node);
-        const result = findNearestFunction(ancestors);
-
-        if (!result) return; // At module level — fine
-
-        const { node: funcNode, index: funcIndex } = result;
-
-        if (isReactComponentOrHookOrRender(funcNode, ancestors, funcIndex)) {
-          const functionName = getFunctionName(funcNode, ancestors, funcIndex);
-          let kind = 'function component';
-          if (functionName) {
-            if (isHookName(functionName)) kind = 'hook';
-            else if (functionName === 'render') kind = 'render method';
-            else if (isComponentName(functionName)) kind = 'function component';
+          // Check if the method is a factory name (SmallUI.createComponent, etc.)
+          if (factoryNames.has(methodName)) {
+            checkCall(node, methodName, null);
+            return;
           }
 
-          context.report({
-            node,
-            messageId: 'noCreateComponentInRender',
-            data: { kind },
-            suggest: [
-              {
-                messageId: 'suggestion',
-                fix(fixer) {
-                  // We can't automatically move the code, but we can add a
-                  // TODO comment directly before the offending call to guide
-                  // the developer.
-                  return fixer.insertTextBefore(
-                    node,
-                    '/* TODO: move createComponent() to module level */ '
-                  );
-                },
-              },
-            ],
-          });
+          // Check if the method is a flagged chained method (.extend(), etc.)
+          if (methodNames.has(methodName)) {
+            checkCall(node, null, methodName);
+          }
         }
       },
     };
