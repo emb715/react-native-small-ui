@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
-import { LayoutChangeEvent, Platform, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useState } from 'react';
+import { LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
 const DURATION_PROGRESS = 5_000;
 const DURATION_INDETERMINATE = 2_000;
 const INDETERMINATE_MAX_WIDTH = 0.5;
 
-const isWeb = Platform.OS === "web";
+const isWeb = Platform.OS === 'web';
 
 type ProgressBarOptions = {
   progressDuration?: number;
@@ -116,19 +116,19 @@ export const ProgressBar = ({
 
 const styles = StyleSheet.create({
   progressBarContainer: {
-    width: "100%",
+    width: '100%',
     height: 1,
-    backgroundColor: "#20212f",
+    backgroundColor: '#20212f',
     // borderRadius: 5,
-    overflow: "hidden", // Ensures the fill stays within bounds
+    overflow: 'hidden', // Ensures the fill stays within bounds
   },
   progressBarFill: {
-    height: "100%",
-    backgroundColor: "#34447B",
+    height: '100%',
+    backgroundColor: '#34447B',
     // borderRadius: 5,
   },
   webContainer: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
 });

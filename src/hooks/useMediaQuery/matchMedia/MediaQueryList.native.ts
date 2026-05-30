@@ -1,4 +1,4 @@
-import mediaQuery from 'css-mediaquery';
+import { matchMediaQuery } from './matchMediaQuery';
 import { Dimensions, type ScaledSize } from 'react-native';
 import {
   getDefaultOrientation,
@@ -6,6 +6,11 @@ import {
   type Orientation,
 } from '../../useOrientation';
 import type { MediaQueryListEvent } from './mediaQuery.types';
+
+// Capture DOM type aliases BEFORE the class declaration shadows them.
+// The class is named `MediaQueryList` which would shadow the global interface inside the class body.
+type DOMMediaQueryList = globalThis.MediaQueryList;
+type DOMMediaQueryListEvent = globalThis.MediaQueryListEvent;
 
 type Subscription = {
   /**
@@ -23,15 +28,9 @@ type Listener = (context: MediaQueryListEvent) => any;
 export default class MediaQueryList /* extends MediaQueryList */ {
   private listeners: Listener[] = [];
 
-  private orientation: Orientation = getDefaultOrientation();
-
   private unsubscribe: Subscription;
 
-  private mediaQueryString: string;
-
   constructor(private query: string) {
-    this.mediaQueryString = query;
-
     (() => {
       try {
         const orientation = getDefaultOrientation();
@@ -47,8 +46,6 @@ export default class MediaQueryList /* extends MediaQueryList */ {
     this.updateListeners({ orientation });
   };
 
-  // TODO: find an automatic interface for unmounting
-  // destroy() {
   _unmount() {
     if (this.unsubscribe) {
       this.unsubscribe.remove();
@@ -66,26 +63,54 @@ export default class MediaQueryList /* extends MediaQueryList */ {
 
   public get matches(): boolean {
     const windowDimensions = Dimensions.get('window');
-    return mediaQuery.match(this.query, {
-      'orientation':
-        this.orientation === 'landscape' ? 'landscape' : 'portrait',
-      ...windowDimensions,
+    const orientation: 'landscape' | 'portrait' =
+      windowDimensions.width > windowDimensions.height
+        ? 'landscape'
+        : 'portrait';
+    return matchMediaQuery(this.query, {
+      orientation,
+      'width': windowDimensions.width,
+      'height': windowDimensions.height,
       'device-width': windowDimensions.width,
       'device-height': windowDimensions.height,
     });
   }
 
-  private updateListeners({ orientation }: { orientation: Orientation }) {
-    this.orientation = orientation;
+  private updateListeners(_: { orientation: Orientation }) {
     this.listeners.forEach((listener) => {
       listener({
         matches: this.matches,
-        media: this.mediaQueryString,
+        media: this.query,
       });
     });
   }
 
   public get media(): string {
-    return this.mediaQueryString;
+    return this.query;
+  }
+
+  // --- DOM MediaQueryList compatibility stubs ---
+  // Required to satisfy the structural MediaQueryList contract from lib.dom.d.ts (pulled in by
+  // @types/react-native). addListener/removeListener is the actual native API; these stubs are
+  // browser-only and never called at runtime.
+  // DOM aliases defined above the class to avoid shadowing by the class name.
+  onchange:
+    | ((this: DOMMediaQueryList, ev: DOMMediaQueryListEvent) => any)
+    | null = null;
+
+  addEventListener(
+    _type: string,
+    _listener: unknown,
+    _options?: unknown
+  ): void {}
+
+  removeEventListener(
+    _type: string,
+    _listener: unknown,
+    _options?: unknown
+  ): void {}
+
+  dispatchEvent(_event: Event): boolean {
+    return false;
   }
 }

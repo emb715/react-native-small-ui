@@ -88,7 +88,6 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^12.6.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/css-mediaquery": "^0.1.4",
     "@types/jest": "^29.5.5",
     "@types/lodash": "^4.17.7",
     "@types/react": "^18.2.44",
@@ -98,7 +97,7 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-testing-library": "latest",
+    "eslint-plugin-testing-library": "^7.0.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "react": "18.2.0",
@@ -205,8 +204,6 @@
     "version": "0.38.2"
   },
   "dependencies": {
-    "@ctrl/tinycolor": "^4.1.0",
-    "css-mediaquery": "^0.1.2",
     "zustand": "^4.5.4"
   },
   "directories": {
