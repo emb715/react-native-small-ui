@@ -1,58 +1,50 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Changelog is now generated automatically by [Release Please](https://github.com/googleapis/release-please) from conventional commit messages.
 
-## [Unreleased]
+**Releases and changelogs are published to [GitHub Releases](https://github.com/emb715/react-native-small-ui/releases).**
+
+---
+
+## [0.4.0] — Archived entry
+
+> This entry was written manually before the switch to Release Please.
+> Future versions will have auto-generated entries in GitHub Releases.
 
 ### Added
 
-- **`configure(config)`** — Plain function for setting library options (e.g. custom breakpoints) at module level, replacing the need for `useSmallUI(config)`. Safe to call multiple times — options are merged.
-
-  ```typescript
-  import { configure } from 'react-native-small-ui';
-  configure({ breakPoints: { sm: 600, md: 900, lg: 1200 } });
-  ```
-
-- **Auto-initialization** — The library now self-initializes on import. The `Appearance` listener for system light/dark detection is attached automatically with zero setup required.
-
-- **`createThemedComponent(Component, themedStyles)`** — Factory that bridges `useTheme()` with `createComponent`. Receives the full theme snapshot in the style callback, re-evaluates styles when the active theme changes.
-
-  ```typescript
-  const ThemedCard = createThemedComponent(View, (theme) => ({
-    _light: { backgroundColor: theme.colors.light.surface },
-    _dark:  { backgroundColor: theme.colors.dark.surface },
-  }));
-  ```
-
-- **Named multi-theme registry** — `registerTheme` now accepts an optional name as the first argument. Named themes are added to the registry without activating, enabling runtime theme switching.
-
-  ```typescript
-  registerTheme('ocean', { colors: { light: { brand: '#0af' }, dark: { brand: '#08c' } } });
-  registerTheme('warm',  { colors: { light: { brand: '#f80' }, dark: { brand: '#c60' } } });
-  setTheme('ocean'); // switch at runtime
-  ```
-
-- **`setTheme(name)`** — Activates a previously registered named theme. Throws in `__DEV__` with a descriptive error listing available themes if the name is not found.
-
-- **`useThemeName()`** — Hook that returns the currently active theme name string.
-
-- **`useTheme` selector overload** — `useTheme` now accepts an optional selector for granular subscriptions, avoiding unnecessary re-renders.
-
-  ```typescript
-  const lightColors = useTheme((t) => t.colors.light);
-  const space = useTheme((t) => t.space);
-  ```
+- `configure(config)` — plain function replacing `useSmallUI(config)` for setting library options (breakpoints, platform registry, custom color modes). Safe to call multiple times — options are merged.
+- Auto-initialization — library self-initializes on import. No setup hook required.
+- `createThemedComponent(Component, (theme) => styles)` — factory that receives the active theme in the style callback.
+- Named multi-theme registry — `registerTheme(name, config)` adds themes without activating; `setTheme(name)` switches at runtime.
+- `setTheme(name)` — activates a registered named theme. Throws in `__DEV__` if name not found.
+- `useThemeName()` — hook returning the active theme name string.
+- `useTheme(selector)` — optional selector overload for granular subscriptions.
+- Variant system — `variants`, `compoundVariants`, `defaultVariants` in `createComponent`.
+- `.extend(styles)` — compose components without re-calling `createComponent`.
+- `.withSlots(slots)` — dot-notation compound component pattern.
+- `createComponentGroup(group)` — sibling components sharing reactive context.
+- Platform registry — `configure({ platforms: { tablet: () => ... } })`.
+- Custom color mode registry — `configure({ colorModes: { highContrast: true } })`.
+- `setCustomColorMode(name)` / `clearCustomColorMode()` / `useCustomColorMode()`.
+- `ctx` reactive style factory — `createComponent(View, (ctx) => ({ ... }))`.
+- `ctx.breakpoint(values)` — responsive values inside the style factory.
+- `cs()` — style merge utility, React Native equivalent of `cn()`.
+- `getResolvedStyles()` — pure-function style resolver, no render needed.
+- `__meta`, `__variants`, `__resolveStyles` — static introspection properties on every component.
+- Style presets — `react-native-small-ui/presets` (`elevation`, `shadow`, `inset`, `text`, `layout`, `border`).
+- Testing utilities — `react-native-small-ui/testing` (`renderWithSmallUI`, `assertStyles`).
+- ESLint plugin — `no-createcomponent-in-render` rule.
 
 ### Changed
 
-- **`useSmallUI`** — Marked `@deprecated`. No longer required. The library auto-initializes on import. Use `configure()` for custom options instead. Existing code calling `useSmallUI()` continues to work unchanged.
-
-- **Theme validation** — Removed Zod schema validation. `registerTheme` now accepts any object shape as a theme config — no required tokens. This removes the `zod` runtime dependency and reduces bundle size.
-
-- **`registerTheme` (unnamed)** — Backward-compatible: calling `registerTheme(config)` without a name still registers and immediately activates the theme as `'default'`.
+- `useSmallUI()` removed — library auto-initializes on import.
+- `defaultProps` removed from `createComponent` — meta moves to position 3.
+- Theme system is now shape-agnostic — no enforced token structure, no default colors.
+- `registerTheme(config)` (unnamed) still registers and activates as `'default'`.
 
 ### Removed
 
-- **`zod`** runtime dependency — Dropped from `package.json`. Schema validation (`colors.schema.ts`) has been removed entirely.
-
-- **`colors.schema.ts`** — File deleted. The `Palette` type is now inlined as `Record<string, Record<string, string>>` in `theme.ts`.
+- `zod` runtime dependency — never shipped; schema validation was planned but not implemented.
+- `colors.schema.ts` — dropped with the opinionated theme system.
+- `defaultProps` argument from `createComponent` and `createThemedComponent`.

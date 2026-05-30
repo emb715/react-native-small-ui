@@ -62,8 +62,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
-    "prepare": "bob build",
-    "release": "release-it"
+    "prepare": "bob build"
   },
   "keywords": [
     "react-native",
@@ -80,14 +79,10 @@
     "url": "https://github.com/emb715/react-native-small-ui/issues"
   },
   "homepage": "https://github.com/emb715/react-native-small-ui#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
     "@react-native/eslint-config": "^0.73.1",
-    "@release-it/conventional-changelog": "^5.0.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/react-hooks": "^8.0.1",
@@ -111,7 +106,6 @@
     "react-native": "0.74.3",
     "react-native-builder-bob": "^0.26.0",
     "react-test-renderer": "^18.3.1",
-    "release-it": "15.11.0",
     "typescript": "^5.2.2"
   },
   "resolutions": {
@@ -150,24 +144,6 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true,
-      "tokenRef": "GITHUB_TOKEN"
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
   },
   "eslintConfig": {
     "root": true,

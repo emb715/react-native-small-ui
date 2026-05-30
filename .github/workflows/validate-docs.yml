@@ -1,0 +1,98 @@
+name: Validate Documentation
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '.github/workflows/validate-docs.yml'
+      - 'scripts/validate-docs.js'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'docs/**'
+
+jobs:
+  validate:
+    name: Check Documentation Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run documentation validation
+        id: validate
+        run: node scripts/validate-docs.js
+        continue-on-error: true
+
+      - name: Comment on PR (if validation fails)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue_number = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const comment = `## 📚 Documentation Validation Failed
+
+            The documentation validation script detected issues with this PR.
+
+            ### Common Issues:
+
+            - **Undocumented exports**: New functions/hooks added to \`src/\` but not documented
+            - **Deprecated import paths**: Documentation using old import patterns
+            - **Missing examples**: New features without usage examples
+
+            ### How to Fix:
+
+            1. **Check the validation output** in the workflow logs above
+            2. **Update documentation** in \`docs/src/content/docs/\`
+            3. **Use correct import paths**:
+               - Core: \`'react-native-small-ui'\`
+               - Theme: \`'react-native-small-ui/theme'\`
+               - Utils: \`'react-native-small-ui/utils'\`
+               - ColorMode: \`'react-native-small-ui/colormode'\`
+            4. **Run locally**: \`node scripts/validate-docs.js\`
+
+            ### Need Help?
+
+            - See [Documentation Guide](../blob/main/docs/README.md)
+            - Use \`/update-docs\` command in Claude Code
+            - Ask in PR comments
+
+            ---
+            *This check ensures all public APIs are documented with correct import paths.*
+            `;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: comment
+            });
+
+      - name: Fail if validation failed
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "::error::Documentation validation failed. Please check the logs above for details."
+          exit 1
+
+      - name: Success message
+        if: success()
+        run: |
+          echo "✅ Documentation validation passed!"
+          echo "All public exports are documented with correct import paths."

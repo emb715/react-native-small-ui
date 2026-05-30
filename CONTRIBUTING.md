@@ -1,124 +1,70 @@
 # Contributing
 
-Contributions are always welcome, no matter how large or small!
+Contributions are welcome, no matter how large or small.
 
-We want this community to be friendly and respectful to each other. Please follow it in all your interactions with the project. Before contributing, please read the [code of conduct](./CODE_OF_CONDUCT.md).
+Please follow the [Code of Conduct](./CODE_OF_CONDUCT.md) in all interactions with the project.
 
 ## Development workflow
 
-This project is a monorepo managed using [Yarn workspaces](https://yarnpkg.com/features/workspaces). It contains the following packages:
-
-- The library package in the root directory.
-- An example app in the `example/` directory.
-
-To get started with the project, run `yarn` in the root directory to install the required dependencies for each package:
+The library lives in the root directory. To get started:
 
 ```sh
-yarn
+yarn install
 ```
 
-> Since the project relies on Yarn workspaces, you cannot use [`npm`](https://github.com/npm/cli) for development.
-
-The [example app](/example/) demonstrates usage of the library. You need to run it to test any changes you make.
-
-It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild, but native code changes will require a rebuild of the example app.
-
-You can use various commands from the root directory to work with the project.
-
-To start the packager:
+Run the tests before and after your changes:
 
 ```sh
-yarn example start
-```
-
-To run the example app on Android:
-
-```sh
-yarn example android
-```
-
-To run the example app on iOS:
-
-```sh
-yarn example ios
-```
-
-To run the example app on Web:
-
-```sh
-yarn example web
-```
-
-Make sure your code passes TypeScript and ESLint. Run the following to verify:
-
-```sh
+yarn test
 yarn typecheck
 yarn lint
 ```
 
-To fix formatting errors, run the following:
+Build the library to verify the output compiles cleanly:
 
 ```sh
-yarn lint --fix
-```
-
-Remember to add tests for your change if possible. Run the unit tests by:
-
-```sh
-yarn test
+yarn clean && yarn prepare
 ```
 
 ### Commit message convention
 
-We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/en) specification. Commit messages drive automatic version bumping and changelog generation via Release Please.
 
-- `fix`: bug fixes, e.g. fix crash due to deprecated method.
-- `feat`: new features, e.g. add new method to the module.
-- `refactor`: code refactor, e.g. migrate from class components to hooks.
-- `docs`: changes into documentation, e.g. add usage example for the module..
-- `test`: adding or updating tests, e.g. add integration tests using detox.
-- `chore`: tooling changes, e.g. change CI config.
+| Prefix | When to use |
+|--------|-------------|
+| `feat:` | New feature (bumps minor version) |
+| `fix:` | Bug fix (bumps patch version) |
+| `refactor:` | Code refactor with no behavior change |
+| `docs:` | Documentation only |
+| `test:` | Adding or updating tests |
+| `chore:` | Tooling, dependencies, config |
+| `feat!:` or `BREAKING CHANGE:` | Breaking change (bumps major version) |
 
-Our pre-commit hooks verify that your commit message matches this format when committing.
+Pre-commit hooks verify your commit message matches this format.
 
-### Linting and tests
+### Releases
 
-[ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
+This project uses [Release Please](https://github.com/googleapis/release-please) for automated release management.
 
-We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
-
-Our pre-commit hooks verify that the linter and tests pass when committing.
-
-### Publishing to npm
-
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-To publish new versions, run the following:
+**How it works:**
+1. Merge commits to `main` using conventional commit messages
+2. Release Please automatically opens a release PR with a bumped version and generated changelog
+3. Review and merge the release PR when ready
+4. After the release PR merges, a GitHub Release and git tag are created automatically
+5. Publish to npm manually from your local machine:
 
 ```sh
-yarn release
+# After the release tag is created on main, pull it and publish
+git pull
+npm publish
 ```
 
-### Scripts
-
-The `package.json` file contains various scripts for common tasks:
-
-- `yarn`: setup project by installing dependencies.
-- `yarn typecheck`: type-check files with TypeScript.
-- `yarn lint`: lint files with ESLint.
-- `yarn test`: run unit tests with Jest.
-- `yarn example start`: start the Metro server for the example app.
-- `yarn example android`: run the example app on Android.
-- `yarn example ios`: run the example app on iOS.
+npm publish is intentionally manual — no npm token is stored in CI.
 
 ### Sending a pull request
 
-> **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github).
-
-When you're sending a pull request:
-
-- Prefer small pull requests focused on one change.
-- Verify that linters and tests are passing.
-- Review the documentation to make sure it looks good.
-- Follow the pull request template when opening a pull request.
-- For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
+- Fork the repository and create a feature branch
+- Make your changes with tests
+- Run `yarn test && yarn typecheck && yarn lint` — all must pass
+- Open a PR against `main`
+- CI runs lint, typecheck, tests, and build automatically
