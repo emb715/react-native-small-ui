@@ -2,23 +2,17 @@ import { useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
 
-type ASD<E extends React.ElementType> = ReturnType<typeof createComponent<E>>;
+// ✅ createComponent called once at module level — never inside a render cycle.
+// All styling is applied through props at the call-site, keeping the component
+// identity stable across renders.
+const ButtonBase = createComponent(TouchableOpacity, {});
 
-type PolymorphicProps<E extends React.ElementType> = {
-  as?: E;
+type ButtonProps = React.ComponentPropsWithoutRef<typeof ButtonBase> & {
   children?: React.ReactNode;
-} & React.ComponentPropsWithoutRef<ASD<E>>;
+};
 
-export const Button = <E extends React.ElementType>({
-  as,
-  children,
-  ...props
-}: PolymorphicProps<E>) => {
-  const Component = as || TouchableOpacity;
-
-  const CreatedComponent = createComponent(Component, props);
-
-  return <CreatedComponent {...props}>{children}</CreatedComponent>;
+export const Button = ({ children, ...props }: ButtonProps) => {
+  return <ButtonBase {...props}>{children}</ButtonBase>;
 };
 
 export const Test = () => {

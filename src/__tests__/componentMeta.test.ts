@@ -22,7 +22,8 @@
  *
  *  integration:
  *  13. all three properties are present on a single component
- *  14. .extend() preserves __meta from extended base (passes through current meta)
+ *  14. __resolveStyles is callable multiple times with different contexts
+ *  15. .extend() forwards __meta from parent to extended component
  */
 
 import { View, TouchableOpacity } from 'react-native';
@@ -42,7 +43,6 @@ describe('__meta', () => {
     const Button = createComponent(
       TouchableOpacity,
       { borderRadius: 8 },
-      undefined,
       { name: 'Button', description: 'Primary action button', tags: ['action'] }
     );
     expect(Button.__meta).toBeDefined();
@@ -52,20 +52,28 @@ describe('__meta', () => {
   });
 
   test('3. accessible without rendering the component', () => {
-    const Card = createComponent(View, { borderRadius: 12 }, undefined, {
-      name: 'Card',
-    });
+    const Card = createComponent(
+      View,
+      { borderRadius: 12 },
+      {
+        name: 'Card',
+      }
+    );
     // No render() call — static property read directly
     expect(Card.__meta?.name).toBe('Card');
   });
 
   test('3b. supports arbitrary extra fields in meta', () => {
-    const Widget = createComponent(View, {}, undefined, {
-      name: 'Widget',
-      category: 'layout',
-      version: 2,
-      internal: true,
-    });
+    const Widget = createComponent(
+      View,
+      {},
+      {
+        name: 'Widget',
+        category: 'layout',
+        version: 2,
+        internal: true,
+      }
+    );
     expect(Widget.__meta?.category).toBe('layout');
     expect(Widget.__meta?.version).toBe(2);
     expect(Widget.__meta?.internal).toBe(true);
@@ -184,7 +192,6 @@ describe('metadata integration', () => {
         },
         defaultVariants: { elevated: 'no' },
       },
-      undefined,
       { name: 'Card', tags: ['layout'] }
     );
 
@@ -209,5 +216,23 @@ describe('metadata integration', () => {
 
     expect(atDefault).toMatchObject({ padding: 8 });
     expect(atMd).toMatchObject({ padding: 16 });
+  });
+
+  test('15. .extend() forwards __meta from parent to extended component', () => {
+    const Base = createComponent(
+      View,
+      { padding: 8 },
+      {
+        name: 'Base',
+        description: 'Base component',
+        tags: ['layout'],
+      }
+    );
+    const Extended = Base.extend({ padding: 16 });
+
+    // Extended component carries parent meta forward
+    expect(Extended.__meta?.name).toBe('Base');
+    expect(Extended.__meta?.description).toBe('Base component');
+    expect(Extended.__meta?.tags).toEqual(['layout']);
   });
 });

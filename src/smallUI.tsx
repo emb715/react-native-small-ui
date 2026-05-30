@@ -386,8 +386,7 @@ function extractVariantProps<
 export const createThemedComponent =
   <TProps extends { style?: unknown }>(
     Component: ComponentType<TProps>,
-    themedStyles: (theme: unknown) => ComponentStyle<TProps>,
-    defaultProps?: Exclude<TProps, 'style'>
+    themedStyles: (theme: unknown) => ComponentStyle<TProps>
   ) =>
   (
     props: TProps &
@@ -396,7 +395,7 @@ export const createThemedComponent =
   ) => {
     const theme = useTheme();
     const customized = themedStyles(theme);
-    return createComponent(Component, customized, defaultProps)(props as any); // any: VariantProps<V> not needed here
+    return createComponent(Component, customized)(props as any); // any: VariantProps<V> not needed here
   };
 
 // ---------------------------------------------------------------------------
@@ -430,7 +429,6 @@ export type SlotMap = Record<string, (props: any) => React.ReactElement | null>;
  * const Button = createComponent(
  *   TouchableOpacity,
  *   { borderRadius: 8 },
- *   undefined,
  *   { name: 'Button', description: 'Primary action button', tags: ['action'] }
  * );
  * console.log(Button.__meta.name); // 'Button'
@@ -580,7 +578,6 @@ export function createComponent<
 >(
   Component: ComponentType<TProps>,
   styleOrConfig?: ComponentStyle<TProps> | ComponentConfig<TProps, V>,
-  defaultProps?: Exclude<TProps, 'style'>,
   meta?: ComponentMeta
 ): SmallUIComponent<TProps, V> {
   // ------------------------------------------------------------------
@@ -623,8 +620,6 @@ export function createComponent<
       ExtendedProps<TProps> &
       VariantProps<V>
   ) => {
-    const _defaultProps = defaultProps ?? {};
-
     // ----------------------------------------------------------------
     // Reactive subscriptions
     // ----------------------------------------------------------------
@@ -815,7 +810,6 @@ export function createComponent<
       );
 
     return React.createElement(Component, {
-      ..._defaultProps,
       ...(remainingProps as TProps),
       style: mergedStyles,
     });
@@ -880,7 +874,7 @@ export function createComponent<
           ...(extConfig.defaultVariants ?? {}),
         },
       };
-      return createComponent(Component, mergedConfig, defaultProps);
+      return createComponent(Component, mergedConfig, meta);
     }
 
     // Simple style extension — merge base + extension style.
@@ -898,14 +892,14 @@ export function createComponent<
             : (extStyle as ExtendedProps<TProps>);
         return mergeStyles<TProps>(left, right);
       };
-      return createComponent(Component, merged, defaultProps);
+      return createComponent(Component, merged, meta);
     }
 
     const merged = mergeStyles<TProps>(
       baseStyle as ExtendedProps<TProps> | undefined,
       extStyle as ExtendedProps<TProps>
     );
-    return createComponent(Component, merged, defaultProps);
+    return createComponent(Component, merged, meta);
   };
 
   // ----------------------------------------------------------------
