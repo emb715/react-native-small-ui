@@ -30,7 +30,7 @@ import { useTheme, getTheme, registerTheme, setTheme, useThemeName, generateSpac
 
 ## Core — `react-native-small-ui`
 
-### `createComponent(Component, styles?)`
+### `createComponent(Component, styleOrConfig?, meta?)`
 
 Wraps any React Native component. Adds platform and color-mode style props.
 
@@ -55,6 +55,9 @@ const Card = createComponent(View, {
 Special style props (prefixed with `_`):
 - `_light` / `_dark` — applied based on current color scheme
 - `_ios` / `_android` / `_web` / `_native` — platform-specific
+
+`meta` (optional, position 3): `{ name?, description?, tags?, ...any }`
+  `__meta` / `__variants` / `__resolveStyles` available as static properties on the output
 
 ### `createThemedComponent(Component, (theme) => styles)`
 
@@ -213,11 +216,57 @@ ColorUtils.getContrastColor('#333');  // '#ffffff'
 ColorUtils.getContrastMode('#fff');   // 'light'
 ```
 
+## Presets — `react-native-small-ui/presets`
+
+Plain style objects for common cross-platform patterns. No API, no registration — just spread.
+
+```ts
+import { elevation, shadow, inset, text, layout, border } from 'react-native-small-ui/presets';
+```
+
+- `elevation`: `none`, `xs`, `sm`, `md`, `lg`, `xl` — iOS shadow + Android elevation pairs
+- `shadow`: `none`, `soft`, `default`, `pronounced`, `inset` — iOS-only
+- `inset`: `none`, `safe`, `safeHorizontal`, `modal` — safe area padding
+- `text`: `fixed`, `crisp`, `accessible` — cross-platform text rendering normalization
+- `layout`: `fill`, `center`, `row`, `rowBetween`, `column`, `absoluteFill` — flex presets
+- `border`: `hairline`, `thin`, `medium`, `thick`, `pill` — border width and shape presets
+
+```ts
+// Usage: spread directly into createComponent or StyleSheet
+const Card = createComponent(View, { ...elevation.sm, borderRadius: 8 });
+```
+
+## Testing — `react-native-small-ui/testing`
+
+```ts
+import { renderWithSmallUI, assertStyles } from 'react-native-small-ui/testing';
+```
+
+### `renderWithSmallUI(ui, options?)`
+
+Wraps `@testing-library/react-native` render with SmallUI providers.
+
+### `assertStyles(styleDef, ctx?)`
+
+Pure resolver — no render needed. Wraps `getResolvedStyles`.
+
+```ts
+assertStyles({ padding: 16, _dark: { backgroundColor: '#000' } }, { colorMode: 'dark' });
+// → { padding: 16, backgroundColor: '#000' }
+```
+
+`ctx`: `{ colorMode?, breakpointWidth?, breakpoints? }`
+
 ## Helpers — `react-native-small-ui`
 
-### `getStatusBarColor()`
+### `getStatusBarStyle(bgColor)`
 
-Returns `'light-content'` or `'dark-content'` based on current color mode.
+Returns `'light-content'` or `'dark-content'` based on background color contrast.
+
+```ts
+getStatusBarStyle('#8b59a0') // → 'light-content'
+getStatusBarStyle('#fdfbfd') // → 'dark-content'
+```
 
 ## Common mistakes to avoid
 
@@ -250,4 +299,8 @@ useSmallUI();
 
 // ✅ CORRECT — just import, library auto-inits
 import { createComponent } from 'react-native-small-ui';
+
+// ❌ createComponent(Component, styles, undefined, meta) — meta is position 3, no undefined placeholder
+// ❌ createComponent inside render functions — module level only
+// ❌ import { elevation } from 'react-native-small-ui' — use 'react-native-small-ui/presets'
 ```

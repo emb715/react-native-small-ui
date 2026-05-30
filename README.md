@@ -54,7 +54,7 @@ Import only what you need to keep bundle size minimal:
 
 ```js
 // Core (~15KB) — always needed
-import { createComponent, configure } from 'react-native-small-ui';
+import { createComponent, createThemedComponent, configure } from 'react-native-small-ui';
 
 // Color mode (~18KB total)
 import {
@@ -71,7 +71,7 @@ import {
   useOrientation,
 } from 'react-native-small-ui/utils';
 
-// Theme system (~122KB total) — optional
+// Theme system (~65KB total) — optional
 import {
   useTheme,
   registerTheme,
@@ -81,6 +81,12 @@ import {
   generateSpaceUnits,
   ColorUtils,
 } from 'react-native-small-ui/theme';
+
+// Style presets (~0KB overhead — plain objects)
+import { elevation, shadow, inset, text, layout, border } from 'react-native-small-ui/presets';
+
+// Testing utilities (dev/test only)
+import { renderWithSmallUI, assertStyles } from 'react-native-small-ui/testing';
 ```
 
 ## Quick Start
@@ -233,6 +239,28 @@ const Card = createComponent(View, { borderRadius: 8 }).withSlots({
 </Card>;
 ```
 
+### Component Metadata
+
+Pass an optional metadata object as the third argument to name a component for tooling and DevTools:
+
+```tsx
+const Button = createComponent(
+  TouchableOpacity,
+  {
+    base: { borderRadius: 8 },
+    variants: { size: { sm: { padding: 6 }, md: { padding: 10 } } },
+    defaultVariants: { size: 'md' },
+  },
+  { name: 'Button', description: 'Primary action trigger', tags: ['action'] }
+);
+
+// Static introspection — no render needed
+Button.__meta;        // { name: 'Button', description: '...', tags: [...] }
+Button.__variants;    // { size: ['sm', 'md'] }
+Button.__resolveStyles({ colorMode: 'dark', breakpointWidth: 768 });
+// => resolved style object for that context
+```
+
 ## createComponentGroup
 
 Creates sibling components that share reactive context — no parent-child hierarchy required:
@@ -267,6 +295,33 @@ function EmailField() {
   );
 }
 ```
+
+## createThemedComponent
+
+Like `createComponent` but receives the active theme as the second argument — a function that takes the theme and returns styles. The theme is typed as `unknown`; cast to your own type.
+
+```tsx
+import { createThemedComponent } from 'react-native-small-ui';
+import { registerTheme } from 'react-native-small-ui/theme';
+
+type AppTheme = { primary: string; background: string };
+
+registerTheme({ primary: '#007AFF', background: '#fff' });
+
+const ThemedButton = createThemedComponent(
+  TouchableOpacity,
+  (theme) => {
+    const t = theme as AppTheme;
+    return {
+      backgroundColor: t.primary,
+      padding: 12,
+      borderRadius: 8,
+    };
+  }
+);
+```
+
+> **Note:** `createThemedComponent` re-runs the style function on every render because the theme is a runtime value. For static or variant-based styles, prefer `createComponent` with `useTheme()` via props.
 
 ## Hooks
 
@@ -582,6 +637,29 @@ const styles = getResolvedStyles(styleDef, {
 // => { padding: 16, backgroundColor: '#000' }
 ```
 
+## Style Presets
+
+Import named style objects for common cross-platform patterns. Plain objects — spread into any `createComponent` call or `StyleSheet`.
+
+```ts
+import { elevation, shadow, inset, text, layout, border } from 'react-native-small-ui/presets';
+import { createComponent } from 'react-native-small-ui';
+import { View } from 'react-native';
+
+const Card = createComponent(View, {
+  borderRadius: 12,
+  ...elevation.sm,
+});
+```
+
+**Available presets:**
+- `elevation` — `none`, `xs`, `sm`, `md`, `lg`, `xl` — cross-platform (iOS shadow + Android elevation)
+- `shadow` — `none`, `soft`, `default`, `pronounced`, `inset` — iOS-only shadow props
+- `inset` — `none`, `safe`, `safeHorizontal`, `modal` — safe area padding
+- `text` — `fixed`, `crisp`, `accessible` — cross-platform text rendering
+- `layout` — `fill`, `center`, `row`, `rowBetween`, `column`, `absoluteFill` — flex patterns
+- `border` — `hairline`, `thin`, `medium`, `thick`, `pill` — border widths and shapes
+
 ## Migration Guide
 
 ### Upgrading from monolithic imports (pre-modular)
@@ -635,23 +713,9 @@ import {
 
 ### Renamed APIs
 
-| Old                   | New                   | Notes                                                                         |
-| --------------------- | --------------------- | ----------------------------------------------------------------------------- |
-| `useSmallUI()`        | _(removed)_           | Library auto-initializes on import. Use `configure()` for custom breakpoints. |
-| `getStatusBarColor()` | `getStatusBarStyle()` | Same behavior, corrected name.                                                |
-
-### Renamed theme token keys
-
-Snake_case foreground tokens are now camelCase:
-
-| Old                      | New                     |
-| ------------------------ | ----------------------- |
-| `primary_foreground`     | `primaryForeground`     |
-| `secondary_foreground`   | `secondaryForeground`   |
-| `destructive_foreground` | `destructiveForeground` |
-| `accent_foreground`      | `accentForeground`      |
-| `muted_foreground`       | `mutedForeground`       |
-| `card_foreground`        | `cardForeground`        |
+| Old            | New          | Notes                                                                         |
+| -------------- | ------------ | ----------------------------------------------------------------------------- |
+| `useSmallUI()` | _(removed)_  | Library auto-initializes on import. Use `configure()` for custom breakpoints. |
 
 ## Known Issues
 

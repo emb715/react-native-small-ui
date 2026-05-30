@@ -170,7 +170,7 @@ The theming system is **completely optional**. You can use the library without i
 
 **Helpers:**
 
-- `getStatusBarColor()`: Platform status bar style based on theme
+- `getStatusBarStyle(bgColor)`: Returns `'light-content'` or `'dark-content'` based on background color contrast
 
 ### 4. Platform Support
 
@@ -229,12 +229,18 @@ import {
   useOrientation,
 } from 'react-native-small-ui/utils';
 
-// Theme system (~122KB total) - OPTIONAL
+// Theme system (~65KB total) - OPTIONAL
 import {
   useTheme,
   registerTheme,
   ColorUtils,
 } from 'react-native-small-ui/theme';
+
+// Style presets — plain objects, spread into createComponent or StyleSheet
+import { elevation, shadow, inset, text, layout, border } from 'react-native-small-ui/presets';
+
+// Testing utilities — test-env only
+import { renderWithSmallUI, assertStyles } from 'react-native-small-ui/testing';
 ```
 
 ### Bundle Size Breakdown
@@ -246,6 +252,8 @@ import {
 | Core + Utils     | ~22KB                     | + responsive utilities, css-mediaquery |
 | Core + Theme     | ~65KB                      | + theme system, tinycolor              |
 | Everything       | ~68KB                      | All features                           |
+| /presets         | +0KB                      | Plain objects — zero runtime           |
+| /testing         | dev only                  | Test utilities, peer dep on RNTL       |
 
 **Key principle**: Start with core-only, add features as needed. Most apps don't need the full theme system.
 
