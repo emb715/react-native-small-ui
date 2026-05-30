@@ -18,11 +18,11 @@ Instead of bundling everything together, the library is split into focused modul
 
 | Import Pattern | Size (minified + gzipped) | What's Included |
 |---------------|---------------------------|-----------------|
-| Core only | ~15KB | createComponent, useSmallUI, zustand |
+| Core only | ~15KB | createComponent, zustand |
 | Core + ColorMode | ~18KB | + color mode hooks |
 | Core + Utils | ~22KB | + responsive utilities, css-mediaquery |
-| Core + Theme | ~122KB | + theme system, zod, tinycolor |
-| Everything | ~125KB | All features |
+| Core + Theme | ~65KB | + theme system, tinycolor |
+| Everything | ~68KB | All features |
 
 :::tip
 Start with core-only and add features as needed. Most apps don't need the full theme system.
@@ -35,7 +35,7 @@ Start with core-only and add features as needed. Most apps don't need the full t
 Best for: Apps with custom design systems or minimal styling needs.
 
 ```js
-import { createComponent, useSmallUI } from 'react-native-small-ui';
+import { createComponent } from 'react-native-small-ui';
 ```
 
 **Bundle impact:** ~15KB
@@ -157,7 +157,7 @@ import { createComponent } from 'react-native-small-ui';
 import { useTheme, registerTheme, ColorUtils } from 'react-native-small-ui/theme';
 ```
 
-**Bundle impact:** ~122KB (+ ~107KB for zod, tinycolor, color generation)
+**Bundle impact:** ~65KB (+ tinycolor, color utilities)
 
 **Added features:**
 - `useTheme()` - Access theme values
@@ -331,7 +331,7 @@ const ThemeSettings = lazy(() => import('./screens/ThemeSettings'));
 If you only need color utilities without the full theme:
 
 ```js
-// Instead of this (~122KB)
+// Instead of this (~65KB)
 import { ColorUtils } from 'react-native-small-ui/theme';
 
 // Consider this (~2KB)
@@ -344,7 +344,7 @@ import tinycolor from 'tinycolor2';
 
 | Library | Minimal Size | With Theme |
 |---------|-------------|------------|
-| **react-native-small-ui** | ~15KB | ~122KB |
+| **react-native-small-ui** | ~15KB | ~65KB |
 | NativeBase | ~180KB | ~180KB |
 | React Native Paper | ~150KB | ~150KB |
 | React Native Elements | ~90KB | ~90KB |
@@ -357,13 +357,13 @@ Unlike other libraries, Small UI lets you start at 15KB and grow only as needed.
 
 ## FAQ
 
-### Why is the theme package so large?
+### Why is the theme package larger than core?
 
 The theme package includes:
-- **zod** (~57KB) - Runtime schema validation
-- **@ctrl/tinycolor** (~47KB) - Color manipulation
-- Color palette generation algorithms
-- Semantic token system
+- **@ctrl/tinycolor** (~47KB) - Color manipulation and contrast utilities
+- Color utility algorithms
+
+The theme system itself has no enforced schema or default tokens — it is a shape-agnostic registry. You define your token shape; the library stores and retrieves it.
 
 If you don't need these features, stick with core-only or core + colormode.
 

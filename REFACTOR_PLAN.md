@@ -1,3 +1,5 @@
+> **Status: COMPLETE** — All phases shipped as of v0.4.0. This document is archived for reference.
+
 # Theming
 Give users control over the design token piece that other libraries have — but lock you in to.
 
@@ -59,22 +61,22 @@ import { useColorMode, useColorModeValue, setColorScheme, toggleColorScheme } fr
 
 ### Phase 1: Refactor Export Structure
 - [x] Audit zod usage - only in theme, easy to remove/make optional
-- [ ] Create `src/colormode.tsx` - Export color mode hooks
-- [ ] Create `src/theme-exports.tsx` - Export theme system
-- [ ] Create `src/utils-exports.tsx` - Export responsive utilities
-- [ ] Refactor `src/index.tsx` - Core only (createComponent, useSmallUI)
+- [x] Create `src/colormode.tsx` - Export color mode hooks
+- [x] Create `src/theme-exports.tsx` - Export theme system
+- [x] Create `src/utils-exports.tsx` - Export responsive utilities
+- [x] Refactor `src/index.tsx` - Core only (createComponent, useSmallUI)
 
 ### Phase 2: Package Configuration
-- [ ] Update `package.json` exports field for subpath exports
-- [ ] Verify TypeScript types generation for each export path
-- [ ] Update `tsconfig.build.json` if needed for multi-entry builds
-- [ ] Test build output with `yarn prepare`
+- [x] Update `package.json` exports field for subpath exports
+- [x] Verify TypeScript types generation for each export path
+- [x] Update `tsconfig.build.json` if needed for multi-entry builds
+- [x] Test build output with `yarn prepare`
 
 ### Phase 3: Documentation & Examples
-- [ ] Update main README with new import structure
-- [ ] Add bundle size impact documentation
-- [ ] Create migration guide (old imports still work)
-- [ ] Create examples:
+- [x] Update main README with new import structure
+- [x] Add bundle size impact documentation
+- [x] Create migration guide (old imports still work)
+- [x] Create examples:
   - Core-only usage (minimal)
   - Core + ColorMode
   - Core + Utils (responsive)
@@ -82,11 +84,11 @@ import { useColorMode, useColorModeValue, setColorScheme, toggleColorScheme } fr
   - Everything combined
 
 ### Phase 4: Testing & Validation
-- [ ] Test tree-shaking works correctly for each export
-- [ ] Measure actual bundle sizes for each import combination
-- [ ] Test TypeScript autocomplete for each import path
-- [ ] Verify backward compatibility (old imports still work)
-- [ ] Run existing tests to ensure nothing broke
+- [x] Test tree-shaking works correctly for each export
+- [x] Measure actual bundle sizes for each import combination
+- [x] Test TypeScript autocomplete for each import path
+- [x] Verify backward compatibility (old imports still work)
+- [x] Run existing tests to ensure nothing broke
 
 ## Detailed Implementation
 
@@ -234,12 +236,12 @@ This allows gradual migration without breaking existing codebases.
 
 ## Success Metrics
 
-- [ ] Core-only import is under 20KB (minified + gzipped)
-- [ ] TypeScript autocomplete works for all import paths
-- [ ] All existing tests pass
-- [ ] Tree-shaking eliminates unused code
-- [ ] Documentation clearly shows bundle impact
-- [ ] Example app demonstrates all import patterns
+- [x] Core-only import is under 20KB (minified + gzipped)
+- [x] TypeScript autocomplete works for all import paths
+- [x] All existing tests pass
+- [x] Tree-shaking eliminates unused code
+- [x] Documentation clearly shows bundle impact
+- [x] Example app demonstrates all import patterns
 
 ## Timeline
 

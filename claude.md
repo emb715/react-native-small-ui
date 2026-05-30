@@ -66,8 +66,8 @@ Think of it as **Tailwind CSS philosophy for React Native** - utilities over com
 ### Type System
 
 - Full TypeScript support with strict typing
-- Zod schemas for runtime validation (`colors.schema.ts`)
-- Type-safe theme configuration via `ThemeConfig`
+- Pure TypeScript types — no runtime validation library
+- Theme system is shape-agnostic: store any value, cast to your own type
 - Autocomplete for style props including platform-specific variants
 
 ### Component System
@@ -137,20 +137,13 @@ Location: `src/theme/`
 
 The theming system is **completely optional**. You can use the library without it or integrate it as needed.
 
-- **Default Theme**: Comprehensive light/dark color palettes (developers can use or ignore)
-- **Color Generator**: Automatic palette generation from base colors
-- **Theme Registration**: `registerTheme(config)` for custom themes
-- **Theme Access**: `useTheme()` and `getTheme()` hooks
+- **Shape-agnostic registry**: Store whatever your app needs — no enforced structure
+- **Named theme slots**: `registerTheme('ocean', {...})` — register multiple themes
+- **Runtime switching**: `setTheme(name)` — switch active theme programmatically
+- **Theme access**: `useTheme()` (reactive hook) and `getTheme()` (outside React)
+- **Active theme name**: `useThemeName()` — reactive hook for the current theme name
 
-**Important**: The theme system does NOT automatically apply to components. It's a utility that provides color values - YOU decide if and how to use them in YOUR components.
-
-Color scheme includes semantic tokens:
-
-- `primary`, `secondary`, `accent`
-- `background`, `foreground`
-- `muted`, `destructive`
-- `border`, `card`, `ring`
-- Full color palette with shades (50-950)
+**Important**: No default theme colors are provided. The theme system is a typed registry — you define your tokens, the library stores and retrieves them.
 
 ### 2. Hooks
 
@@ -251,8 +244,8 @@ import {
 | Core only        | ~15KB                     | createComponent, configure, zustand    |
 | Core + ColorMode | ~18KB                     | + color mode hooks                     |
 | Core + Utils     | ~22KB                     | + responsive utilities, css-mediaquery |
-| Core + Theme     | ~122KB                    | + theme system, zod, tinycolor         |
-| Everything       | ~125KB                    | All features                           |
+| Core + Theme     | ~65KB                      | + theme system, tinycolor              |
+| Everything       | ~68KB                      | All features                           |
 
 **Key principle**: Start with core-only, add features as needed. Most apps don't need the full theme system.
 
@@ -281,7 +274,6 @@ import {
 **Runtime (Theme Package - Optional):**
 
 - `@ctrl/tinycolor`: Color manipulation (~47KB)
-- `zod`: Schema validation (~57KB)
 
 **Runtime (Utils Package):**
 
@@ -338,9 +330,14 @@ yarn example
 
 ### Theming
 
-- `registerTheme(config)` - Register custom theme
-- `useTheme()` - Access theme values
-- `getTheme()` - Get theme outside React
+- `registerTheme(config)` - Register unnamed default theme
+- `registerTheme(name, config)` - Register named theme slot (silent, does not switch)
+- `setTheme(name)` - Switch active theme by name
+- `useTheme()` - Reactive hook: access active theme value (returns `unknown`, cast to your type)
+- `useTheme(selector)` - Reactive hook with selector for partial subscription
+- `getTheme()` - Get active theme outside React
+- `useThemeName()` - Reactive hook: returns active theme name
+- `generateSpaceUnits(base, options?)` - Standalone spacing scale utility
 
 ### Color Mode
 
@@ -408,13 +405,18 @@ const Button = createComponent(TouchableOpacity, {
   borderRadius: 8,
 });
 
+type AppTheme = {
+  light: { primary: string };
+  dark: { primary: string };
+};
+
 function ThemedButton() {
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
 
   return (
     <Button
-      _light={{ backgroundColor: theme.colors.light.primary }}
-      _dark={{ backgroundColor: theme.colors.dark.primary }}
+      _light={{ backgroundColor: theme.light.primary }}
+      _dark={{ backgroundColor: theme.dark.primary }}
     >
       <Text>Themed Button</Text>
     </Button>
