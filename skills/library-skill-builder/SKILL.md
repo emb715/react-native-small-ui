@@ -16,8 +16,10 @@ A good skill is:
 - **Composable** — routes to `docs/` files instead of dumping everything inline
 - **Progressively disclosed** — SKILL.md covers the 80% case, depth lives in `docs/`
 - **Harness-agnostic** — works regardless of which AI tool loads it
-- **Affirmative** — describes what the library does, not what it lacks
+- **Well-documented** — the skill itself explains its own structure and routing table
 - **Portable** — no assumptions about the consumer's project structure
+- **Secure** — never instructs the model to output secrets, tokens, or credentials; redacts sensitive values in examples
+- **Affirmative** — describes what the library does, not what it doesn't have
 
 ---
 
