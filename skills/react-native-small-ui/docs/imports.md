@@ -1,7 +1,5 @@
 # Import reference
 
-Every export, organized by subpath.
-
 ## `react-native-small-ui` (core)
 
 | Export | Kind | Description |

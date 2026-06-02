@@ -5,8 +5,6 @@ description: Use when writing React Native components with createComponent, usin
 
 # react-native-small-ui
 
-A component factory toolkit for React Native. You wrap any RN primitive with `createComponent` — the library adds platform conditionals, color mode conditionals, responsive breakpoints, and optional theming.
-
 ## Import paths
 
 ```ts
@@ -24,8 +22,6 @@ import { elevation, shadow, inset,
 
 ## createComponent
 
-Wraps any React Native component. Accepts static styles or a factory function.
-
 ```tsx
 import { createComponent } from 'react-native-small-ui';
 import { View, TouchableOpacity } from 'react-native';
@@ -40,13 +36,10 @@ const Card = createComponent(View, {
   _android: { elevation: 2 },
 });
 
-// All style props are also available at render time
 <Card marginTop={20} />
 ```
 
-**`createComponent` must be called at module scope — never inside a component function.**
-Each call produces a new React component type. Calling it inside a render function forces
-React to unmount and remount on every render, destroying state, refs, and animations.
+**Module scope only.** Each call produces a new component type — inside a render function, React unmounts and remounts every render, destroying state, refs, and animations.
 
 ```tsx
 // ✅ module scope
@@ -74,7 +67,13 @@ function Screen() {
 const Base  = createComponent(View, { borderRadius: 8 });
 const Card  = Base.extend({ padding: 16, _dark: { backgroundColor: '#111' } });
 const Modal = Base.extend({ padding: 24, shadowOpacity: 0.2 });
-// .extend() also at module scope
+```
+
+```tsx
+// ✗ — Base.extend() inside a component has the same consequence as createComponent inside render
+function Bad() { const Card = Base.extend({ padding: 16 }); return <Card />; }
+// ✓ — module scope only
+const Card = Base.extend({ padding: 16 });
 ```
 
 ### Variants
@@ -97,13 +96,8 @@ toggleColorScheme();                          // flip current
 ```tsx
 import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
 
-// Returns the value for the largest matching breakpoint
 const padding = useBreakPointValue({ default: 8, sm: 12, md: 16, lg: 24 });
-
-// CSS media query string → boolean
 const isWide = useMediaQuery('(min-width: 768px)');
-
-// 'portrait' | 'landscape'
 const orientation = useOrientation();
 ```
 
