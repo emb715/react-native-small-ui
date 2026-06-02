@@ -20,6 +20,8 @@ import { elevation, shadow, inset,
          text, layout, border }               from 'react-native-small-ui/presets';
 ```
 
+→ See [docs/imports.md](docs/imports.md) for full export table including types.
+
 ## createComponent
 
 ```tsx
