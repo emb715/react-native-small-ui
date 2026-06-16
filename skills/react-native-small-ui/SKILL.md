@@ -20,7 +20,7 @@ import { elevation, shadow, inset,
          text, layout, border }               from 'react-native-small-ui/presets';
 ```
 
-→ See [refs/imports.md](refs/imports.md) for full export table including types.
+See [refs/imports.md](refs/imports.md) for full export table including types.
 
 ## createComponent
 
@@ -81,7 +81,7 @@ const Card = Base.extend({ padding: 16 });
 
 ### Variants
 
-→ See [refs/variants.md](refs/variants.md) for full variant + compound variant examples.
+See [refs/variants.md](refs/variants.md) for full variant + compound variant examples.
 
 ## Color mode
 
@@ -106,7 +106,7 @@ const orientation = useOrientation();
 
 Breakpoints (largest match wins): `2xl` 1536 · `xl` 1280 · `lg` 1024 · `md` 768 · `sm` 640 · `xs` 480 · `default` 0
 
-→ See [refs/responsive.md](refs/responsive.md) for breakpoint customisation and media query syntax.
+See [refs/responsive.md](refs/responsive.md) for breakpoint customisation and media query syntax.
 
 ## Theming (optional)
 
@@ -126,7 +126,7 @@ function ThemedButton() {
 
 `useTheme()` returns `unknown` — always cast to your type. No default tokens are provided.
 
-→ See [refs/theming.md](refs/theming.md) for named themes, selectors, and `getTheme()`.
+See [refs/theming.md](refs/theming.md) for named themes, selectors, and `getTheme()`.
 
 ## Presets
 
@@ -139,7 +139,7 @@ const Card = createComponent(View, { ...elevation.md, borderRadius: 8 });
 const Row  = createComponent(View, { ...layout.row });
 ```
 
-→ See [refs/presets.md](refs/presets.md) for all available keys.
+See [refs/presets.md](refs/presets.md) for all available keys.
 
 ## Utilities
 
