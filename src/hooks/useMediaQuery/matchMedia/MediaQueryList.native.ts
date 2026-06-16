@@ -1,5 +1,10 @@
 import { matchMediaQuery } from './matchMediaQuery';
-import { Dimensions, type ScaledSize } from 'react-native';
+import {
+  Appearance,
+  Dimensions,
+  PixelRatio,
+  type ScaledSize,
+} from 'react-native';
 import {
   getDefaultOrientation,
   getOrientation,
@@ -67,12 +72,15 @@ export default class MediaQueryList /* extends MediaQueryList */ {
       windowDimensions.width > windowDimensions.height
         ? 'landscape'
         : 'portrait';
+    const colorScheme = Appearance.getColorScheme() ?? 'light';
     return matchMediaQuery(this.query, {
       orientation,
       'width': windowDimensions.width,
       'height': windowDimensions.height,
       'device-width': windowDimensions.width,
       'device-height': windowDimensions.height,
+      'device-pixel-ratio': PixelRatio.get(),
+      'color-scheme': colorScheme === 'dark' ? 'dark' : 'light',
     });
   }
 
