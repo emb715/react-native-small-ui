@@ -1,0 +1,11 @@
+node_modules/
+lib/
+coverage/
+docs/dist/
+example/node_modules/
+babel.config.js
+example/babel.config.js
+example/metro.config.js
+eslint-plugin/
+scripts/
+src/__tests__/exports-map.jest.config.js

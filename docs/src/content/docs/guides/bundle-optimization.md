@@ -20,7 +20,7 @@ Instead of bundling everything together, the library is split into focused modul
 |---------------|---------------------------|-----------------|
 | Core only | ~15KB | createComponent, zustand |
 | Core + ColorMode | ~18KB | + color mode hooks |
-| Core + Utils | ~22KB | + responsive utilities, css-mediaquery |
+| Core + Utils | ~22KB | + responsive utilities |
 | Core + Theme | ~65KB | + theme system, tinycolor |
 | Everything | ~68KB | All features |
 
@@ -119,7 +119,7 @@ import { createComponent } from 'react-native-small-ui';
 import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
 ```
 
-**Bundle impact:** ~22KB (+ ~7KB for css-mediaquery)
+**Bundle impact:** ~22KB
 
 **Added features:**
 - `useBreakPointValue()` - Responsive values
@@ -222,7 +222,7 @@ import { useBreakPointValue } from 'react-native-small-ui/utils';
 import { useTheme } from 'react-native-small-ui/theme';
 ```
 
-**Bundle impact:** ~125KB
+**Bundle impact:** ~68KB
 
 ---
 

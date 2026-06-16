@@ -8,8 +8,6 @@ Consumer-facing usage of `react-native-small-ui` — the component factory API, 
 
 ## Source of truth
 
-All API signatures and exports verified against source files at commit `69e9acd` (feat/expand-funtionality branch):
-
 - `src/index.tsx` — core exports
 - `src/colormode.tsx` — colormode subpath exports
 - `src/utils-exports.tsx` — utils subpath exports

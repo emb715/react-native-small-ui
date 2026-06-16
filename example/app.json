@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "example",
-    "slug": "example",
+    "name": "RN Small UI",
+    "slug": "rn-small-ui-example",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
+    "scheme": "rnsmallui",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
@@ -13,17 +14,27 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "embsmallui.example"
+      "bundleIdentifier": "com.embsmallui.example"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "embsmallui.example"
+      "package": "com.embsmallui.example",
+      "edgeToEdgeEnabled": true
     },
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

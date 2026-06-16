@@ -1,22 +1,22 @@
-const path = require('path');
-const pak = require('../package.json');
-
 module.exports = function (api) {
   api.cache(true);
 
   return {
-    presets: ['babel-preset-expo'],
-    plugins: [
+    presets: [
       [
-        'module-resolver',
+        'babel-preset-expo',
         {
-          extensions: ['.tsx', '.ts', '.js', '.json'],
-          alias: {
-            // For development, we want to alias the library to the source
-            [pak.name]: path.join(__dirname, '..', pak.source),
-          },
+          // Polyfill import.meta.env → process.env so any ESM package
+          // that leaks through Metro's CJS-first resolution is still safe on Hermes.
+          unstable_transformImportMeta: true,
         },
       ],
+    ],
+    plugins: [
+      // react-native-small-ui is resolved by Metro via extraNodeModules +
+      // the source condition in the library's package.json exports map.
+      // No babel alias needed — module-resolver removed.
+      'react-native-reanimated/plugin',
     ],
   };
 };

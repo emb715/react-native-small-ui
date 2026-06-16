@@ -1,43 +1,49 @@
+const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
-const escape = require('escape-string-regexp');
-const { getDefaultConfig } = require('@expo/metro-config');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-const pak = require('../package.json');
 
-const root = path.resolve(__dirname, '..');
-const modules = Object.keys({ ...pak.peerDependencies });
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, '../');
 
-const defaultConfig = getDefaultConfig(__dirname);
+const config = getDefaultConfig(projectRoot);
 
-/**
- * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
- *
- * @type {import('metro-config').MetroConfig}
- */
-const config = {
-  ...defaultConfig,
+// Watch the workspace root so Metro sees the library source
+config.watchFolders = [workspaceRoot];
 
-  projectRoot: __dirname,
-  watchFolders: [root],
+// Resolve node_modules from both the example dir and workspace root
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'node_modules'),
+];
 
-  // We need to make sure that only one version is loaded for peerDependencies
-  // So we block them at the root, and alias them to the versions in example's node_modules
-  resolver: {
-    ...defaultConfig.resolver,
+// SDK 55 / RN 0.83: package.json exports resolution
+config.resolver.unstable_enablePackageExports = true;
 
-    blacklistRE: exclusionList(
-      modules.map(
-        (m) =>
-          new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`)
-      )
-    ),
+// Condition resolution order:
+// - 'source' first → workspace dev: resolves library TS source via source condition
+// - 'browser' → react-native-web and web-targeting packages
+// - 'require' → CJS builds (prevents ESM import.meta from reaching Hermes)
+// - 'react-native' → RN-specific builds
+// - 'default' → fallback
+config.resolver.unstable_conditionNames = [
+  'source',
+  'browser',
+  'require',
+  'react-native',
+  'default',
+];
 
-    extraNodeModules: modules.reduce((acc, name) => {
-      acc[name] = path.join(__dirname, 'node_modules', name);
-      return acc;
-    }, {}),
-  },
+// Platform-specific condition overrides:
+// When Metro bundles for 'web', assert the 'browser' condition so packages
+// like react-native-web resolve their web-optimised entry points correctly.
+config.resolver.unstable_conditionsByPlatform = {
+  web: ['browser'],
+};
+
+// Point react-native-small-ui at the workspace root directory.
+// Metro reads the package.json there, finds the exports map with source
+// conditions, and resolves all imports (root + subpaths) from TS source.
+config.resolver.extraNodeModules = {
+  'react-native-small-ui': workspaceRoot,
 };
 
 module.exports = config;
