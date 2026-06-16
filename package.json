@@ -8,31 +8,37 @@
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.tsx",
       "types": "./lib/typescript/src/index.d.ts",
       "import": "./lib/module/index.js",
       "require": "./lib/commonjs/index.js"
     },
     "./theme": {
+      "source": "./src/theme-exports.tsx",
       "types": "./lib/typescript/src/theme-exports.d.ts",
       "import": "./lib/module/theme-exports.js",
       "require": "./lib/commonjs/theme-exports.js"
     },
     "./utils": {
+      "source": "./src/utils-exports.tsx",
       "types": "./lib/typescript/src/utils-exports.d.ts",
       "import": "./lib/module/utils-exports.js",
       "require": "./lib/commonjs/utils-exports.js"
     },
     "./colormode": {
+      "source": "./src/colormode.tsx",
       "types": "./lib/typescript/src/colormode.d.ts",
       "import": "./lib/module/colormode.js",
       "require": "./lib/commonjs/colormode.js"
     },
     "./testing": {
+      "source": "./src/testing.tsx",
       "types": "./lib/typescript/src/testing.d.ts",
       "import": "./lib/module/testing.js",
       "require": "./lib/commonjs/testing.js"
     },
     "./presets": {
+      "source": "./src/presets.ts",
       "types": "./lib/typescript/src/presets.d.ts",
       "import": "./lib/module/presets.js",
       "require": "./lib/commonjs/presets.js"
@@ -109,6 +115,7 @@
   },
   "resolutions": {
     "@types/react": "^18.2.44",
+    "@react-native/babel-preset": "0.74.85",
     "cross-spawn": "7.0.5",
     "fast-xml-parser": "4.4.1",
     "nanoid": "3.3.8",
