@@ -41,7 +41,28 @@ CSS-like media query matching. Returns a boolean indicating if the query matches
 import { useMediaQuery } from 'react-native-small-ui/utils';
 ```
 
-**Usage:**
+On **web**, `useMediaQuery` delegates entirely to `window.matchMedia` — the browser evaluates the full spec. The native matcher below only runs on **iOS and Android**.
+
+#### Supported features (native)
+
+| Category | Features | Notes |
+|---|---|---|
+| **Viewport dimensions** | `width`, `min-width`, `max-width`, `height`, `min-height`, `max-height` | Units: `px`, `rem`, `em` (1rem = 16px) |
+| **Device dimensions** | `device-width`, `min-device-width`, `max-device-width`, `device-height`, `min-device-height`, `max-device-height` | Deprecated in MQ4, but supported |
+| **Aspect ratio** | `aspect-ratio`, `min-aspect-ratio`, `max-aspect-ratio`, `device-aspect-ratio`, `min-device-aspect-ratio`, `max-device-aspect-ratio` | Values: `16/9`, `4/3`, or a decimal |
+| **Resolution** | `resolution`, `min-resolution`, `max-resolution` | Units: `dppx`, `x`, `dpi`, `dpcm` — maps to `PixelRatio` |
+| **Orientation** | `orientation` | `landscape` \| `portrait` |
+| **Color** | `color`, `min-color`, `max-color`, bare `(color)` | Native reports 8 bits per component; `color: 0` → false |
+| **User preference** | `prefers-color-scheme` | `light` \| `dark` — reads OS color scheme via `Appearance` |
+| **Interaction** | `hover`, `any-hover`, `pointer`, `any-pointer` | Touch devices: `hover: none`, `pointer: coarse` — always |
+
+#### Always false on native
+
+`prefers-reduced-motion`, `prefers-contrast`, `prefers-reduced-transparency`, `forced-colors`, `inverted-colors`, `color-gamut`, `dynamic-range`, `color-index`, `monochrome`, `display-mode`, `scripting`, `scan`, `grid`, `update` — no synchronous React Native API exists for these. On web the browser handles them natively.
+
+#### Examples
+
+**Basic width query:**
 
 ```jsx
 import { useMediaQuery } from 'react-native-small-ui/utils';
@@ -54,6 +75,49 @@ function ResponsiveComponent() {
     <View>
       <Text>Large screen: {isLargeScreen ? 'Yes' : 'No'}</Text>
       <Text>Medium screen: {isMedium ? 'Yes' : 'No'}</Text>
+    </View>
+  );
+}
+```
+
+**Color scheme query:**
+
+```jsx
+import { useMediaQuery } from 'react-native-small-ui/utils';
+
+function AdaptiveBackground() {
+  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+
+  return (
+    <View style={{ backgroundColor: prefersDark ? '#1a1a1a' : '#ffffff' }}>
+      <Text>Follows OS color scheme</Text>
+    </View>
+  );
+}
+```
+
+**Resolution and aspect-ratio compound query:**
+
+```jsx
+import { useMediaQuery } from 'react-native-small-ui/utils';
+
+function HighDensityLandscape() {
+  // True on high-DPI devices in landscape orientation
+  const isHighDpiLandscape = useMediaQuery(
+    '(min-resolution: 2dppx) and (orientation: landscape)'
+  );
+
+  // True on wide-ratio screens (wider than 16:9)
+  const isUltrawide = useMediaQuery('(min-aspect-ratio: 16/9)');
+
+  // Comma = OR: matches retina OR very high-density screens
+  const isRetina = useMediaQuery('(min-resolution: 2dppx), (min-resolution: 192dpi)');
+
+  return (
+    <View>
+      <Text>High-DPI landscape: {isHighDpiLandscape ? 'Yes' : 'No'}</Text>
+      <Text>Ultrawide: {isUltrawide ? 'Yes' : 'No'}</Text>
+      <Text>Retina: {isRetina ? 'Yes' : 'No'}</Text>
     </View>
   );
 }
