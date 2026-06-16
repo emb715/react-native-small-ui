@@ -52,35 +52,38 @@ const IMPORT_PATTERNS = {
   colormode: /from\s+['"]react-native-small-ui\/colormode['"]/g,
 };
 
-// Deprecated patterns (imports that should use specific paths)
+// Deprecated patterns (imports that should use specific paths).
+// Each pattern uses a multiline anchor (^) with the 'm' flag so it only
+// matches real import statements at the start of a line, not commented-out
+// examples (// import ...) used in documentation to show anti-patterns.
 const DEPRECATED_PATTERNS = [
   {
-    pattern: /import\s+{[^}]*useTheme[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*useTheme[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { useTheme } from 'react-native-small-ui/theme'",
     name: 'useTheme from core',
   },
   {
-    pattern: /import\s+{[^}]*ColorUtils[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*ColorUtils[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { ColorUtils } from 'react-native-small-ui/theme'",
     name: 'ColorUtils from core',
   },
   {
-    pattern: /import\s+{[^}]*useColorMode[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*useColorMode[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { useColorMode } from 'react-native-small-ui/colormode'",
     name: 'useColorMode from core',
   },
   {
-    pattern: /import\s+{[^}]*useBreakPointValue[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*useBreakPointValue[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { useBreakPointValue } from 'react-native-small-ui/utils'",
     name: 'useBreakPointValue from core',
   },
   {
-    pattern: /import\s+{[^}]*useMediaQuery[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*useMediaQuery[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { useMediaQuery } from 'react-native-small-ui/utils'",
     name: 'useMediaQuery from core',
   },
   {
-    pattern: /import\s+{[^}]*useOrientation[^}]*}\s+from\s+['"]react-native-small-ui['"]/g,
+    pattern: /^import\s+{[^}]*useOrientation[^}]*}\s+from\s+['"]react-native-small-ui['"]/gm,
     suggestion: "import { useOrientation } from 'react-native-small-ui/utils'",
     name: 'useOrientation from core',
   },

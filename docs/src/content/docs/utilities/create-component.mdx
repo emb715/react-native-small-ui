@@ -393,3 +393,33 @@ createComponent(Component, config, defaultProps?)
 | -------------- | ------------------------------------- | ------------------------------------------------------ |
 | `.extend()`    | `(styleOrConfig) => SmallUIComponent` | Create a new component inheriting this one's styles    |
 | `.withSlots()` | `(slots) => SmallUIComponent & S`     | Attach named sub-components as dot-notation properties |
+
+---
+
+## `createThemedComponent`
+
+A convenience wrapper that automatically subscribes to the active theme and passes it into your style factory. Useful when you want theme-driven styles baked into the component definition rather than applied via props at usage time.
+
+```tsx
+import { createThemedComponent } from 'react-native-small-ui';
+import { TouchableOpacity } from 'react-native';
+
+type AppTheme = { light: { primary: string }; dark: { primary: string } };
+
+const ThemedButton = createThemedComponent(
+  TouchableOpacity,
+  (theme) => {
+    const t = theme as AppTheme;
+    return {
+      padding: 12,
+      borderRadius: 8,
+      _light: { backgroundColor: t.light.primary },
+      _dark:  { backgroundColor: t.dark.primary },
+    };
+  }
+);
+```
+
+The component re-renders whenever the active theme changes. Requires a theme to be registered via `registerTheme` from `react-native-small-ui/theme` before use.
+
+**When to prefer `createComponent` + props instead:** if your theme values are only needed at a few usage sites, passing them via props keeps the component decoupled from the theme system and avoids the `useTheme` subscription overhead.

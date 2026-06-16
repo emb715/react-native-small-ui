@@ -242,10 +242,14 @@ Only bundles core + theme. Utils and unused theme features are excluded.
 ### ❌ Less Optimal (Still works)
 
 ```js
-import { createComponent, useTheme, useBreakPointValue } from 'react-native-small-ui';
+// Pulling hooks from the core package bypasses tree-shaking.
+// Use the dedicated subpath imports shown above instead.
+import { createComponent } from 'react-native-small-ui';
+import { useTheme } from 'react-native-small-ui/theme';
+import { useBreakPointValue } from 'react-native-small-ui/utils';
 ```
 
-Imports everything even if you only use specific features. Use specific import paths for better tree-shaking.
+The first import is correct. The issue is importing hooks that belong to subpath packages (`/theme`, `/utils`, `/colormode`) via the core package — bundlers cannot tree-shake across the package boundary.
 
 ---
 
@@ -310,11 +314,11 @@ import { useBreakPointValue } from 'react-native-small-ui/utils';
 Always import from the specific path:
 
 ```js
-// ✅ Good
+// ✅ Good — use the dedicated subpath
 import { useColorMode } from 'react-native-small-ui/colormode';
 
-// ❌ Less optimal
-import { useColorMode } from 'react-native-small-ui';
+// ❌ Less optimal — core package re-exports everything, bypasses subpath tree-shaking
+// import { useColorMode } from 'react-native-small-ui';
 ```
 
 ### 3. Lazy Load Heavy Features
