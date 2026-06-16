@@ -33,7 +33,7 @@ The module-scope rule applies identically to `.extend()` but developers don't al
 **Why theming is marked optional in the heading**
 The library has no default theme. A model that doesn't see "optional" will generate `registerTheme` boilerplate in every session where theme-related code appears, even when the consumer hasn't set up theming. Marking it optional suppresses that.
 
-**Why docs/ files exist for variants, theming, responsive, presets**
+**Why refs/ files exist for variants, theming, responsive, presets**
 These features have enough depth (variant config shape, named slots, breakpoint table, all preset keys) that inlining them in SKILL.md would push it well past the 180-line target and bury the 80% patterns under detail only needed occasionally.
 
 **Why imports.md exists as a separate file**
@@ -50,9 +50,9 @@ The full export table — especially types — is long and rarely needed in full
 
 ## Known gaps
 
-- `createThemedComponent` is in the import block but has no dedicated example in SKILL.md — add to docs/variants.md if usage questions surface
-- `getResolvedStyles` is in docs/imports.md but has no example — it's a testing/tooling utility, low consumer priority
-- Custom color modes (`setCustomColorMode`, `configure({ colorModes })`) are in the import block and imports.md but have no example in SKILL.md — add to docs/theming.md if needed
+- `createThemedComponent` is in the import block but has no dedicated example in SKILL.md — add to refs/variants.md if usage questions surface
+- `getResolvedStyles` is in refs/imports.md but has no example — it's a testing/tooling utility, low consumer priority
+- Custom color modes (`setCustomColorMode`, `configure({ colorModes })`) are in the import block and imports.md but have no example in SKILL.md — add to refs/theming.md if needed
 - `utils-exports.tsx` still has a stale JSDoc comment: `"Bundle Impact: Includes css-mediaquery (~4KB)"` — this should be cleaned up in the source
 
 ## Maintenance checklist
@@ -62,13 +62,13 @@ When the library releases a new version, check:
 1. `src/index.tsx`, `src/colormode.tsx`, `src/utils-exports.tsx`, `src/theme-exports.tsx` — any new or removed exports
 2. `src/smallUI.tsx` — any changes to `createComponent` signature, variant config shape, or `configure()` options
 3. `src/hooks/useMediaQuery/matchMedia/matchMediaQuery.ts` — any new supported query features or unit handling
-4. Default breakpoint values in `src/smallUI.tsx` (`defaultBreakPoints`) — confirm they match the table in docs/responsive.md
+4. Default breakpoint values in `src/smallUI.tsx` (`defaultBreakPoints`) — confirm they match the table in refs/responsive.md
 5. Run `yarn test` — all 351 tests must pass before updating any signature in the skill
 
 ## Decision log
 
 - **Removed anti-pattern wall** (session: feat/expand-funtionality) — original skill v1 had 13 `❌` lines naming things that don't exist. Removed entirely. An LLM that has never heard of `initSmallUI()` now knows to try it if it's in the skill.
-- **Split docs/ structure** — adopted after identifying that variants, theming, responsive, and presets each have enough depth to fragment SKILL.md without adding value to the 80% case.
+- **Split refs/ structure** — adopted after identifying that variants, theming, responsive, and presets each have enough depth to fragment SKILL.md without adding value to the 80% case.
 - **Removed identity paragraph** — "A component factory toolkit for React Native..." cut from SKILL.md top. The import block and first example convey this without prose.
 - **Removed restatement comments** — six inline comments in SKILL.md that restated what the adjacent code already showed. Cut for token efficiency.
 - **humans.md created** — per library-skill-builder process: SKILL.md is for models, humans.md is for maintainers.
