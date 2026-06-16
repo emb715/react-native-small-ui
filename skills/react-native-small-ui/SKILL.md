@@ -1,6 +1,6 @@
 ---
 name: react-native-small-ui
-description: Use when writing React Native components with createComponent, using useColorMode, useBreakPointValue, useTheme, useMediaQuery, or building with react-native-small-ui.
+description: Wraps React Native primitives with createComponent to add platform conditionals, color mode, and responsive breakpoints. Activates when using createComponent, useColorMode, useBreakPointValue, useTheme, useMediaQuery, or building with react-native-small-ui.
 ---
 
 # react-native-small-ui
@@ -41,13 +41,14 @@ const Card = createComponent(View, {
 <Card marginTop={20} />
 ```
 
-**Module scope only.** Each call produces a new component type — inside a render function, React unmounts and remounts every render, destroying state, refs, and animations.
-
 ```tsx
-// ✅ module scope
+// ✗ — inside a render function, React unmounts and remounts every render, destroying state, refs, and animations
+function Screen() {
+  const Button = createComponent(TouchableOpacity, { padding: 12 });
+  return <Button />;
+}
+// ✓ — module scope; use props for values that change at runtime
 const Button = createComponent(TouchableOpacity, { padding: 12 });
-
-// use props for values that change at runtime
 function Screen() {
   return <Button opacity={isDisabled ? 0.5 : 1} />;
 }
@@ -150,4 +151,15 @@ const style = cs(base, isActive && { backgroundColor: '#007AFF' }, disabled && {
 
 // Returns 'light-content' or 'dark-content' based on background contrast
 const barStyle = getStatusBarStyle('#8b59a0'); // → 'light-content'
+```
+
+## Skill output example
+
+```tsx
+// ✗ — prose that doesn't change what the model writes
+// "useTheme() is a hook that gives you access to the active theme object.
+//  The theme system is optional. The return type is unknown so cast it."
+
+// ✓ — code that shows the same thing in fewer tokens
+const theme = useTheme() as AppTheme; // returns unknown — always cast
 ```

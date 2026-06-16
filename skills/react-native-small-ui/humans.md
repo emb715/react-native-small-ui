@@ -72,3 +72,12 @@ When the library releases a new version, check:
 - **Removed identity paragraph** — "A component factory toolkit for React Native..." cut from SKILL.md top. The import block and first example convey this without prose.
 - **Removed restatement comments** — six inline comments in SKILL.md that restated what the adjacent code already showed. Cut for token efficiency.
 - **humans.md created** — per library-skill-builder process: SKILL.md is for models, humans.md is for maintainers.
+
+## Evaluation record
+
+This skill predates the formal three-task evaluation requirement (added in skill-authoring ADR Decision 7). Informal validation was performed throughout the session that produced it — the session generated components, hooks, and themed examples using the skill's content as context and verified correct output at each step.
+
+Formal evaluation to run before next significant update:
+1. **Baseline** (without skill): ask the model to write a themed card component — verify it hallucinates providers, wrong import paths, or calls createComponent inside render
+2. **Gap check** (with skill): same task — verify correct module-scope pattern, correct subpath imports, and useTheme cast
+3. **Adjacent task** (with skill): ask the model to debug a React Native performance issue unrelated to this library — verify the skill does not inject irrelevant createComponent guidance
