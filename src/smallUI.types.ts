@@ -1,11 +1,19 @@
-import { type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
-
 type Falsy = undefined | null | false;
 export type StyleProp<T> = T | Falsy;
 
 export type WebStyles = React.CSSProperties;
 
-export type ExtendStyle<T, TStyle = FindStyleType<T>> = {
+// Version-agnostic style object extractor.
+// Unwraps StyleProp<T> = T | RecursiveArray<T | Falsy> | Falsy into just T.
+// Does NOT check against a compiled-in ViewStyle — works across RN versions.
+export type UnwrapStyleProp<T> =
+  NonNullable<T> extends (infer U)[]
+    ? NonNullable<U>
+    : NonNullable<T> extends boolean | number | string
+      ? never
+      : NonNullable<T>;
+
+export type ExtendStyle<T, TStyle = UnwrapStyleProp<T>> = {
   _light?: TStyle;
   _dark?: TStyle;
   _web?: WebStyles;
@@ -16,23 +24,7 @@ export type ExtendStyle<T, TStyle = FindStyleType<T>> = {
   [key: `_${string}`]: TStyle | WebStyles | undefined;
 };
 
-export type isViewStyle<T> = T extends ViewStyle ? StyleProp<ViewStyle> : never;
-export type isTextStyle<T> = T extends TextStyle ? StyleProp<TextStyle> : never;
-export type isImageStyle<T> = T extends ImageStyle
-  ? StyleProp<ImageStyle>
-  : never;
-
-// Find the pure style
-export type FindStyleType<T> =
-  T extends isViewStyle<T>
-    ? T
-    : T extends isTextStyle<T>
-      ? T
-      : T extends isImageStyle<T>
-        ? T
-        : never;
-
-export type ExtendedProps<TProps extends { style?: unknown }> = FindStyleType<
+export type ExtendedProps<TProps extends { style?: unknown }> = UnwrapStyleProp<
   TProps['style']
 > &
   ExtendStyle<TProps['style']>;

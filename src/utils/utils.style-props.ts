@@ -8,9 +8,9 @@ import {
   type TransformsStyle as RNTransformsStyle,
   type ViewStyle,
 } from 'react-native';
-import type { FindStyleType } from '../smallUI.types';
+import type { UnwrapStyleProp } from '../smallUI.types';
 
-type MatchStyleKey<T, TStyle = FindStyleType<T>> = Readonly<{
+type MatchStyleKey<T, TStyle = UnwrapStyleProp<T>> = Readonly<{
   [Property in keyof TStyle]: Property;
 }>;
 
