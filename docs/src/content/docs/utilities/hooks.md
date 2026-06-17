@@ -322,9 +322,13 @@ function ThemeToggle() {
 
 ### setCustomColorMode
 
-Activates a custom app-managed color mode by name. The name must be registered via `configure({ colorModes: { ... } })`. Pass `null` to clear any active custom mode.
+Activates a custom app-managed color mode by name. The name must be registered via `configure({ colorModes: { ... } })` before activation — calling `setCustomColorMode` with an unregistered name is silently ignored.
 
-Custom modes layer **on top of** the built-in light/dark system — they don't replace it.
+Custom modes layer **on top of** the built-in light/dark system — they don't replace it. Only one custom mode can be active at a time.
+
+**Call site rules:**
+- Always call from a user interaction handler (`onPress`, a settings toggle, etc.) — never at module scope or before `configure` has run
+- `clearCustomColorMode` returns to OS-driven light/dark only — no custom mode active
 
 ```js
 import {
@@ -333,35 +337,28 @@ import {
 } from 'react-native-small-ui/colormode';
 ```
 
-**Setup:**
+**Step 1 — register modes at startup (before any component renders):**
 
 ```ts
 import { configure } from 'react-native-small-ui';
 
-// Register custom modes once at startup
 configure({
   colorModes: {
     highContrast: true,
     sepia: true,
-    dim: true,
   },
 });
 ```
 
-**Usage:**
+**Step 2 — define per-mode styles in your components:**
 
 ```tsx
-import {
-  setCustomColorMode,
-  clearCustomColorMode,
-} from 'react-native-small-ui/colormode';
 import { createComponent } from 'react-native-small-ui';
 import { View } from 'react-native';
 
-// Components use _<modeName> props for custom mode styles
 const Card = createComponent(View, {
   _light: { backgroundColor: '#fff' },
-  _dark: { backgroundColor: '#1a1a1a' },
+  _dark:  { backgroundColor: '#1a1a1a' },
   _highContrast: {
     backgroundColor: '#000',
     borderWidth: 2,
@@ -369,12 +366,32 @@ const Card = createComponent(View, {
   },
   _sepia: { backgroundColor: '#f4e4c1' },
 });
+```
 
-// Activate a custom mode
-setCustomColorMode('highContrast');
+**Step 3 — activate from user interaction:**
 
-// Clear — returns to OS-driven light/dark only
-clearCustomColorMode();
+```tsx
+import {
+  setCustomColorMode,
+  clearCustomColorMode,
+} from 'react-native-small-ui/colormode';
+import { TouchableOpacity, Text } from 'react-native';
+
+function AccessibilitySettings() {
+  return (
+    <>
+      <TouchableOpacity onPress={() => setCustomColorMode('highContrast')}>
+        <Text>High Contrast</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setCustomColorMode('sepia')}>
+        <Text>Sepia</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={clearCustomColorMode}>
+        <Text>Reset to default</Text>
+      </TouchableOpacity>
+    </>
+  );
+}
 ```
 
 ---
@@ -385,9 +402,9 @@ Clears the active custom color mode, returning to OS-driven light/dark only.
 
 ```js
 import { clearCustomColorMode } from 'react-native-small-ui/colormode';
-
-clearCustomColorMode();
 ```
+
+Call from a user interaction handler — same call site rules as `setCustomColorMode`.
 
 ---
 
