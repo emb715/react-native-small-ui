@@ -398,8 +398,6 @@ createComponent(Component, config, defaultProps?)
 
 ## `createThemedComponent`
 
-import { Aside } from '@astrojs/starlight/components';
-
 <Aside type="caution" title="Known limitation">
 The current implementation calls `createComponent` inside the render body, which creates a new component type on every render. This causes unnecessary remounts and defeats React reconciliation — the same problem described in the performance warning above. **Do not use `createThemedComponent` in production until this is resolved.** Use `createComponent` with theme values passed as props instead (shown below).
 </Aside>
