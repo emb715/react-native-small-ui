@@ -47,19 +47,6 @@ ruleTester.run('no-createcomponent-in-render', rule, {
     },
 
     {
-      name: 'createThemedComponent at module level',
-      code: `
-        const ThemedBox = createThemedComponent(View, (theme) => ({
-          _light: { backgroundColor: theme.colors.light.background },
-        }));
-
-        function MyScreen() {
-          return <ThemedBox />;
-        }
-      `,
-    },
-
-    {
       name: '.extend() at module level',
       code: `
         const Base = createComponent(View, { padding: 8 });
@@ -80,7 +67,6 @@ ruleTester.run('no-createcomponent-in-render', rule, {
           Row: { Component: View, style: { flexDirection: 'row' } },
           Col: { Component: View, style: { flexDirection: 'column' } },
         });
-        const ThemedCard = createThemedComponent(View, (t) => ({ padding: t.space }));
       `,
     },
 
@@ -112,15 +98,6 @@ ruleTester.run('no-createcomponent-in-render', rule, {
           return createComponentGroup({
             Input: { Component: TextInput, style: { borderColor: theme.border } },
           });
-        }
-      `,
-    },
-
-    {
-      name: 'createThemedComponent inside a lowercase utility function — allowed',
-      code: `
-        function withTheme(Component) {
-          return createThemedComponent(Component, (t) => ({ color: t.text }));
         }
       `,
     },
@@ -452,41 +429,6 @@ ruleTester.run('no-createcomponent-in-render', rule, {
         {
           messageId: 'noFactoryInRender',
           data: { callee: 'createComponentGroup', kind: 'render method' },
-        },
-      ],
-    },
-
-    // ── createThemedComponent ─────────────────────────────────────────────────
-
-    {
-      name: 'createThemedComponent inside a function component',
-      code: `
-        function MyScreen() {
-          const ThemedBox = createThemedComponent(View, (theme) => ({
-            backgroundColor: theme.colors.background,
-          }));
-          return null;
-        }
-      `,
-      errors: [
-        {
-          messageId: 'noFactoryInRender',
-          data: { callee: 'createThemedComponent', kind: 'function component' },
-        },
-      ],
-    },
-
-    {
-      name: 'createThemedComponent inside a hook',
-      code: `
-        function useThemedCard() {
-          return createThemedComponent(View, (t) => ({ padding: t.space[4] }));
-        }
-      `,
-      errors: [
-        {
-          messageId: 'noFactoryInRender',
-          data: { callee: 'createThemedComponent', kind: 'hook' },
         },
       ],
     },

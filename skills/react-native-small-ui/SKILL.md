@@ -8,7 +8,7 @@ description: Wraps React Native primitives with createComponent to add platform 
 ## Import paths
 
 ```ts
-import { createComponent, createThemedComponent, createComponentGroup,
+import { createComponent, createComponentGroup,
          configure, cs, getStatusBarStyle }   from 'react-native-small-ui';
 import { useColorMode, useColorModeValue,
          setColorScheme, toggleColorScheme }  from 'react-native-small-ui/colormode';

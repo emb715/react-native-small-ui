@@ -212,17 +212,17 @@ The library uses a **modular import system** to ensure you only bundle what you 
 ### Import Paths
 
 ```js
-// Core utilities (~15KB) - ALWAYS needed
+// Core utilities (~5.7 KB gz) - ALWAYS needed
 import { createComponent, configure } from 'react-native-small-ui';
 
-// Color mode utilities (~18KB total)
+// Color mode utilities (~5.8 KB gz total)
 import {
   useColorMode,
   setColorScheme,
   toggleColorScheme,
 } from 'react-native-small-ui/colormode';
 
-// Responsive utilities (~22KB total)
+// Responsive utilities (~6.0 KB gz total)
 import {
   useBreakPointValue,
   useMediaQuery,
@@ -247,12 +247,12 @@ import { renderWithSmallUI, assertStyles } from 'react-native-small-ui/testing';
 
 | Import Pattern   | Size (minified + gzipped) | What's Included                        |
 | ---------------- | ------------------------- | -------------------------------------- |
-| Core only        | ~15KB                     | createComponent, configure, zustand    |
-| Core + ColorMode | ~18KB                     | + color mode hooks                     |
-| Core + Utils     | ~22KB                     | + responsive utilities, css-mediaquery |
-| Core + Theme     | ~65KB                      | + theme system, tinycolor              |
-| Everything       | ~68KB                      | All features                           |
-| /presets         | +0KB                      | Plain objects — zero runtime           |
+| Core only        | ~5.7 KB                   | createComponent, configure, zustand    |
+| Core + ColorMode | ~5.8 KB                   | + color mode hooks                     |
+| Core + Utils     | ~6.0 KB                   | + responsive utilities                 |
+| Core + Theme     | ~6.2 KB                   | + theme registry, ColorUtils           |
+| Everything       | ~6.6 KB                   | All features                           |
+| /presets         | +0 KB                     | Plain objects — zero runtime           |
 | /testing         | dev only                  | Test utilities, peer dep on RNTL       |
 
 **Key principle**: Start with core-only, add features as needed. Most apps don't need the full theme system.
@@ -277,15 +277,15 @@ import {
 
 **Runtime (Core):**
 
-- `zustand`: State management (~3KB)
+- `zustand`: State management (~3 KB)
 
 **Runtime (Theme Package - Optional):**
 
-- `@ctrl/tinycolor`: Color manipulation (~47KB)
+No external dependencies. `ColorUtils` is implemented with pure math.
 
 **Runtime (Utils Package):**
 
-- `css-mediaquery`: Media query parsing (~7KB)
+No external dependencies. Media query matching is hand-rolled.
 
 **Peer Dependencies:**
 

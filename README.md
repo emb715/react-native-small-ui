@@ -53,8 +53,8 @@ yarn add react-native-small-ui
 Import only what you need to keep bundle size minimal:
 
 ```js
-// Core (~15KB) — always needed
-import { createComponent, createThemedComponent, configure } from 'react-native-small-ui';
+// Core (~5.7 KB gz) — always needed
+import { createComponent, configure } from 'react-native-small-ui';
 
 // Color mode (~18KB total)
 import {
@@ -296,32 +296,35 @@ function EmailField() {
 }
 ```
 
-## createThemedComponent
+## Theme-Driven Components
 
-Like `createComponent` but receives the active theme as the second argument — a function that takes the theme and returns styles. The theme is typed as `unknown`; cast to your own type.
+To drive component styles from theme tokens, read the active theme with `useTheme` and pass values as props. The component stays defined at module scope — theme values flow in at render time:
 
 ```tsx
-import { createThemedComponent } from 'react-native-small-ui';
-import { registerTheme } from 'react-native-small-ui/theme';
+import { createComponent } from 'react-native-small-ui';
+import { useTheme } from 'react-native-small-ui/theme';
+import { View } from 'react-native';
 
-type AppTheme = { primary: string; background: string };
+type AppTheme = { light: { card: string; border: string }; dark: { card: string; border: string } };
 
-registerTheme({ primary: '#007AFF', background: '#fff' });
+const Card = createComponent(View, {
+  borderRadius: 12,
+  padding: 16,
+  borderWidth: 1,
+});
 
-const ThemedButton = createThemedComponent(
-  TouchableOpacity,
-  (theme) => {
-    const t = theme as AppTheme;
-    return {
-      backgroundColor: t.primary,
-      padding: 12,
-      borderRadius: 8,
-    };
-  }
-);
+function ProfileCard() {
+  const theme = useTheme() as AppTheme;
+  return (
+    <Card
+      _light={{ backgroundColor: theme.light.card, borderColor: theme.light.border }}
+      _dark={{ backgroundColor: theme.dark.card, borderColor: theme.dark.border }}
+    >
+      {/* content */}
+    </Card>
+  );
+}
 ```
-
-> **Note:** `createThemedComponent` re-runs the style function on every render because the theme is a runtime value. For static or variant-based styles, prefer `createComponent` with `useTheme()` via props.
 
 ## Hooks
 

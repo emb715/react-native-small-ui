@@ -10,12 +10,7 @@
  */
 
 // Core component creation
-export {
-  createComponent,
-  createThemedComponent,
-  createComponentGroup,
-  configure,
-} from './smallUI';
+export { createComponent, createComponentGroup, configure } from './smallUI';
 export type {
   SmallUIComponent,
   PlatformRegistry,

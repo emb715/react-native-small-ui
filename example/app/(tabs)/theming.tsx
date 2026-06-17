@@ -23,10 +23,11 @@ const ITEMS: NavItem[] = [
     api: 'configure',
   },
   {
-    label: 'Themed Component',
-    description: 'createThemedComponent + useTheme — profile driven by tokens',
+    label: 'Theme-Driven',
+    description:
+      'createComponent + useTheme — pass tokens as props, components update on theme switch',
     route: '/showcase/themed-component',
-    api: 'createThemedComponent',
+    api: 'createComponent + useTheme',
   },
   {
     label: 'Multi-Theme',

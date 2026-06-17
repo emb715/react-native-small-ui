@@ -18,7 +18,6 @@ function MyComponent() {
   const Box = createComponent(View, { padding: 16 });         // ERROR
   const Card = Base.extend({ borderRadius: 8 });              // ERROR
   const { Row } = createComponentGroup({ Row: { ... } });    // ERROR
-  const T = createThemedComponent(View, (t) => ({ ... }));   // ERROR
   return <Box />;
 }
 
@@ -26,7 +25,6 @@ function MyComponent() {
 const Box = createComponent(View, { padding: 16 });
 const Card = Base.extend({ borderRadius: 8 });
 const { Row } = createComponentGroup({ Row: { ... } });
-const T = createThemedComponent(View, (t) => ({ ... }));
 
 function MyComponent() {
   return <Box />;
@@ -99,7 +97,6 @@ Detects the following calls made inside:
 | ---------------------------- | ---------------------------------------------- |
 | `createComponent(...)`       | Core factory — new component type every render |
 | `createComponentGroup(...)`  | Returns multiple new component identities      |
-| `createThemedComponent(...)` | Creates a new themed component type            |
 
 **Detected chained methods** (MemberExpression calls):
 

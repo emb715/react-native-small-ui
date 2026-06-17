@@ -5,7 +5,6 @@ import * as utilsExports from '../utils-exports';
 
 const expectedCoreExports = [
   'createComponent',
-  'createThemedComponent',
   'createComponentGroup',
   'configure',
   'getStatusBarStyle',

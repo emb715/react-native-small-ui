@@ -5,7 +5,6 @@
 | Export | Kind | Description |
 |---|---|---|
 | `createComponent` | function | Wrap any RN component with style props |
-| `createThemedComponent` | function | Like createComponent, receives active theme |
 | `createComponentGroup` | function | Named group of components sharing reactive context |
 | `configure` | function | Set custom breakpoints, platforms, color modes |
 | `cs` | function | Style merge utility (falsy-safe, last-write-wins) |

@@ -12,7 +12,6 @@ import {
   useCustomColorModeStore,
 } from './hooks/useColorMode/useColorMode';
 import { useColorModeStore } from './hooks/useColorMode/colorMode.store';
-import { useTheme } from './hooks/useTheme/useTheme';
 import { useMediaQuery } from './hooks/useMediaQuery/useMediaQuery';
 import {
   StylePropsLookUp,
@@ -378,25 +377,6 @@ function extractVariantProps<
 
   return { variantProps, remainingProps };
 }
-
-// ---------------------------------------------------------------------------
-// createThemedComponent
-// ---------------------------------------------------------------------------
-
-export const createThemedComponent =
-  <TProps extends { style?: unknown }>(
-    Component: ComponentType<TProps>,
-    themedStyles: (theme: unknown) => ComponentStyle<TProps>
-  ) =>
-  (
-    props: TProps &
-      ComponentPropsWithRef<typeof Component> &
-      ExtendedProps<TProps>
-  ) => {
-    const theme = useTheme();
-    const customized = themedStyles(theme);
-    return createComponent(Component, customized)(props as any); // any: VariantProps<V> not needed here
-  };
 
 // ---------------------------------------------------------------------------
 // The SmallUIComponent type — createComponent output with .extend()

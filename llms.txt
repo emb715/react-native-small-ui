@@ -22,7 +22,7 @@ npm install react-native-small-ui
 ## Modular import paths
 
 ```js
-import { createComponent, createThemedComponent, configure } from 'react-native-small-ui';
+import { createComponent, configure } from 'react-native-small-ui';
 import { useColorMode, useColorModeValue, setColorScheme, toggleColorScheme } from 'react-native-small-ui/colormode';
 import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
 import { useTheme, getTheme, registerTheme, setTheme, useThemeName, generateSpaceUnits, ColorUtils } from 'react-native-small-ui/theme';
@@ -59,21 +59,22 @@ Special style props (prefixed with `_`):
 `meta` (optional, position 3): `{ name?, description?, tags?, ...any }`
   `__meta` / `__variants` / `__resolveStyles` available as static properties on the output
 
-### `createThemedComponent(Component, (theme) => styles)`
+### Theme-driven components
 
-Like `createComponent` but receives the active theme as `unknown`. Cast to your type.
+Pass theme tokens as props at render time. The component type stays stable:
 
 ```tsx
-import { createThemedComponent } from 'react-native-small-ui';
-import { View } from 'react-native';
+const Card = createComponent(View, { borderRadius: 12, padding: 16, borderWidth: 1 });
 
-type AppTheme = { light: { card: string }; dark: { card: string } };
-
-// MUST be outside render
-const Card = createThemedComponent(View, (theme) => ({
-  _light: { backgroundColor: (theme as AppTheme).light.card },
-  _dark:  { backgroundColor: (theme as AppTheme).dark.card },
-}));
+function ProfileCard() {
+  const theme = useTheme() as AppTheme;
+  return (
+    <Card
+      _light={{ backgroundColor: theme.light.card }}
+      _dark={{ backgroundColor: theme.dark.card }}
+    />
+  );
+}
 ```
 
 ### `configure(config)`
@@ -87,7 +88,7 @@ configure({ breakPoints: { sm: 600, md: 900, lg: 1200 } });
 
 ### `ComponentStyle<TProps>` type
 
-The style type accepted by `createComponent` / `createThemedComponent`.
+The style type accepted by `createComponent`.
 
 ```ts
 import type { ComponentStyle } from 'react-native-small-ui';

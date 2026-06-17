@@ -48,7 +48,6 @@ The full export table — especially types — is long and rarely needed in full
 
 ## Known gaps
 
-- `createThemedComponent` is in the import block but has no dedicated example in SKILL.md — add to refs/variants.md if usage questions surface
 - `getResolvedStyles` is in refs/imports.md but has no example — it's a testing/tooling utility, low consumer priority
 - Custom color modes (`setCustomColorMode`, `configure({ colorModes })`) are in the import block and imports.md but have no example in SKILL.md — add to refs/theming.md if needed
 - `utils-exports.tsx` still has a stale JSDoc comment: `"Bundle Impact: Includes css-mediaquery (~4KB)"` — this should be cleaned up in the source

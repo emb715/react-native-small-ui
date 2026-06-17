@@ -17,13 +17,22 @@ export default function ThemedComponentScreen() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 24 }}>
-      <Stack.Screen options={{ title: 'createThemedComponent' }} />
+      <Stack.Screen options={{ title: 'Theme-Driven Components' }} />
 
       <ShowcaseSection
-        title="createThemedComponent"
-        description="Component styles are a function of the active theme. Switch themes in multi-theme screen."
+        title="Theme-Driven Components"
+        description="createComponent stays static. Pass theme tokens as props at render time — components update instantly when the theme switches."
       >
-        <ThemedCard>
+        <ThemedCard
+          _light={{
+            backgroundColor: theme?.light?.card,
+            borderColor: theme?.light?.border,
+          }}
+          _dark={{
+            backgroundColor: theme?.dark?.card,
+            borderColor: theme?.dark?.border,
+          }}
+        >
           <VStack gap={16}>
             <HStack gap={12}>
               <Box

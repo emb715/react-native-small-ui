@@ -11,7 +11,6 @@
  *   Factory functions (bare calls):
  *     createComponent(...)          — core factory
  *     createComponentGroup(...)     — group factory (returns multiple components)
- *     createThemedComponent(...)    — themed factory
  *
  *   Chained methods (MemberExpression calls):
  *     SomeComponent.extend(...)     — creates a new derived component
@@ -34,7 +33,6 @@
 const DEFAULT_FACTORY_NAMES = new Set([
   'createComponent',
   'createComponentGroup',
-  'createThemedComponent',
 ]);
 
 /**
@@ -183,7 +181,7 @@ module.exports = {
     docs: {
       description:
         'Disallow react-native-small-ui component factory calls (createComponent, ' +
-        'createComponentGroup, createThemedComponent, .extend()) inside React ' +
+        'createComponentGroup, .extend()) inside React ' +
         'component bodies, hooks, or render methods. These calls create new component ' +
         'identities on every render, forcing React to unmount/remount instead of update, ' +
         'breaking state, refs, animations, and performance.',

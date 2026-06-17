@@ -3,12 +3,9 @@ import {
   _useSmallUIStore,
   configure,
   createComponent,
-  createThemedComponent,
   resolvePropByType,
 } from '../smallUI';
 
-import { act } from '@testing-library/react-native';
-import { registerTheme, setTheme } from '../hooks/useTheme/useTheme';
 import { render, screen } from '@testing-library/react-native';
 import { View } from 'react-native';
 
@@ -177,43 +174,5 @@ describe('resolvePropByType', () => {
       customProps: {},
       styleProp: {},
     });
-  });
-});
-
-type T = { light: Record<string, string>; dark: Record<string, string> };
-
-describe('createThemedComponent', () => {
-  test('should render with themed styles', () => {
-    registerTheme({ light: { brand: '#f00' }, dark: { brand: '#a00' } });
-    const ThemedBox = createThemedComponent(View, (theme) => ({
-      _light: { backgroundColor: (theme as T).light.brand },
-      _dark: { backgroundColor: (theme as T).dark.brand },
-    }));
-    render(<ThemedBox testID="themed-box" />);
-    expect(screen.getByTestId('themed-box')).toBeOnTheScreen();
-  });
-
-  test('should re-evaluate styles when setTheme is called', () => {
-    registerTheme('a', { light: { brand: '#f00' }, dark: { brand: '#a00' } });
-    registerTheme('b', { light: { brand: '#00f' }, dark: { brand: '#00a' } });
-    setTheme('a');
-
-    const ThemedBox = createThemedComponent(View, (theme) => ({
-      backgroundColor: (theme as T).light.brand,
-    }));
-
-    const { rerender } = render(<ThemedBox testID="themed-box" />);
-    act(() => setTheme('b'));
-    rerender(<ThemedBox testID="themed-box" />);
-    expect(screen.getByTestId('themed-box')).toBeOnTheScreen();
-  });
-
-  test('should forward props to the component', () => {
-    registerTheme({ light: { surface: '#fff' }, dark: { surface: '#111' } });
-    const ThemedBox = createThemedComponent(View, (theme) => ({
-      _light: { backgroundColor: (theme as T).light.surface },
-    }));
-    render(<ThemedBox testID="themed-box" height={32} />);
-    expect(screen.getByTestId('themed-box')).toHaveStyle({ height: 32 });
   });
 });
