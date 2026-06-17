@@ -18,11 +18,11 @@ Instead of bundling everything together, the library is split into focused modul
 
 | Import Pattern | Size (minified + gzipped) | What's Included |
 |---------------|---------------------------|-----------------|
-| Core only | ~15KB | createComponent, zustand |
-| Core + ColorMode | ~18KB | + color mode hooks |
-| Core + Utils | ~22KB | + responsive utilities |
-| Core + Theme | ~65KB | + theme system, tinycolor |
-| Everything | ~68KB | All features |
+| Core only | ~5.7 KB | createComponent, zustand |
+| Core + ColorMode | ~5.8 KB | + color mode hooks |
+| Core + Utils | ~6.0 KB | + responsive utilities |
+| Core + Theme | ~6.2 KB | + theme registry, ColorUtils |
+| Everything | ~6.6 KB | All features |
 
 :::tip
 Start with core-only and add features as needed. Most apps don't need the full theme system.
@@ -38,7 +38,7 @@ Best for: Apps with custom design systems or minimal styling needs.
 import { createComponent } from 'react-native-small-ui';
 ```
 
-**Bundle impact:** ~15KB
+**Bundle impact:** ~5.7 KB
 
 **What you get:**
 - Component factory (`createComponent`)
@@ -84,7 +84,7 @@ import { createComponent } from 'react-native-small-ui';
 import { useColorMode, toggleColorScheme } from 'react-native-small-ui/colormode';
 ```
 
-**Bundle impact:** ~18KB (+ ~3KB)
+**Bundle impact:** ~5.8 KB (+ ~0.1 KB)
 
 **Added features:**
 - `useColorMode()` - Get current color scheme
@@ -119,7 +119,7 @@ import { createComponent } from 'react-native-small-ui';
 import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
 ```
 
-**Bundle impact:** ~22KB
+**Bundle impact:** ~6.0 KB
 
 **Added features:**
 - `useBreakPointValue()` - Responsive values
@@ -157,7 +157,7 @@ import { createComponent } from 'react-native-small-ui';
 import { useTheme, registerTheme, ColorUtils } from 'react-native-small-ui/theme';
 ```
 
-**Bundle impact:** ~65KB (+ tinycolor, color utilities)
+**Bundle impact:** ~6.2 KB (+ color utilities, no external deps)
 
 **Added features:**
 - `useTheme()` - Access theme values
@@ -207,7 +207,7 @@ import { useColorMode } from 'react-native-small-ui/colormode';
 import { useBreakPointValue } from 'react-native-small-ui/utils';
 ```
 
-**Bundle impact:** ~25KB
+**Bundle impact:** ~6.1 KB
 
 ---
 
@@ -222,7 +222,7 @@ import { useBreakPointValue } from 'react-native-small-ui/utils';
 import { useTheme } from 'react-native-small-ui/theme';
 ```
 
-**Bundle impact:** ~68KB
+**Bundle impact:** ~6.6 KB
 
 ---
 
@@ -330,17 +330,9 @@ If you only need the theme system in certain screens:
 const ThemeSettings = lazy(() => import('./screens/ThemeSettings'));
 ```
 
-### 4. Consider Alternatives for ColorUtils
+### 4. ColorUtils has no external dependencies
 
-If you only need color utilities without the full theme:
-
-```js
-// Instead of this (~65KB)
-import { ColorUtils } from 'react-native-small-ui/theme';
-
-// Consider this (~2KB)
-import tinycolor from 'tinycolor2';
-```
+`ColorUtils` is implemented with pure math — no external color library. There is nothing to swap out. The entire library including the theme package is ~6.6 KB gzipped.
 
 ---
 
@@ -348,28 +340,24 @@ import tinycolor from 'tinycolor2';
 
 | Library | Minimal Size | With Theme |
 |---------|-------------|------------|
-| **react-native-small-ui** | ~15KB | ~65KB |
+| **react-native-small-ui** | ~5.7 KB | ~6.2 KB |
 | NativeBase | ~180KB | ~180KB |
 | React Native Paper | ~150KB | ~150KB |
 | React Native Elements | ~90KB | ~90KB |
 
 :::tip[Key Advantage]
-Unlike other libraries, Small UI lets you start at 15KB and grow only as needed. Other libraries bundle everything regardless of usage.
+The entire library — every feature included — is ~6.6 KB gzipped. Other libraries bundle everything regardless of usage and start at 90 KB+.
 :::
 
 ---
 
 ## FAQ
 
-### Why is the theme package larger than core?
+### Why is the theme package only slightly larger than core?
 
-The theme package includes:
-- **@ctrl/tinycolor** (~47KB) - Color manipulation and contrast utilities
-- Color utility algorithms
+The theme package adds a shape-agnostic registry (`registerTheme`, `setTheme`, `useTheme`) and `ColorUtils` — all implemented with pure math and no external dependencies. The incremental cost over core is ~0.5 KB gzipped.
 
-The theme system itself has no enforced schema or default tokens — it is a shape-agnostic registry. You define your token shape; the library stores and retrieves it.
-
-If you don't need these features, stick with core-only or core + colormode.
+The theme system has no enforced schema or default tokens. You define your token shape; the library stores and retrieves it.
 
 ### Can I use my own theme system?
 
