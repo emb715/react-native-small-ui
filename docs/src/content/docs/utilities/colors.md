@@ -10,10 +10,6 @@ Color utilities for manipulating and analyzing colors. Part of the theme package
 import { ColorUtils } from 'react-native-small-ui/theme';
 ```
 
-:::note
-ColorUtils is part of the theme package (~122KB). If you only need basic color utilities without the full theme system, consider using a lighter alternative like [tinycolor](https://www.npmjs.com/package/tinycolor2).
-:::
-
 ---
 
 ## ColorUtils.getHexAlpha
