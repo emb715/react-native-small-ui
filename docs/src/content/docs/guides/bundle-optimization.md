@@ -338,15 +338,18 @@ const ThemeSettings = lazy(() => import('./screens/ThemeSettings'));
 
 ## Comparison with Other Libraries
 
-| Library | Minimal Size | With Theme |
-|---------|-------------|------------|
-| **react-native-small-ui** | ~5.7 KB | ~6.2 KB |
-| NativeBase | ~180KB | ~180KB |
-| React Native Paper | ~150KB | ~150KB |
-| React Native Elements | ~90KB | ~90KB |
+These numbers are measured or sourced from bundlephobia/esbuild — not estimated.
 
-:::tip[Key Advantage]
-The entire library — every feature included — is ~6.6 KB gzipped. Other libraries bundle everything regardless of usage and start at 90 KB+.
+| Library | Bundled gz | Source | Note |
+|---------|-----------|--------|------|
+| **react-native-small-ui (everything)** | **~6.6 KB** | esbuild measured | Utility toolkit, no pre-built components |
+| @shopify/restyle | ~15.9 KB | npm tarball | Most direct analogue — also utility-first |
+| react-native-elements@3 | ~66.9 KB | esbuild measured | Component library, ships everything |
+| native-base@3 | ~141.5 KB | bundlephobia | Component library, abandoned 2022 |
+| react-native-paper@5 | ~638.8 KB | npm tarball | Component library, Material Design |
+
+:::caution[Comparing apples to oranges]
+react-native-small-ui is a **utility toolkit** — it ships no pre-built components. The libraries above are component libraries that bundle complete, opinionated UI. A more honest comparison is against `@shopify/restyle`, which is also utility-first. Against component libraries, the size difference is structural: they have more to ship.
 :::
 
 ---
