@@ -398,28 +398,63 @@ createComponent(Component, config, defaultProps?)
 
 ## `createThemedComponent`
 
-A convenience wrapper that automatically subscribes to the active theme and passes it into your style factory. Useful when you want theme-driven styles baked into the component definition rather than applied via props at usage time.
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Known limitation">
+The current implementation calls `createComponent` inside the render body, which creates a new component type on every render. This causes unnecessary remounts and defeats React reconciliation — the same problem described in the performance warning above. **Do not use `createThemedComponent` in production until this is resolved.** Use `createComponent` with theme values passed as props instead (shown below).
+</Aside>
+
+A wrapper that reads the active theme inside a render function and passes it into a style factory. Intended use case: component styles that depend on theme tokens and need to update when `setTheme()` is called.
+
+**Signature:**
+
+```ts
+createThemedComponent(Component, (theme: unknown) => ComponentStyle)
+```
+
+The factory receives the raw theme value — cast it to your own type. It does **not** receive `_light`/`_dark` context, so conditional color mode styling must be done via `useColorModeValue` or `createComponent` props, not inside the factory.
 
 ```tsx
 import { createThemedComponent } from 'react-native-small-ui';
+import { registerTheme } from 'react-native-small-ui/theme';
 import { TouchableOpacity } from 'react-native';
 
-type AppTheme = { light: { primary: string }; dark: { primary: string } };
+type AppTheme = { primary: string; radius: number };
 
+registerTheme({ primary: '#007AFF', radius: 8 });
+
+// ✓ — use theme tokens directly, not _light/_dark
 const ThemedButton = createThemedComponent(
   TouchableOpacity,
   (theme) => {
     const t = theme as AppTheme;
     return {
+      backgroundColor: t.primary,
+      borderRadius: t.radius,
       padding: 12,
-      borderRadius: 8,
-      _light: { backgroundColor: t.light.primary },
-      _dark:  { backgroundColor: t.dark.primary },
     };
   }
 );
 ```
 
-The component re-renders whenever the active theme changes. Requires a theme to be registered via `registerTheme` from `react-native-small-ui/theme` before use.
+```tsx
+// ✗ — _light/_dark inside the factory don't work as expected.
+// The factory runs at render time before color mode is resolved.
+const Bad = createThemedComponent(View, (theme) => ({
+  _light: { backgroundColor: (theme as AppTheme).primary }, // misleading
+  _dark:  { backgroundColor: '#000' },
+}));
 
-**When to prefer `createComponent` + props instead:** if your theme values are only needed at a few usage sites, passing them via props keeps the component decoupled from the theme system and avoids the `useTheme` subscription overhead.
+// ✓ — preferred pattern: createComponent at module scope, theme values as props
+const Button = createComponent(TouchableOpacity, { borderRadius: 8 });
+
+function ThemedButton() {
+  const theme = useTheme() as AppTheme;
+  return <Button backgroundColor={theme.primary} padding={12} />;
+}
+```
+
+**Limitations vs `createComponent`:**
+- No `.extend()`, `.withSlots()`, variants, or `ComponentConfig`
+- Creates a new component type every render (implementation bug — see caution above)
+- Returns a plain function component, not a `SmallUIComponent`
