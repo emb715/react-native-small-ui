@@ -31,8 +31,11 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
-            // Each item here is one entry in the navigation menu.
-            { label: 'Example Guide', slug: 'guides/example' },
+            { label: 'Live Preview', slug: 'guides/live-preview' },
+            { label: 'Variants', slug: 'guides/variants' },
+            { label: 'Theming', slug: 'guides/theming' },
+            { label: 'Platform & Color Mode Registry', slug: 'guides/platform-registry' },
+            { label: 'Bundle Optimization', slug: 'guides/bundle-optimization' },
           ],
         },
         {

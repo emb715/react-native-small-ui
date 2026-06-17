@@ -64,6 +64,7 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-small-ui-example start",
+    "build:example": "yarn workspace react-native-small-ui-example expo export --platform web --output-dir ../docs/public/example",
     "test": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
