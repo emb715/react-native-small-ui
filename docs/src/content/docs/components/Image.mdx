@@ -1,32 +1,58 @@
 ---
 title: Image
-sidebar: {
+sidebar:
   order: 3
-}
 ---
 
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
 
-export const component = `
+`Image` from React Native works with `createComponent` like any other component. Define layout and style at module scope, pass `source` as a prop at usage time.
+
+## Basic usage
+
+```tsx
 import { Image } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
 
-const MyCustomImage = createComponent(Image, {
-  height: 128,
-  width: 128,
-}, {
-  source: require('./assets/custom-image.png')
-})
+const Avatar = createComponent(Image, {
+  width: 64,
+  height: 64,
+  borderRadius: 32,
+});
 
-`
+// source is a required Image prop — pass it at usage time like any other prop
+<Avatar source={{ uri: 'https://example.com/avatar.jpg' }} />
+```
 
-Example usage of a custom image with utility props.
+## With color mode
 
 ```tsx
-  <Center marginVertical={12}>
-    <MyCustomImage aspectRatio={1} />
-  </Box>
-```
----
+import { Image } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
 
-<Code code={component} lang="tsx" />
+const Thumbnail = createComponent(Image, {
+  width: 128,
+  height: 128,
+  borderRadius: 8,
+  _light: { opacity: 1 },
+  _dark:  { opacity: 0.85 },
+});
+
+<Thumbnail source={require('./assets/photo.png')} resizeMode="cover" />
+```
+
+## Platform-specific sizing
+
+```tsx
+import { Image } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const HeroImage = createComponent(Image, {
+  width: '100%',
+  _ios:     { height: 240 },
+  _android: { height: 200 },
+  _web:     { height: 320 },
+});
+
+<HeroImage source={{ uri: 'https://example.com/hero.jpg' }} resizeMode="cover" />
+```
