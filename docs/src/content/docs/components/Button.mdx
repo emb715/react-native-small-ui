@@ -92,3 +92,85 @@ const Button = createComponent(TouchableOpacity, {
   <Text style={{ color: '#fff' }}>Press me</Text>
 </Button>
 ```
+
+---
+
+## With slots — `Button.Text`
+
+`.withSlots()` attaches named sub-components as dot-notation properties. Slots share reactive context (colorMode, breakpoints) with the parent automatically — no prop drilling needed.
+
+export const componentSlots = `
+import { TouchableOpacity, Text } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Button = createComponent(TouchableOpacity, {
+  base: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  variants: {
+    intent: {
+      primary: {
+        _light: { backgroundColor: '#007AFF' },
+        _dark:  { backgroundColor: '#0A84FF' },
+      },
+      danger: {
+        _light: { backgroundColor: '#e00c2c' },
+        _dark:  { backgroundColor: '#be0a25' },
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        _light: { borderWidth: 1, borderColor: '#007AFF' },
+        _dark:  { borderWidth: 1, borderColor: '#0A84FF' },
+      },
+    },
+    size: {
+      sm: { paddingVertical: 6,  paddingHorizontal: 12 },
+      md: { paddingVertical: 10, paddingHorizontal: 20 },
+      lg: { paddingVertical: 14, paddingHorizontal: 28 },
+    },
+  },
+  defaultVariants: {
+    intent: 'primary',
+    size: 'md',
+  },
+}).withSlots({
+  Text: createComponent(Text, {
+    fontSize: 15,
+    fontWeight: '600',
+    _light: { color: '#fff' },
+    _dark:  { color: '#fff' },
+  }),
+  Icon: createComponent(Text, {
+    fontSize: 16,
+    marginRight: 6,
+    _light: { color: '#fff' },
+    _dark:  { color: '#fff' },
+  }),
+});
+`;
+
+<Code title="Button.tsx" code={componentSlots} lang="tsx" />
+
+```tsx
+// Text and Icon are slot components — color mode updates propagate automatically
+<Button intent="primary" size="md" onPress={onPress}>
+  <Button.Icon>★</Button.Icon>
+  <Button.Text>Confirm</Button.Text>
+</Button>
+
+<Button intent="danger" size="sm" onPress={onDelete}>
+  <Button.Text>Delete</Button.Text>
+</Button>
+```
+
+Slots share **colorMode and breakpoints** with the parent — they re-render together when the color scheme changes. Variant state is not shared: `Button.Text` does not know which `intent` is active on `Button`. If you need intent-aware text color, pass it as a prop at the call site:
+
+```tsx
+<Button intent="ghost" onPress={onCancel}>
+  <Button.Text _light={{ color: '#007AFF' }} _dark={{ color: '#0A84FF' }}>
+    Cancel
+  </Button.Text>
+</Button>
+```
