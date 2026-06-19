@@ -6,105 +6,15 @@ sidebar:
 
 import { Code } from '@astrojs/starlight/components';
 
-A `TouchableOpacity`-based button with variant support for intent and size. Copy and adapt to your design system.
+A `TouchableOpacity`-based button with variants, slots, and automatic variant context propagation. Copy and adapt to your design system.
 
 export const component = `
 import { TouchableOpacity, Text } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
 
-const ButtonBase = createComponent(TouchableOpacity, {
-  base: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  variants: {
-    intent: {
-      primary: {
-        _light: { backgroundColor: '#007AFF' },
-        _dark:  { backgroundColor: '#0A84FF' },
-      },
-      danger: {
-        _light: { backgroundColor: '#e00c2c' },
-        _dark:  { backgroundColor: '#be0a25' },
-      },
-      ghost: {
-        backgroundColor: 'transparent',
-        _light: { borderWidth: 1, borderColor: '#007AFF' },
-        _dark:  { borderWidth: 1, borderColor: '#0A84FF' },
-      },
-    },
-    size: {
-      sm: { paddingVertical: 6,  paddingHorizontal: 12 },
-      md: { paddingVertical: 10, paddingHorizontal: 20 },
-      lg: { paddingVertical: 14, paddingHorizontal: 28 },
-    },
-  },
-  defaultVariants: {
-    intent: 'primary',
-    size: 'md',
-  },
-});
-`;
-
-<Code title="Button.tsx" code={component} lang="tsx" />
-
----
-
-## Usage
-
-```tsx
-// Defaults apply — primary intent, md size
-<ButtonBase onPress={handleSubmit}>
-  <Text style={{ color: '#fff' }}>Submit</Text>
-</ButtonBase>
-
-// Explicit variants
-<ButtonBase intent="danger" size="lg" onPress={handleDelete}>
-  <Text style={{ color: '#fff' }}>Delete</Text>
-</ButtonBase>
-
-<ButtonBase intent="ghost" size="sm" onPress={handleCancel}>
-  <Text style={{ color: '#007AFF' }}>Cancel</Text>
-</ButtonBase>
-```
-
----
-
-## Platform-specific shadow
-
-```tsx
-import { TouchableOpacity, Text } from 'react-native';
-import { createComponent } from 'react-native-small-ui';
-
-const Button = createComponent(TouchableOpacity, {
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 8,
-  alignItems: 'center',
-  _light: { backgroundColor: '#007AFF' },
-  _dark:  { backgroundColor: '#0A84FF' },
-  _ios:     { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
-  _android: { elevation: 4 },
-});
-
-<Button onPress={onPress}>
-  <Text style={{ color: '#fff' }}>Press me</Text>
-</Button>
-```
-
----
-
-## With slots and variant context — `Button.Text`
-
-`.withSlots()` attaches named sub-components as dot-notation properties. `.withVariantContext()` makes the parent's active variant values propagate to slots automatically — no prop needed on the slot for the common case.
-
-export const componentSlots = `
-import { TouchableOpacity, Text } from 'react-native';
-import { createComponent } from 'react-native-small-ui';
-
 const Button = createComponent(TouchableOpacity, {
   base: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
@@ -136,6 +46,9 @@ const Button = createComponent(TouchableOpacity, {
     size: 'md',
   },
 }).withSlots({
+  // Button.Text and Button.Icon define the same intent variant as Button.
+  // withVariantContext below propagates the parent intent automatically —
+  // no prop needed on the slot at the call site.
   Text: createComponent(Text, {
     fontSize: 15,
     fontWeight: '600',
@@ -161,15 +74,27 @@ const Button = createComponent(TouchableOpacity, {
     defaultVariants: { intent: 'primary' },
   }),
 }).withVariantContext('intent');
-// ↑ intent on Button propagates to Button.Text and Button.Icon automatically
+// intent on Button flows to Button.Text and Button.Icon automatically.
+// Explicit props on a slot always override the context.
 `;
 
-<Code title="Button.tsx" code={componentSlots} lang="tsx" />
+<Code title="Button.tsx" code={component} lang="tsx" />
+
+---
+
+## Usage
+
+`intent` propagates from `Button` to its slots — no prop needed on `Button.Text` or `Button.Icon`.
 
 ```tsx
-// intent propagates — no prop needed on slots
-<Button intent="primary" size="md" onPress={onPress}>
-  <Button.Icon>★</Button.Icon>
+// primary is the default — no props needed at all
+<Button onPress={onSubmit}>
+  <Button.Text>Submit</Button.Text>
+</Button>
+
+// with icon — both slots pick up the active intent
+<Button intent="primary" size="lg" onPress={onConfirm}>
+  <Button.Icon>✓</Button.Icon>
   <Button.Text>Confirm</Button.Text>
 </Button>
 
@@ -182,13 +107,45 @@ const Button = createComponent(TouchableOpacity, {
 </Button>
 ```
 
-Explicit slot props always override the context:
+Explicit slot props always override the context — useful when you need a slot styled differently from its parent:
 
 ```tsx
-// Override — slot stays primary even though parent is ghost
 <Button intent="ghost">
-  <Button.Text intent="primary">...</Button.Text>
+  <Button.Icon intent="primary">→</Button.Icon>
+  <Button.Text>Continue</Button.Text>
 </Button>
 ```
 
-`.withVariantContext()` accepts multiple keys. Slots share **colorMode, breakpoints, and now the specified variant keys** with the parent. Each compound component gets its own isolated context — two `Button` trees never interfere with each other.
+---
+
+## Platform-specific shadow
+
+Extend the base definition to layer in platform styles:
+
+```tsx
+const Button = createComponent(TouchableOpacity, {
+  // ... variants and slots as above
+  base: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    _ios:     { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
+    _android: { elevation: 4 },
+  },
+  // ...
+});
+```
+
+---
+
+## How it works
+
+`Button` uses three APIs in combination:
+
+| API | Role |
+|-----|------|
+| `variants` + `defaultVariants` | Type-safe `intent` and `size` props with autocomplete |
+| `.withSlots()` | Attaches `Button.Text` and `Button.Icon` as dot-notation sub-components |
+| `.withVariantContext('intent')` | Propagates the parent's active `intent` to slots via React context — no prop drilling |
+
+Slots share **colorMode, breakpoints, and the specified variant keys** with the parent. Two `Button` trees never share context — each compound instance is isolated.
