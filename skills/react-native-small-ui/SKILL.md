@@ -25,33 +25,22 @@ See [refs/imports.md](refs/imports.md) for full export table including types.
 ## createComponent
 
 ```tsx
-import { createComponent } from 'react-native-small-ui';
-import { View, TouchableOpacity } from 'react-native';
-
-// Static styles
+// Static — module scope always
 const Card = createComponent(View, {
-  padding: 16,
-  borderRadius: 8,
+  padding: 16, borderRadius: 8,
   _light: { backgroundColor: '#fff' },
   _dark:  { backgroundColor: '#1a1a1a' },
   _ios:   { shadowOpacity: 0.1 },
   _android: { elevation: 2 },
 });
-
-<Card marginTop={20} />
 ```
 
 ```tsx
-// ✗ — inside a render function, React unmounts and remounts every render, destroying state, refs, and animations
-function Screen() {
-  const Button = createComponent(TouchableOpacity, { padding: 12 });
-  return <Button />;
-}
-// ✓ — module scope; use props for values that change at runtime
+// ✗ — new component type every render, state/refs/animations destroyed
+function Screen() { const B = createComponent(TouchableOpacity, { p: 12 }); return <B />; }
+// ✓ — module scope; use props for runtime values
 const Button = createComponent(TouchableOpacity, { padding: 12 });
-function Screen() {
-  return <Button opacity={isDisabled ? 0.5 : 1} />;
-}
+function Screen() { return <Button opacity={isDisabled ? 0.5 : 1} />; }
 ```
 
 ### Style props
@@ -60,38 +49,59 @@ function Screen() {
 |---|---|
 | `_light` / `_dark` | Current OS/app color scheme |
 | `_ios` / `_android` / `_web` / `_native` | Platform |
-| `_<key>` (custom platform) | When `configure({ platforms: { key: () => bool } })` predicate returns true |
-| `_<key>` (custom color mode) | When `setCustomColorMode('key')` is active |
+| `_<key>` (custom) | Registered platform predicate or custom color mode |
 | Any RN style prop | Always |
 
-### Extending and composing
+### Extending
 
 ```tsx
 const Base  = createComponent(View, { borderRadius: 8 });
 const Card  = Base.extend({ padding: 16, _dark: { backgroundColor: '#111' } });
-const Modal = Base.extend({ padding: 24, shadowOpacity: 0.2 });
-```
-
-```tsx
-// ✗ — Base.extend() inside a component has the same consequence as createComponent inside render
-function Bad() { const Card = Base.extend({ padding: 16 }); return <Card />; }
-// ✓ — module scope only
-const Card = Base.extend({ padding: 16 });
+// ✗ — Base.extend() inside a component — same rule as createComponent
 ```
 
 ### Variants
 
 See [refs/variants.md](refs/variants.md) for full variant + compound variant examples.
 
+## Compound components with variant propagation
+
+**Route here when:** slot styling depends on the parent's active variant.
+
+`.withSlots()` attaches sub-components as dot-notation properties.
+`.withVariantContext(...keys)` propagates parent variant values to slots via React context — explicit slot props always win.
+**Both are methods on the SmallUIComponent output, not imports.**
+
+```tsx
+const ButtonText = createComponent(Text, {
+  variants: { intent: { primary: { color: '#fff' }, ghost: { color: '#007AFF' } } },
+  defaultVariants: { intent: 'primary' },
+});
+
+const Button = createComponent(TouchableOpacity, {
+  base: { borderRadius: 8, alignItems: 'center' as const },
+  variants: {
+    intent: {
+      primary: { _light: { backgroundColor: '#007AFF' }, _dark: { backgroundColor: '#0A84FF' } },
+      ghost:   { backgroundColor: 'transparent' },
+    },
+  },
+  defaultVariants: { intent: 'primary' },
+})
+  .withSlots({ Text: ButtonText })  // attach slots first
+  .withVariantContext('intent');    // then propagate — order matters
+
+<Button intent="ghost"><Button.Text>Cancel</Button.Text></Button>
+```
+
 ## Color mode
 
 ```tsx
 import { useColorMode, useColorModeValue, setColorScheme } from 'react-native-small-ui/colormode';
 
-const { colorMode, isDark } = useColorMode(); // colorMode: 'light' | 'dark'
-const bg = useColorModeValue('#fff', '#000'); // picks by current mode
-setColorScheme('dark');                       // programmatic override
-toggleColorScheme();                          // flip current
+const { colorMode, isDark } = useColorMode();
+const bg = useColorModeValue('#fff', '#000');
+setColorScheme('dark'); toggleColorScheme();
 ```
 
 ## Responsive
@@ -114,23 +124,18 @@ See [refs/responsive.md](refs/responsive.md) for breakpoint customisation and me
 import { registerTheme, useTheme } from 'react-native-small-ui/theme';
 
 type AppTheme = { light: { primary: string }; dark: { primary: string } };
-
 registerTheme({ light: { primary: '#007AFF' }, dark: { primary: '#0A84FF' } });
 
 function ThemedButton() {
-  const theme = useTheme() as AppTheme;
+  const theme = useTheme() as AppTheme; // returns unknown — always cast
   return <Button _light={{ backgroundColor: theme.light.primary }}
                  _dark={{ backgroundColor: theme.dark.primary }} />;
 }
 ```
 
-`useTheme()` returns `unknown` — always cast to your type. No default tokens are provided.
-
 See [refs/theming.md](refs/theming.md) for named themes, selectors, and `getTheme()`.
 
 ## Presets
-
-Plain style objects — spread into `createComponent` or `StyleSheet.create`. Zero runtime cost.
 
 ```tsx
 import { elevation, shadow, inset, layout, border } from 'react-native-small-ui/presets';
@@ -146,20 +151,6 @@ See [refs/presets.md](refs/presets.md) for all available keys.
 ```tsx
 import { cs, getStatusBarStyle } from 'react-native-small-ui';
 
-// Style merge — last-write-wins, falsy values skipped (RN equivalent of cn())
 const style = cs(base, isActive && { backgroundColor: '#007AFF' }, disabled && { opacity: 0.5 });
-
-// Returns 'light-content' or 'dark-content' based on background contrast
-const barStyle = getStatusBarStyle('#8b59a0'); // → 'light-content'
-```
-
-## Skill output example
-
-```tsx
-// ✗ — prose that doesn't change what the model writes
-// "useTheme() is a hook that gives you access to the active theme object.
-//  The theme system is optional. The return type is unknown so cast it."
-
-// ✓ — code that shows the same thing in fewer tokens
-const theme = useTheme() as AppTheme; // returns unknown — always cast
+const barStyle = getStatusBarStyle('#8b59a0'); // → 'light-content' or 'dark-content'
 ```

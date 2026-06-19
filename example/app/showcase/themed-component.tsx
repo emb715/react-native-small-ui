@@ -2,13 +2,13 @@ import { ScrollView, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTheme } from 'react-native-small-ui/theme';
 import { ShowcaseSection } from '@/src/components';
-import { ThemedCard, ThemedText } from '@/src/design-system/themed';
 import {
   AppText,
   VStack,
   HStack,
   Box,
   Divider,
+  Card,
 } from '@/src/design-system/primitives';
 import type { AppTheme } from '@/src/theme/types';
 
@@ -21,9 +21,9 @@ export default function ThemedComponentScreen() {
 
       <ShowcaseSection
         title="Theme-Driven Components"
-        description="createComponent stays static. Pass theme tokens as props at render time — components update instantly when the theme switches."
+        description="createComponent stays static. Pass theme tokens as props — components update instantly when the theme switches."
       >
-        <ThemedCard
+        <Card
           _light={{
             backgroundColor: theme?.light?.card,
             borderColor: theme?.light?.border,
@@ -33,7 +33,7 @@ export default function ThemedComponentScreen() {
             borderColor: theme?.dark?.border,
           }}
         >
-          <VStack gap={16}>
+          <VStack gap={16} padding={16}>
             <HStack gap={12}>
               <Box
                 width={48}
@@ -48,12 +48,12 @@ export default function ThemedComponentScreen() {
                 </AppText>
               </Box>
               <VStack gap={2}>
-                <ThemedText fontWeight="700" fontSize={16}>
+                <AppText fontWeight="700" fontSize={16}>
                   Alex Rivera
-                </ThemedText>
-                <ThemedText fontSize={13} opacity={0.7}>
+                </AppText>
+                <AppText fontSize={13} opacity={0.7}>
                   Senior Engineer
-                </ThemedText>
+                </AppText>
               </VStack>
             </HStack>
 
@@ -99,7 +99,7 @@ export default function ThemedComponentScreen() {
                 ))}
             </VStack>
           </VStack>
-        </ThemedCard>
+        </Card>
       </ShowcaseSection>
     </ScrollView>
   );

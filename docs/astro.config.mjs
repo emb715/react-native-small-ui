@@ -94,6 +94,7 @@ export default defineConfig({
             { label: 'Theming', slug: 'guides/theming' },
             { label: 'Platform & Color Mode Registry', slug: 'guides/platform-registry' },
             { label: 'Bundle Optimization', slug: 'guides/bundle-optimization' },
+            { label: 'Canonical Patterns', slug: 'guides/patterns' },
           ],
         },
         {
