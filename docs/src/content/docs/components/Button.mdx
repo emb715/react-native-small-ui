@@ -99,6 +99,8 @@ const Button = createComponent(TouchableOpacity, {
 
 `.withSlots()` attaches named sub-components as dot-notation properties. Slots share reactive context (colorMode, breakpoints) with the parent automatically — no prop drilling needed.
 
+Slots do not automatically inherit the parent's variant state, so `Button.Text` defines its own `intent` variant mirroring `Button`'s. `defaultVariants: { intent: 'primary' }` means the common case needs no extra prop — only non-default intents require an explicit value.
+
 export const componentSlots = `
 import { TouchableOpacity, Text } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
@@ -136,17 +138,31 @@ const Button = createComponent(TouchableOpacity, {
     size: 'md',
   },
 }).withSlots({
+  // Button.Text mirrors the parent intent variant so text color
+  // stays in sync without raw color props at every call site.
   Text: createComponent(Text, {
     fontSize: 15,
     fontWeight: '600',
-    _light: { color: '#fff' },
-    _dark:  { color: '#fff' },
+    variants: {
+      intent: {
+        primary: { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        danger:  { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        ghost:   { _light: { color: '#007AFF' },  _dark: { color: '#0A84FF' } },
+      },
+    },
+    defaultVariants: { intent: 'primary' },
   }),
   Icon: createComponent(Text, {
     fontSize: 16,
     marginRight: 6,
-    _light: { color: '#fff' },
-    _dark:  { color: '#fff' },
+    variants: {
+      intent: {
+        primary: { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        danger:  { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        ghost:   { _light: { color: '#007AFF' },  _dark: { color: '#0A84FF' } },
+      },
+    },
+    defaultVariants: { intent: 'primary' },
   }),
 });
 `;
@@ -154,23 +170,21 @@ const Button = createComponent(TouchableOpacity, {
 <Code title="Button.tsx" code={componentSlots} lang="tsx" />
 
 ```tsx
-// Text and Icon are slot components — color mode updates propagate automatically
+// primary is the default — Button.Text needs no intent prop
 <Button intent="primary" size="md" onPress={onPress}>
   <Button.Icon>★</Button.Icon>
   <Button.Text>Confirm</Button.Text>
 </Button>
 
+// danger — pass intent explicitly on the slot
 <Button intent="danger" size="sm" onPress={onDelete}>
-  <Button.Text>Delete</Button.Text>
+  <Button.Text intent="danger">Delete</Button.Text>
 </Button>
-```
 
-Slots share **colorMode and breakpoints** with the parent — they re-render together when the color scheme changes. Variant state is not shared: `Button.Text` does not know which `intent` is active on `Button`. If you need intent-aware text color, pass it as a prop at the call site:
-
-```tsx
+// ghost — text color switches automatically via the variant
 <Button intent="ghost" onPress={onCancel}>
-  <Button.Text _light={{ color: '#007AFF' }} _dark={{ color: '#0A84FF' }}>
-    Cancel
-  </Button.Text>
+  <Button.Text intent="ghost">Cancel</Button.Text>
 </Button>
 ```
+
+The `intent` prop on `Button.Text` is type-safe and autocompleted — a wrong value is a TypeScript error. Slots share **colorMode and breakpoints** with the parent and re-render together when the color scheme changes.
