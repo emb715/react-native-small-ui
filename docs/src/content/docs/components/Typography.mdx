@@ -1,133 +1,111 @@
 ---
 title: Typography
-sidebar: {
+sidebar:
   order: 2
-}
 ---
 
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
+
+A `Text`-based typography component using `createComponent` variants for preset sizes and font weights. Copy and adapt to your design system.
 
 export const component = `
-import React from 'react';
 import { Text as RNText } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
 
-const Text = createComponent(RNText);
-
-const Presets = {
-  h1: {
-    fontFamily: 'Inter',
-    fontSize: 34,
-    lineHeight: 41,
+const Typography = createComponent(RNText, {
+  variants: {
+    // Size and line-height scale.
+    preset: {
+      h1:      { fontSize: 34, lineHeight: 41 },
+      h2:      { fontSize: 28, lineHeight: 34 },
+      h3:      { fontSize: 22, lineHeight: 28 },
+      h4:      { fontSize: 20, lineHeight: 28 },
+      h5:      { fontSize: 17, lineHeight: 24 },
+      h6:      { fontSize: 14, lineHeight: 18 },
+      body:    { fontSize: 16, lineHeight: 24 },
+      caption: { fontSize: 12, lineHeight: 18 },
+      small:   { fontSize: 10, lineHeight: 14 },
+    },
+    // Font weight scale. Font family is intentionally omitted —
+    // extend() your loaded font family on top of this base.
+    weight: {
+      thin:      { fontWeight: '200' },
+      light:     { fontWeight: '300' },
+      normal:    { fontWeight: '400' },
+      semibold:  { fontWeight: '600' },
+      bold:      { fontWeight: '700' },
+      extrabold: { fontWeight: '900' },
+    },
   },
-  h2: {
-    fontFamily: 'Inter',
-    fontSize: 28,
-    lineHeight: 34,
+  defaultVariants: {
+    preset: 'body',
+    weight: 'normal',
   },
-  h3: {
-    fontFamily: 'Inter',
-    fontSize: 22,
-    lineHeight: 28,
-  },
-  h4: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    lineHeight: 28,
-  },
-  h5: {
-    fontFamily: 'Inter',
-    fontSize: 17,
-    lineHeight: 24,
-  },
-  h6: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  medium: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  small: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  smallest: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
-} as const;
-
-const Variants = {
-  thin: {
-    fontFamily: 'Inter-Thin',
-    fontWeight: 200,
-  },
-  light: {
-    fontFamily: 'Inter-Light',
-    fontWeight: 300,
-  },
-  normal: {
-    fontFamily: 'Inter',
-    fontWeight: 400,
-  },
-  semibold: {
-    fontFamily: 'Inter-SemiBold',
-    fontWeight: 600,
-  },
-  bold: {
-    fontFamily: 'Inter-Bold',
-    fontWeight: 700,
-  },
-  extrabold: {
-    fontFamily: 'Inter-ExtraBold',
-    fontWeight: 900,
-  },
-} as const;
-
-
-type TextComponentProps = React.ComponentProps<typeof Text>;
-
-type TypographyProps = TextComponentProps & {
-  preset?: keyof typeof Presets;
-  variant?: keyof typeof Variants;
-};
-
-export const Typography = ({
-  children,
-  preset = 'default',
-  variant = 'normal',
-  ...textProps
-}: TypographyProps) => {
-  const propStyles: TextComponentProps = {
-    ...Presets[preset],
-    ...Variants[variant],
-  };
-  return (
-    <Text
-      role={preset.startsWith('h') ? 'heading' : undefined}
-      {...propStyles}
-      {...textProps}
-    >
-      {children}
-    </Text>
-  );
-};
-
-`
-
-Utility prop base component to copy/paste.
-Set the preset and variant that you design requires.
-
-Example usage:
-```tsx
-  <Typography preset="h1">Welcome Back!</Typography>
-```
----
+});
+`;
 
 <Code title="Typography.tsx" code={component} lang="tsx" />
+
+---
+
+## Usage
+
+All style props, `_light`/`_dark`, `_ios`/`_android`, and `.extend()` work on `Typography` out of the box — it's a full `SmallUIComponent`.
+
+```tsx
+// Defaults apply — body size, normal weight
+<Typography>Hello world</Typography>
+
+// Explicit preset and weight
+<Typography preset="h1" weight="bold">Welcome Back</Typography>
+<Typography preset="caption" weight="semibold" _light={{ color: '#666' }} _dark={{ color: '#aaa' }}>
+  Last updated today
+</Typography>
+```
+
+---
+
+## Adding your font family
+
+`weight` carries only `fontWeight`. To bind your loaded font faces, use `.extend()` at module scope:
+
+```tsx
+const Typography = createComponent(RNText, { /* ... variants above ... */ });
+
+// Layer your font family on top — one extend per weight is not needed;
+// if your font loads weight automatically via fontWeight, this is all you need:
+const AppText = Typography.extend({
+  fontFamily: 'Inter',
+});
+
+// Or per weight if your font uses separate face files:
+const BoldText = Typography.extend({
+  fontFamily: 'Inter-Bold',
+});
+```
+
+---
+
+## Accessibility — headings
+
+`createComponent` outputs are plain React Native components. To set `accessibilityRole="header"` on heading presets, wrap with a thin component at the call site or in a small helper:
+
+```tsx
+import { accessibilityProps } from 'react-native';
+
+const HEADING_PRESETS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
+type TypographyProps = React.ComponentProps<typeof Typography>;
+
+function Text({ preset, ...props }: TypographyProps) {
+  return (
+    <Typography
+      preset={preset}
+      accessibilityRole={HEADING_PRESETS.has(preset ?? '') ? 'header' : undefined}
+      {...props}
+    />
+  );
+}
+```
+
+This keeps `Typography` a pure `createComponent` output — all library features intact — while the thin wrapper handles the one concern that requires render logic.
