@@ -389,10 +389,39 @@ createComponent(Component, config, defaultProps?)
 
 ### `SmallUIComponent` methods
 
-| Method         | Signature                             | Description                                            |
-| -------------- | ------------------------------------- | ------------------------------------------------------ |
-| `.extend()`    | `(styleOrConfig) => SmallUIComponent` | Create a new component inheriting this one's styles    |
-| `.withSlots()` | `(slots) => SmallUIComponent & S`     | Attach named sub-components as dot-notation properties |
+| Method                   | Signature                                    | Description                                                                           |
+| ------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `.extend()`              | `(styleOrConfig) => SmallUIComponent`        | Create a new component inheriting this one's styles                                   |
+| `.withSlots()`           | `(slots) => SmallUIComponent & S`            | Attach named sub-components as dot-notation properties                                |
+| `.withVariantContext()`  | `(...keys) => SmallUIComponent & S`          | Propagate the parent's active variant values to slots automatically via React context |
+
+### `.withVariantContext()`
+
+Chain after `.withSlots()` to make the parent's active variant values available to every slot automatically — no prop needed on the slot at the call site.
+
+```tsx
+const Button = createComponent(TouchableOpacity, {
+  variants: { intent: { primary: {...}, ghost: {...} } },
+  defaultVariants: { intent: 'primary' },
+}).withSlots({
+  Text: createComponent(Text, {
+    variants: { intent: { primary: { color: '#fff' }, ghost: { color: '#007AFF' } } },
+    defaultVariants: { intent: 'primary' },
+  }),
+}).withVariantContext('intent');
+
+// intent propagates — no prop on Button.Text
+<Button intent="ghost">
+  <Button.Text>Cancel</Button.Text>
+</Button>
+
+// Explicit slot prop always overrides context
+<Button intent="ghost">
+  <Button.Text intent="primary">...</Button.Text>
+</Button>
+```
+
+Accepts multiple keys: `.withVariantContext('intent', 'size')`. Each compound component gets its own isolated context — independent instances never share state.
 
 ---
 

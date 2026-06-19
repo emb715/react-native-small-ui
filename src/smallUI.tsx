@@ -427,6 +427,7 @@ export type ComponentMeta = {
 export type SmallUIComponent<
   TProps extends { style?: unknown },
   V extends VariantConfig<TProps> = VariantConfig<TProps>,
+  S extends SlotMap = SlotMap,
 > = ((
   props: WithVariantProps<TProps, V> &
     ComponentPropsWithRef<ComponentType<TProps>> &
@@ -463,7 +464,35 @@ export type SmallUIComponent<
    *   <Card.Body><Text>Content</Text></Card.Body>
    * </Card>
    */
-  withSlots: <S extends SlotMap>(slots: S) => SmallUIComponent<TProps, V> & S;
+  withSlots: <NewS extends SlotMap>(
+    slots: NewS
+  ) => SmallUIComponent<TProps, V, NewS> & NewS;
+
+  /**
+   * Enable variant state propagation from this compound component parent to its
+   * already-attached slots. For each key in `keys`, a React context is created
+   * (per call — never global) and the parent writes its active variant value into
+   * it. Each slot reads the context and uses it as the default for that variant,
+   * with any explicit prop on the slot always winning.
+   *
+   * @example
+   * const Button = createComponent(TouchableOpacity, {
+   *   variants: { intent: { primary: {}, ghost: {} } },
+   *   defaultVariants: { intent: 'primary' },
+   * }).withSlots({
+   *   Text: createComponent(Text, {
+   *     variants: { intent: { primary: { color: '#fff' }, ghost: { color: '#007AFF' } } },
+   *     defaultVariants: { intent: 'primary' },
+   *   }),
+   * }).withVariantContext('intent');
+   *
+   * <Button intent="ghost">
+   *   <Button.Text>Cancel</Button.Text>  // picks up ghost
+   * </Button>
+   */
+  withVariantContext: <Keys extends string[]>(
+    ...keys: Keys
+  ) => SmallUIComponent<TProps, V, S> & S;
 
   // ---------------------------------------------------------------------------
   // Metadata properties (#16 — Component Metadata & Self-Documentation)
@@ -886,15 +915,147 @@ export function createComponent<
   // .withSlots() — compound component dot-notation
   // ----------------------------------------------------------------
 
-  SmallUIComp.withSlots = <S extends SlotMap>(
-    slots: S
-  ): SmallUIComponent<TProps, V> & S => {
+  SmallUIComp.withSlots = <NewS extends SlotMap>(
+    slots: NewS
+  ): SmallUIComponent<TProps, V, NewS> & NewS => {
     // Attach each slot as a static property on a copy of the component.
-    const withSlotsComp = SmallUIComp as SmallUIComponent<TProps, V> & S;
+    const withSlotsComp = SmallUIComp as unknown as SmallUIComponent<
+      TProps,
+      V,
+      NewS
+    > &
+      NewS;
     for (const [key, SlotComponent] of Object.entries(slots)) {
-      (withSlotsComp as Record<string, unknown>)[key] = SlotComponent;
+      (withSlotsComp as unknown as Record<string, unknown>)[key] =
+        SlotComponent;
     }
     return withSlotsComp;
+  };
+
+  // ----------------------------------------------------------------
+  // .withVariantContext() — variant state propagation to slots
+  // ----------------------------------------------------------------
+
+  SmallUIComp.withVariantContext = <Keys extends string[]>(
+    ...keys: Keys
+    // Cast to `SmallUIComponent<TProps, V>` — callers with slots attached get
+    // `SmallUIComponent<TProps, V, S> & S` from the interface's generic return type.
+    // The runtime shape always carries the slot properties.
+  ): SmallUIComponent<TProps, V> => {
+    // Step 1: Create one React context per key — per call, never global.
+    const contexts = Object.fromEntries(
+      keys.map((k) => [k, React.createContext<string | undefined>(undefined)])
+    ) as Record<string, React.Context<string | undefined>>;
+
+    // Step 2: Identify which properties on SmallUIComp are slots.
+    // Known SmallUIComponent method/property names that are NOT slots:
+    const knownStaticKeys = new Set([
+      'extend',
+      'withSlots',
+      'withVariantContext',
+      '__meta',
+      '__variants',
+      '__resolveStyles',
+      'displayName',
+      'name',
+      'length',
+      'prototype',
+      'arguments',
+      'caller',
+      'call',
+      'apply',
+      'bind',
+      'toString',
+    ]);
+
+    const smallUICompAsRecord = SmallUIComp as unknown as Record<
+      string,
+      unknown
+    >;
+    const slotKeys = Object.keys(smallUICompAsRecord).filter(
+      (key) =>
+        !knownStaticKeys.has(key) &&
+        typeof smallUICompAsRecord[key] === 'function'
+    );
+
+    // Step 3: Build the parent wrapper component.
+    // It reads its own resolved variant props for each key (after defaultVariants),
+    // provides them into contexts, and renders the original SmallUIComp.
+    const ParentWrapper = (
+      props: TProps &
+        ComponentPropsWithRef<typeof Component> &
+        ExtendedProps<TProps> &
+        VariantProps<V>
+    ) => {
+      // Collect the active value for each context key.
+      // Active = explicitly passed prop, else defaultVariants value.
+      const contextValues: Record<string, string | undefined> = {};
+      for (const key of keys) {
+        const explicitValue = (props as Record<string, unknown>)[key];
+        const defaultValue = config?.defaultVariants
+          ? (config.defaultVariants as Record<string, string | undefined>)[key]
+          : undefined;
+        contextValues[key] =
+          explicitValue !== undefined
+            ? (explicitValue as string)
+            : defaultValue;
+      }
+
+      // Wrap children in Provider elements — one per key.
+      // Build from inside-out: innermost = last key.
+      let element: React.ReactElement = React.createElement(SmallUIComp, props);
+      for (let i = keys.length - 1; i >= 0; i--) {
+        const key = keys[i];
+        if (key === undefined) continue;
+        const ctx = contexts[key];
+        if (!ctx) continue;
+        element = React.createElement(
+          ctx.Provider,
+          { value: contextValues[key] },
+          element
+        );
+      }
+      return element;
+    };
+
+    // Step 4: Copy all static properties from SmallUIComp onto ParentWrapper.
+    const wrapper = ParentWrapper as unknown as SmallUIComponent<TProps, V>;
+    const wrapperAsRecord = wrapper as unknown as Record<string, unknown>;
+    wrapperAsRecord['extend'] = SmallUIComp.extend;
+    wrapperAsRecord['withSlots'] = SmallUIComp.withSlots;
+    wrapperAsRecord['withVariantContext'] = SmallUIComp.withVariantContext;
+    wrapperAsRecord['__meta'] = SmallUIComp.__meta;
+    wrapperAsRecord['__variants'] = SmallUIComp.__variants;
+    wrapperAsRecord['__resolveStyles'] = SmallUIComp.__resolveStyles;
+
+    // Step 5: Wrap each slot so it reads from contexts.
+    for (const slotKey of slotKeys) {
+      const OriginalSlot = smallUICompAsRecord[slotKey] as (
+        props: Record<string, unknown>
+      ) => React.ReactElement | null;
+
+      const SlotWrapper = (slotProps: Record<string, unknown>) => {
+        // Read context values for each key.
+        // Explicit slot props always win; context is only a default.
+        const contextDefaults: Record<string, string | undefined> = {};
+        for (const key of keys) {
+          const ctx = contexts[key];
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const contextValue = ctx ? React.useContext(ctx) : undefined;
+          // Only use context value if the variant key exists on the slot.
+          // Slots that don't have this variant key simply won't be affected
+          // because the value is passed as a prop that the slot ignores.
+          if (contextValue !== undefined && !(key in slotProps)) {
+            contextDefaults[key] = contextValue;
+          }
+        }
+        return OriginalSlot({ ...contextDefaults, ...slotProps });
+      };
+
+      wrapperAsRecord[slotKey] = SlotWrapper;
+    }
+
+    return wrapper;
   };
 
   // ----------------------------------------------------------------

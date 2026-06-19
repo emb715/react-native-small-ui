@@ -95,11 +95,9 @@ const Button = createComponent(TouchableOpacity, {
 
 ---
 
-## With slots — `Button.Text`
+## With slots and variant context — `Button.Text`
 
-`.withSlots()` attaches named sub-components as dot-notation properties. Slots share reactive context (colorMode, breakpoints) with the parent automatically — no prop drilling needed.
-
-Slots do not automatically inherit the parent's variant state, so `Button.Text` defines its own `intent` variant mirroring `Button`'s. `defaultVariants: { intent: 'primary' }` means the common case needs no extra prop — only non-default intents require an explicit value.
+`.withSlots()` attaches named sub-components as dot-notation properties. `.withVariantContext()` makes the parent's active variant values propagate to slots automatically — no prop needed on the slot for the common case.
 
 export const componentSlots = `
 import { TouchableOpacity, Text } from 'react-native';
@@ -138,8 +136,6 @@ const Button = createComponent(TouchableOpacity, {
     size: 'md',
   },
 }).withSlots({
-  // Button.Text mirrors the parent intent variant so text color
-  // stays in sync without raw color props at every call site.
   Text: createComponent(Text, {
     fontSize: 15,
     fontWeight: '600',
@@ -164,27 +160,35 @@ const Button = createComponent(TouchableOpacity, {
     },
     defaultVariants: { intent: 'primary' },
   }),
-});
+}).withVariantContext('intent');
+// ↑ intent on Button propagates to Button.Text and Button.Icon automatically
 `;
 
 <Code title="Button.tsx" code={componentSlots} lang="tsx" />
 
 ```tsx
-// primary is the default — Button.Text needs no intent prop
+// intent propagates — no prop needed on slots
 <Button intent="primary" size="md" onPress={onPress}>
   <Button.Icon>★</Button.Icon>
   <Button.Text>Confirm</Button.Text>
 </Button>
 
-// danger — pass intent explicitly on the slot
 <Button intent="danger" size="sm" onPress={onDelete}>
-  <Button.Text intent="danger">Delete</Button.Text>
+  <Button.Text>Delete</Button.Text>
 </Button>
 
-// ghost — text color switches automatically via the variant
 <Button intent="ghost" onPress={onCancel}>
-  <Button.Text intent="ghost">Cancel</Button.Text>
+  <Button.Text>Cancel</Button.Text>
 </Button>
 ```
 
-The `intent` prop on `Button.Text` is type-safe and autocompleted — a wrong value is a TypeScript error. Slots share **colorMode and breakpoints** with the parent and re-render together when the color scheme changes.
+Explicit slot props always override the context:
+
+```tsx
+// Override — slot stays primary even though parent is ghost
+<Button intent="ghost">
+  <Button.Text intent="primary">...</Button.Text>
+</Button>
+```
+
+`.withVariantContext()` accepts multiple keys. Slots share **colorMode, breakpoints, and now the specified variant keys** with the parent. Each compound component gets its own isolated context — two `Button` trees never interfere with each other.

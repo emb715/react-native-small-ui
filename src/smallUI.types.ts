@@ -122,6 +122,13 @@ export type CompoundVariant<
 };
 
 /**
+ * Infers the string keys of a VariantConfig (the variant group names).
+ * Used to constrain the keys accepted by withVariantContext.
+ */
+export type VariantGroupKey<V extends VariantConfig<{ style?: unknown }>> =
+  Extract<keyof V, string>;
+
+/**
  * Full configuration object for createComponent.
  * Combines the base style with the variant system.
  */
