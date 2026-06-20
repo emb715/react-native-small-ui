@@ -55,7 +55,11 @@ describe('setColorMode', () => {
   });
 
   test('should pass test for undefined', async () => {
-    const colorMode = undefined;
+    // Cast to any to test the runtime falsy-guard — RN 0.83 ColorSchemeName
+    // no longer includes undefined in its type, but setColorMode still
+    // short-circuits on falsy values at runtime.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const colorMode = undefined as any;
     setColorMode(colorMode);
 
     expect(ColorModeStoreSetState).toHaveBeenCalledTimes(0);

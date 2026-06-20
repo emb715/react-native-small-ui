@@ -15,6 +15,14 @@ type MatchStyleKey<T, TStyle = UnwrapStyleProp<T>> = Readonly<{
 }>;
 
 /**
+ * MAINTENANCE: This object is enforced exhaustive by MatchStyleKey<T>.
+ * If TypeScript reports a missing property error here, React Native added
+ * a new style prop — add the key. After bumping the react-native devDependency,
+ * run `yarn typecheck` to get the exact list of missing keys.
+ *
+ * Minimum RN version annotations are inline on keys that require new
+ * architecture or a specific RN version.
+ *
  * Flex Prop Types
  * @see https://reactnative.dev/docs/flexbox
  * @see https://reactnative.dev/docs/layout-props
@@ -32,6 +40,7 @@ const FlexStyleProps: MatchStyleKey<FlexStyle> = {
   borderTopWidth: 'borderTopWidth',
   borderWidth: 'borderWidth',
   bottom: 'bottom',
+  boxSizing: 'boxSizing', // RN 0.83+ (logical shorthand)
   display: 'display',
   end: 'end',
   flex: 'flex',
@@ -44,12 +53,25 @@ const FlexStyleProps: MatchStyleKey<FlexStyle> = {
   flexShrink: 'flexShrink',
   flexWrap: 'flexWrap',
   height: 'height',
+  inset: 'inset', // RN 0.83+ (logical shorthand)
+  insetBlock: 'insetBlock', // RN 0.83+ (logical shorthand)
+  insetBlockEnd: 'insetBlockEnd', // RN 0.83+ (logical shorthand)
+  insetBlockStart: 'insetBlockStart', // RN 0.83+ (logical shorthand)
+  insetInline: 'insetInline', // RN 0.83+ (logical shorthand)
+  insetInlineEnd: 'insetInlineEnd', // RN 0.83+ (logical shorthand)
+  insetInlineStart: 'insetInlineStart', // RN 0.83+ (logical shorthand)
   justifyContent: 'justifyContent',
   left: 'left',
   margin: 'margin',
+  marginBlock: 'marginBlock', // RN 0.83+ (logical shorthand)
+  marginBlockEnd: 'marginBlockEnd', // RN 0.83+ (logical shorthand)
+  marginBlockStart: 'marginBlockStart', // RN 0.83+ (logical shorthand)
   marginBottom: 'marginBottom',
   marginEnd: 'marginEnd',
   marginHorizontal: 'marginHorizontal',
+  marginInline: 'marginInline', // RN 0.83+ (logical shorthand)
+  marginInlineEnd: 'marginInlineEnd', // RN 0.83+ (logical shorthand)
+  marginInlineStart: 'marginInlineStart', // RN 0.83+ (logical shorthand)
   marginLeft: 'marginLeft',
   marginRight: 'marginRight',
   marginStart: 'marginStart',
@@ -61,9 +83,15 @@ const FlexStyleProps: MatchStyleKey<FlexStyle> = {
   minWidth: 'minWidth',
   overflow: 'overflow',
   padding: 'padding',
+  paddingBlock: 'paddingBlock', // RN 0.83+ (logical shorthand)
+  paddingBlockEnd: 'paddingBlockEnd', // RN 0.83+ (logical shorthand)
+  paddingBlockStart: 'paddingBlockStart', // RN 0.83+ (logical shorthand)
   paddingBottom: 'paddingBottom',
   paddingEnd: 'paddingEnd',
   paddingHorizontal: 'paddingHorizontal',
+  paddingInline: 'paddingInline', // RN 0.83+ (logical shorthand)
+  paddingInlineEnd: 'paddingInlineEnd', // RN 0.83+ (logical shorthand)
+  paddingInlineStart: 'paddingInlineStart', // RN 0.83+ (logical shorthand)
   paddingLeft: 'paddingLeft',
   paddingRight: 'paddingRight',
   paddingStart: 'paddingStart',
@@ -96,6 +124,14 @@ const TransformsStyle: MatchStyleKey<RNTransformsStyle> = {
 };
 
 /**
+ * MAINTENANCE: This object is enforced exhaustive by MatchStyleKey<T>.
+ * If TypeScript reports a missing property error here, React Native added
+ * a new style prop — add the key. After bumping the react-native devDependency,
+ * run `yarn typecheck` to get the exact list of missing keys.
+ *
+ * Minimum RN version annotations are inline on keys that require new
+ * architecture or a specific RN version.
+ *
  * View style
  * @see https://reactnative.dev/docs/view#style
  */
@@ -130,10 +166,19 @@ const ViewStyleProps: MatchStyleKey<ViewStyle> = {
   borderTopLeftRadius: 'borderTopLeftRadius',
   borderTopRightRadius: 'borderTopRightRadius',
   borderTopStartRadius: 'borderTopStartRadius',
-  opacity: 'opacity',
-  elevation: 'elevation',
-  pointerEvents: 'pointerEvents',
+  boxShadow: 'boxShadow', // New Architecture only (RN 0.76+)
   cursor: 'cursor',
+  elevation: 'elevation',
+  experimental_backgroundImage: 'experimental_backgroundImage', // RN 0.80+
+  filter: 'filter', // New Architecture only (RN 0.76+)
+  isolation: 'isolation', // New Architecture only (RN 0.76+)
+  mixBlendMode: 'mixBlendMode', // New Architecture only (RN 0.76+)
+  opacity: 'opacity',
+  outlineColor: 'outlineColor', // New Architecture only (RN 0.76+)
+  outlineOffset: 'outlineOffset', // New Architecture only (RN 0.76+)
+  outlineStyle: 'outlineStyle', // New Architecture only (RN 0.76+)
+  outlineWidth: 'outlineWidth', // New Architecture only (RN 0.76+)
+  pointerEvents: 'pointerEvents',
   transformOrigin: 'transformOrigin',
 };
 
@@ -153,6 +198,14 @@ const TextStyleIOS: MatchStyleKey<RNTextStyleIOS> = {
 };
 
 /**
+ * MAINTENANCE: This object is enforced exhaustive by MatchStyleKey<T>.
+ * If TypeScript reports a missing property error here, React Native added
+ * a new style prop — add the key. After bumping the react-native devDependency,
+ * run `yarn typecheck` to get the exact list of missing keys.
+ *
+ * Minimum RN version annotations are inline on keys that require new
+ * architecture or a specific RN version.
+ *
  * Text style
  * @see https://reactnative.dev/docs/text#style
  */
@@ -206,6 +259,7 @@ const ImageStyleProps: MatchStyleKey<ImageStyle> = {
 export const StylePropsLookUp = {
   View: ViewStyleProps,
   Text: TextStyleProps,
+  TextInput: TextStyleProps,
   Pressable: ViewStyleProps,
   Image: ImageStyleProps,
   _default: ViewStyleProps,
