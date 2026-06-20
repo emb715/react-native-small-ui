@@ -6,51 +6,22 @@ import { ShowcaseSection } from '@/src/components';
 import { AppText, HStack, Box } from '@/src/design-system/primitives';
 
 // ── Module-level elevation demo cards ────────────────────────────────────────
+// Spread the full elevation level — _ios, _android, and _web are all included.
+// Web gets boxShadow; iOS gets shadow* props; Android gets elevation.
 
-const ElevNone = createComponent(View, {
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center' as const,
-  _light: { backgroundColor: '#fff', ...elevation.none._ios },
-  _dark: { backgroundColor: '#1e1e1e', ...elevation.none._ios },
-  _android: { ...elevation.none._android },
-});
-const ElevXs = createComponent(View, {
+const elevationBase = {
   padding: 16,
   borderRadius: 8,
   alignItems: 'center' as const,
   _light: { backgroundColor: '#fff' },
   _dark: { backgroundColor: '#1e1e1e' },
-  _ios: { ...elevation.xs._ios },
-  _android: { ...elevation.xs._android },
-});
-const ElevSm = createComponent(View, {
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center' as const,
-  _light: { backgroundColor: '#fff' },
-  _dark: { backgroundColor: '#1e1e1e' },
-  _ios: { ...elevation.sm._ios },
-  _android: { ...elevation.sm._android },
-});
-const ElevMd = createComponent(View, {
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center' as const,
-  _light: { backgroundColor: '#fff' },
-  _dark: { backgroundColor: '#1e1e1e' },
-  _ios: { ...elevation.md._ios },
-  _android: { ...elevation.md._android },
-});
-const ElevLg = createComponent(View, {
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center' as const,
-  _light: { backgroundColor: '#fff' },
-  _dark: { backgroundColor: '#1e1e1e' },
-  _ios: { ...elevation.lg._ios },
-  _android: { ...elevation.lg._android },
-});
+};
+
+const ElevNone = createComponent(View, { ...elevationBase, ...elevation.none });
+const ElevXs = createComponent(View, { ...elevationBase, ...elevation.xs });
+const ElevSm = createComponent(View, { ...elevationBase, ...elevation.sm });
+const ElevMd = createComponent(View, { ...elevationBase, ...elevation.md });
+const ElevLg = createComponent(View, { ...elevationBase, ...elevation.lg });
 
 export default function PresetsScreen() {
   return (

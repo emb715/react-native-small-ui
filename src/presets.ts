@@ -29,9 +29,13 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Android `elevation` levels with corresponding iOS shadow equivalents.
- * Uses `_ios` and `_android` variant keys so createComponent applies each
- * to the correct platform automatically.
+ * Cross-platform elevation / shadow presets.
+ *
+ * Three shadow mechanisms, one preset:
+ * - `_ios`     — shadow* props (iOS native, ignored everywhere else)
+ * - `_android` — elevation (Android native, ignored everywhere else)
+ * - `_web`     — boxShadow (web via react-native-web; also works on iOS/Android
+ *                with the New Architecture which is on by default in RN 0.82+)
  *
  * Levels follow Material Design elevation nomenclature:
  * - none: 0 — flush, no shadow
@@ -49,9 +53,8 @@ export const elevation = {
       shadowOpacity: 0,
       shadowRadius: 0,
     },
-    _android: {
-      elevation: 0,
-    },
+    _android: { elevation: 0 },
+    _web: { boxShadow: 'none' },
   },
 
   xs: {
@@ -61,9 +64,8 @@ export const elevation = {
       shadowOpacity: 0.08,
       shadowRadius: 2,
     },
-    _android: {
-      elevation: 2,
-    },
+    _android: { elevation: 2 },
+    _web: { boxShadow: '0 1px 2px rgba(0,0,0,0.08)' },
   },
 
   sm: {
@@ -73,9 +75,8 @@ export const elevation = {
       shadowOpacity: 0.1,
       shadowRadius: 4,
     },
-    _android: {
-      elevation: 4,
-    },
+    _android: { elevation: 4 },
+    _web: { boxShadow: '0 2px 4px rgba(0,0,0,0.10)' },
   },
 
   md: {
@@ -85,9 +86,8 @@ export const elevation = {
       shadowOpacity: 0.12,
       shadowRadius: 8,
     },
-    _android: {
-      elevation: 8,
-    },
+    _android: { elevation: 8 },
+    _web: { boxShadow: '0 4px 8px rgba(0,0,0,0.12)' },
   },
 
   lg: {
@@ -97,9 +97,8 @@ export const elevation = {
       shadowOpacity: 0.15,
       shadowRadius: 12,
     },
-    _android: {
-      elevation: 16,
-    },
+    _android: { elevation: 16 },
+    _web: { boxShadow: '0 8px 16px rgba(0,0,0,0.15)' },
   },
 
   xl: {
@@ -109,9 +108,8 @@ export const elevation = {
       shadowOpacity: 0.2,
       shadowRadius: 16,
     },
-    _android: {
-      elevation: 24,
-    },
+    _android: { elevation: 24 },
+    _web: { boxShadow: '0 12px 24px rgba(0,0,0,0.20)' },
   },
 } as const;
 
