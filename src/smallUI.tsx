@@ -1152,9 +1152,10 @@ export function resolvePropByType<TProps extends object>(
   props: TProps,
   componentType?: LookUpPropsComponentType
 ) {
-  const LookUpProps = componentType
-    ? StylePropsLookUp[componentType]
-    : StylePropsLookUp._default;
+  const LookUpProps =
+    componentType && componentType in StylePropsLookUp
+      ? StylePropsLookUp[componentType]
+      : StylePropsLookUp._default;
 
   const atomic = {} as Record<keyof typeof LookUpProps | string, unknown>;
   let styleProp = {} as Record<string, unknown>;

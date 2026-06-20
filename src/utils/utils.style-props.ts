@@ -261,6 +261,12 @@ export const StylePropsLookUp = {
   Text: TextStyleProps,
   TextInput: TextStyleProps,
   Pressable: ViewStyleProps,
+  TouchableOpacity: ViewStyleProps,
+  TouchableHighlight: ViewStyleProps,
+  TouchableNativeFeedback: ViewStyleProps,
+  TouchableWithoutFeedback: ViewStyleProps,
+  ScrollView: ViewStyleProps,
+  SafeAreaView: ViewStyleProps,
   Image: ImageStyleProps,
   _default: ViewStyleProps,
 } as const;
