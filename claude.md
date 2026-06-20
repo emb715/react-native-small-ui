@@ -307,12 +307,40 @@ yarn typecheck
 # Linting
 yarn lint
 
+# Format (auto-fix prettier)
+yarn format
+
 # Build library
 yarn prepare
 
 # Run example app
 yarn example
 ```
+
+## Pre-Commit Verification
+
+The pre-commit hook runs `eslint` on staged files and `tsc --noEmit`. Both must pass.
+**After writing or modifying any file, run this before committing:**
+
+```bash
+yarn typecheck && yarn format:check
+```
+
+`yarn typecheck` — catches type errors.
+`yarn format:check` — catches prettier formatting errors (the most common agent-written code failure).
+If `format:check` fails, run `yarn format` to auto-fix, then re-stage.
+
+### What the hook checks (lefthook.yml)
+- `lint` — `eslint` on staged `*.{js,ts,jsx,tsx}` files. Errors block; warnings do not.
+- `types` — `tsc --noEmit`. Any type error blocks.
+
+### Known warnings (do not suppress)
+These appear in every commit and are expected — they do not block:
+- `react-native/no-inline-styles` on `contentContainerStyle` — ScrollView prop, cannot use library style system
+- `react/no-unstable-nested-components` on `headerRight: () => <Component />` in layout files — Expo Router pattern, `allowAsProps` not set globally
+
+### ESLint and markdown
+`.eslintignore` includes `**/*.md`. ESLint does not parse markdown. Do not remove this entry.
 
 ## What This Library Is NOT
 

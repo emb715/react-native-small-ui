@@ -64,6 +64,30 @@ const Card  = Base.extend({ padding: 16, _dark: { backgroundColor: '#111' } });
 
 See [refs/variants.md](refs/variants.md) for full variant + compound variant examples.
 
+### `createComponentGroup` with variants — `base:` required
+
+When a group member uses `variants`, flat style props **must** go inside `base:`.
+The library detects `'variants' in style` and treats the whole object as `ComponentConfig` —
+any flat props at the root are silently dropped.
+
+```tsx
+// ✗ — flat props + variants at the same level; base styles lost silently
+FormInput: {
+  Component: TextInput,
+  style: { borderWidth: 1, fontSize: 14, variants: { status: { ... } } },
+}
+
+// ✓ — flat props in base:, variants alongside
+FormInput: {
+  Component: TextInput,
+  style: {
+    base: { borderWidth: 1, borderRadius: 8, paddingVertical: 10, fontSize: 14 },
+    variants: { status: { idle: { ... }, error: { ... }, success: { ... } } },
+    defaultVariants: { status: 'idle' },
+  },
+}
+```
+
 ## Compound components with variant propagation
 
 **Route here when:** slot styling depends on the parent's active variant.

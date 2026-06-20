@@ -56,6 +56,13 @@ export default function TabLayout() {
           tabBarLabel: 'Presets',
         }}
       />
+      <Tabs.Screen
+        name="kitchen-sink"
+        options={{
+          title: 'Kitchen Sink',
+          tabBarLabel: 'Kitchen Sink',
+        }}
+      />
     </Tabs>
   );
 }

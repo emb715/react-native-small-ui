@@ -68,8 +68,11 @@
     "test": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "format": "prettier --write \"**/*.{js,ts,tsx}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
-    "prepare": "bob build"
+    "prepare": "bob build",
+    "postinstall": "lefthook install"
   },
   "keywords": [
     "react-native",
