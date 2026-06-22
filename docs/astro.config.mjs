@@ -32,7 +32,12 @@ function serveExamplePreview() {
         // Resolve index.html for directory requests
         if (filePath.endsWith('/')) filePath += 'index.html';
 
-        const abs = path.join(exampleDir, filePath);
+        let abs = path.join(exampleDir, filePath);
+
+        // Fallback: if the exact path doesn't exist and has no extension, try .html
+        if ((!fs.existsSync(abs) || !fs.statSync(abs).isFile()) && !path.extname(filePath)) {
+          abs = path.join(exampleDir, filePath + '.html');
+        }
 
         if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return next();
 
@@ -64,6 +69,11 @@ export default defineConfig({
   base: '/',
   vite: {
     plugins: [serveExamplePreview()],
+    resolve: {
+      alias: {
+        '@components': new URL('./src/components', import.meta.url).pathname,
+      },
+    },
   },
   integrations: [
     starlight({
@@ -95,6 +105,9 @@ export default defineConfig({
             { label: 'Platform & Color Mode Registry', slug: 'guides/platform-registry' },
             { label: 'Bundle Optimization', slug: 'guides/bundle-optimization' },
             { label: 'Canonical Patterns', slug: 'guides/patterns' },
+            { label: 'RTL Support', slug: 'guides/rtl' },
+            { label: 'Animated Components', slug: 'guides/animated' },
+            { label: 'Palette Generation', slug: 'guides/palette' },
           ],
         },
         {

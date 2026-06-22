@@ -11,6 +11,7 @@
 
 // Core component creation
 export { createComponent, createComponentGroup, configure } from './smallUI';
+export { createPressable } from './createPressable';
 export type {
   SmallUIComponent,
   PlatformRegistry,
@@ -26,6 +27,7 @@ export type {
   VariantConfig,
   VariantProps,
   CompoundVariant,
+  PressableConfig,
 } from './smallUI.types';
 
 // Lightweight helper utilities

@@ -11,9 +11,10 @@ const ITEMS: NavItem[] = [
   },
   {
     label: 'Color Utils',
-    description: 'ColorUtils.getHexAlpha, getContrastColor + useColorModeValue',
+    description:
+      'darken, lighten, mix, toRgba, getContrastRatio, getHexAlpha, getStatusBarStyle',
     route: '/showcase/color-utils',
-    api: 'ColorUtils · useColorModeValue',
+    api: 'ColorUtils · getStatusBarStyle · useColorModeValue',
   },
 ];
 

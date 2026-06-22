@@ -197,7 +197,62 @@ function ThemeSwitcher() {
 
 ## Spacing Units
 
-`generateSpaceUnits` is a standalone utility — no theme store coupling.
+The theme system is shape-agnostic — your spacing scale is just a plain object like any other token. Define it however fits your design system.
+
+### Plain object (recommended starting point)
+
+No utility function required. A plain object is the simplest and most readable approach:
+
+```ts
+// tokens.ts
+export const space = {
+  xs:  4,
+  sm:  8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};
+
+export const radius = {
+  sm:  4,
+  md:  8,
+  lg: 16,
+  full: 9999,
+};
+```
+
+Use it directly in `createComponent` or as props:
+
+```ts
+import { space, radius } from './tokens';
+
+const Card = createComponent(View, {
+  padding: space.md,
+  borderRadius: radius.md,
+  gap: space.sm,
+});
+
+// Or as props at the call site
+<Card padding={space.lg} />
+```
+
+Store it inside your theme object to keep everything in one place:
+
+```ts
+registerTheme({
+  colors: { primary: '#8b59a0', background: '#fff' },
+  space:  { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },
+  radius: { sm: 4, md: 8, lg: 16, full: 9999 },
+});
+
+// Access via useTheme
+const theme = useTheme() as AppTheme;
+<Card padding={theme.space.md} borderRadius={theme.radius.md} />
+```
+
+### `generateSpaceUnits` — for systematic scales
+
+When you want a proportional scale generated from a base unit (e.g. 4px grid), `generateSpaceUnits` saves repetitive arithmetic:
 
 ```ts
 import { generateSpaceUnits } from 'react-native-small-ui/theme';
@@ -209,14 +264,7 @@ const space8 = generateSpaceUnits(8, { maxAmount: 20, withNegatives: true });
 // { '1': 8, '-1': -8, '2': 16, '-2': -16, ... }
 ```
 
-Store it where it makes sense for your app:
-
-```ts
-export const space = generateSpaceUnits(4);
-
-// Use it directly — no hook needed
-<Card padding={space['4']} marginBottom={space['6']} />
-```
+Use the plain object approach when your scale is small and stable. Use `generateSpaceUnits` when you need a larger, mathematically consistent scale and want to avoid typing it by hand.
 
 ---
 

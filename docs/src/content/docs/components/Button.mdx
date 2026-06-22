@@ -5,6 +5,7 @@ sidebar:
 ---
 
 import { Code } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
 
 A `TouchableOpacity`-based button with variants, slots, and automatic variant context propagation. Copy and adapt to your design system.
 
@@ -107,6 +108,8 @@ const Button = createComponent(TouchableOpacity, {
 </Button>
 ```
 
+<PreviewFrame src="/example/showcase/components/button-basic" height={680} />
+
 Explicit slot props always override the context — useful when you need a slot styled differently from its parent:
 
 ```tsx
@@ -115,6 +118,8 @@ Explicit slot props always override the context — useful when you need a slot 
   <Button.Text>Continue</Button.Text>
 </Button>
 ```
+
+<PreviewFrame src="/example/showcase/components/button-slot-override" height={380} />
 
 ---
 
@@ -135,6 +140,8 @@ const Button = createComponent(TouchableOpacity, {
   // ...
 });
 ```
+
+<PreviewFrame src="/example/showcase/components/button-platform-shadow" height={240} />
 
 ---
 

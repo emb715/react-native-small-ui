@@ -5,6 +5,7 @@ sidebar:
 ---
 
 import { Code } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
 
 A production-ready typography component built entirely on `createComponent` primitives — variants for scale and weight, color mode at the base, font families in the weight variant, and a thin wrapper for accessibility. Copy and adapt to your design system.
 
@@ -87,6 +88,16 @@ export function Text({ preset = 'body', weight = 'normal', ...props }: Typograph
   Last updated today
 </Text>
 ```
+
+<PreviewFrame src="/example/showcase/components/typography-overrides" height={240} />
+
+---
+
+## Type scale
+
+All preset values — `h1` through `small`. The `accessibilityRole="header"` wrapper applies automatically for h1–h6.
+
+<PreviewFrame src="/example/showcase/components/typography-scale" height={500} />
 
 ---
 

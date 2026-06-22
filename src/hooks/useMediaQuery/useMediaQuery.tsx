@@ -3,7 +3,8 @@ import './matchMedia/matchMedia.polyfill';
 import { useCallback, useEffect, useState } from 'react';
 import type { MediaQueryListEvent } from './matchMedia/mediaQuery.types';
 
-declare var window: Window & typeof globalThis;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare var window: any;
 
 interface NativeMQL {
   matches: boolean;

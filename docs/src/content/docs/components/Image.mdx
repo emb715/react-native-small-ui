@@ -5,6 +5,7 @@ sidebar:
 ---
 
 import { Code } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
 
 `Image` from React Native works with `createComponent` like any other component. Define layout and style at module scope, pass `source` as a prop at usage time.
 
@@ -24,6 +25,8 @@ const Avatar = createComponent(Image, {
 <Avatar source={{ uri: 'https://example.com/avatar.jpg' }} />
 ```
 
+<PreviewFrame src="/example/showcase/components/image-avatar" height={240} />
+
 ## With color mode
 
 ```tsx
@@ -41,6 +44,8 @@ const Thumbnail = createComponent(Image, {
 <Thumbnail source={require('./assets/photo.png')} resizeMode="cover" />
 ```
 
+<PreviewFrame src="/example/showcase/components/image-colormode" height={300} />
+
 ## Platform-specific sizing
 
 ```tsx
@@ -56,3 +61,5 @@ const HeroImage = createComponent(Image, {
 
 <HeroImage source={{ uri: 'https://example.com/hero.jpg' }} resizeMode="cover" />
 ```
+
+<PreviewFrame src="/example/showcase/components/image-platform" height={520} frame={true} />

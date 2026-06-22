@@ -1,0 +1,97 @@
+---
+interface Props {
+  src: string;
+  height?: number;
+  frame?: boolean;
+}
+
+const { src, height = 300, frame = false } = Astro.props;
+
+const phoneWidth = 320;
+const phonePadding = 10;
+const notchWidth = 96;
+const notchHeight = 24;
+const innerBorderRadius = 32;
+const outerBorderRadius = 40;
+---
+
+{frame ? (
+  <div class="preview-frame-host" style={`display:flex;justify-content:center;margin:1.5rem 0;`}>
+    <div style={`position:relative;width:${phoneWidth}px;height:${height}px;border-radius:${outerBorderRadius}px;background:#1a1a1a;padding:${phonePadding}px;box-shadow:0 24px 48px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.07);`}>
+      <div style={`position:absolute;top:16px;left:50%;transform:translateX(-50%);width:${notchWidth}px;height:${notchHeight}px;background:#1a1a1a;border-radius:16px;z-index:10;`} />
+      <iframe
+        class="preview-iframe"
+        data-src={src}
+        style={`width:100%;height:100%;border:none;border-radius:${innerBorderRadius}px;background:#fff;display:block;`}
+        loading="lazy"
+      />
+    </div>
+  </div>
+) : (
+  <div class="preview-frame-host" style={`margin:1.5rem 0;border-radius:8px;overflow:hidden;border:1px solid rgba(128,128,128,0.2);`}>
+    <iframe
+      class="preview-iframe"
+      data-src={src}
+      style={`width:100%;height:${height}px;border:none;display:block;background:transparent;`}
+      loading="lazy"
+    />
+  </div>
+)}
+
+<script>
+  // Color mode sync: docs → iframe
+  // 1. On load: read Starlight's data-theme from <html> and inject as ?theme= into iframe src
+  // 2. On change: MutationObserver watches data-theme changes and postMessages all iframes
+
+  function getTheme(): 'light' | 'dark' {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function buildSrc(base: string, theme: 'light' | 'dark'): string {
+    const sep = base.includes('?') ? '&' : '?';
+    return `${base}${sep}theme=${theme}`;
+  }
+
+  function broadcastTheme(theme: 'light' | 'dark') {
+    document.querySelectorAll<HTMLIFrameElement>('iframe.preview-iframe').forEach((iframe) => {
+      iframe.contentWindow?.postMessage({ type: 'SMALL_UI_COLOR_MODE', mode: theme }, '*');
+    });
+    document.querySelectorAll<HTMLIFrameElement>('iframe.preview-iframe').forEach((iframe) => {
+      iframe.style.background = theme === 'dark' ? '#121212' : '#ffffff';
+    });
+  }
+
+  // Set src with theme param on all iframes (deferred so iframe elements exist)
+  function initIframes() {
+    const theme = getTheme();
+    document.querySelectorAll<HTMLIFrameElement>('iframe.preview-iframe').forEach((iframe) => {
+      const base = iframe.getAttribute('data-src');
+      if (base) iframe.src = buildSrc(base, theme);
+      iframe.style.background = theme === 'dark' ? '#121212' : '#ffffff';
+    });
+  }
+
+  // Watch for Starlight theme changes
+  const observer = new MutationObserver(() => {
+    const theme = getTheme();
+    broadcastTheme(theme);
+    // Also update the wrapper bg so frame border matches
+    document.querySelectorAll<HTMLElement>('.preview-frame-host').forEach((el) => {
+      if (!el.querySelector('[style*="border-radius:40px"]')) {
+        // flat frame: update border background
+        el.style.background = theme === 'dark' ? '#111' : '#fafafa';
+      }
+    });
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Init on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initIframes);
+  } else {
+    initIframes();
+  }
+
+  // Re-init on Astro view transitions (if used)
+  document.addEventListener('astro:page-load', initIframes);
+</script>

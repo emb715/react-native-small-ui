@@ -150,3 +150,32 @@ export type ComponentConfig<
    */
   defaultVariants?: Partial<VariantProps<V>>;
 };
+
+// ---------------------------------------------------------------------------
+// createPressable — Pressable-specific config
+// ---------------------------------------------------------------------------
+
+import type { ViewProps } from 'react-native';
+
+/**
+ * Style config for createPressable. Extends ComponentConfig with
+ * interactive state styles for pressed, hovered, focused, and disabled.
+ *
+ * _pressed:  applied while the user actively presses the component.
+ * _hovered:  applied on pointer hover (web only — no-op on iOS/Android).
+ * _focused:  applied when the component receives keyboard/accessibility focus
+ *            (web, tvOS, and screen readers — no-op on touch-only devices).
+ * _disabled: applied when props.disabled is true — no events needed.
+ */
+export type PressableConfig<
+  V extends VariantConfig<ViewProps> = VariantConfig<ViewProps>,
+> = ComponentConfig<ViewProps, V> & {
+  /** Styles merged when the component is pressed. Overrides base and variant styles. */
+  _pressed?: ExtendedProps<ViewProps>;
+  /** Styles merged when the component is hovered (web only). */
+  _hovered?: ExtendedProps<ViewProps>;
+  /** Styles merged when the component has keyboard/accessibility focus (web, tvOS). */
+  _focused?: ExtendedProps<ViewProps>;
+  /** Styles merged when props.disabled is true. */
+  _disabled?: ExtendedProps<ViewProps>;
+};

@@ -12,10 +12,10 @@ import {
 } from '../../useOrientation';
 import type { MediaQueryListEvent } from './mediaQuery.types';
 
-// Capture DOM type aliases BEFORE the class declaration shadows them.
-// The class is named `MediaQueryList` which would shadow the global interface inside the class body.
-type DOMMediaQueryList = globalThis.MediaQueryList;
-type DOMMediaQueryListEvent = globalThis.MediaQueryListEvent;
+// Minimal DOM-compatible type aliases — avoids requiring lib.dom in the build tsconfig.
+// These match only the subset of the DOM interfaces this class actually implements.
+type DOMMediaQueryList = { onchange: ((ev: Event) => unknown) | null };
+type DOMMediaQueryListEvent = Event;
 
 type Subscription = {
   /**

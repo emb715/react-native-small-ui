@@ -29,6 +29,14 @@ jobs:
       - name: Build example app (web export)
         run: yarn build:example
 
+      - name: Verify example export exists
+        run: |
+          if [ ! -f docs/public/example/index.html ]; then
+            echo "::error::Example web export is missing — docs/public/example/index.html not found. Run 'yarn build:example' locally and commit the output, or fix the Expo web export."
+            exit 1
+          fi
+          echo "✅ Example export verified."
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

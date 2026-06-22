@@ -1,11 +1,9 @@
 import MediaQueryList from './MediaQueryList.native';
 
-// The DOM Window interface already declares matchMedia; no augmentation needed.
-// Cast is required because the local class is a structural subset of the DOM MediaQueryList
-// interface (it lacks browser-only internals) and TypeScript cannot verify the `this` context.
-declare var window: Window & typeof globalThis;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare var window: any;
 
 if (typeof window !== 'undefined') {
-  window.matchMedia = (query: string) =>
-    new MediaQueryList(query) as unknown as globalThis.MediaQueryList;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).matchMedia = (query: string) => new MediaQueryList(query);
 }

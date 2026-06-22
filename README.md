@@ -14,6 +14,7 @@ A utility-first toolkit for React Native. Gives you the tools to build styled co
   - [Variant System](#variant-system)
   - [.extend()](#extend)
   - [.withSlots()](#withslots)
+- [createPressable](#createpressable)
 - [createComponentGroup](#createcomponentgroup)
 - [Hooks](#hooks)
   - [useColorModeValue](#usecolormodevalue)
@@ -33,7 +34,6 @@ A utility-first toolkit for React Native. Gives you the tools to build styled co
   - [generateSpaceUnits](#generatespaceunits)
 - [Color Utilities](#color-utilities)
 - [Helpers](#helpers)
-- [Migration Guide](#migration-guide)
 - [Known Issues](#known-issues)
 
 ## Installation
@@ -54,24 +54,27 @@ Import only what you need to keep bundle size minimal:
 
 ```js
 // Core (~5.7 KB gz) — always needed
-import { createComponent, configure } from 'react-native-small-ui';
+import { createComponent, createComponentGroup, createPressable, configure } from 'react-native-small-ui';
 
-// Color mode (~18KB total)
+// Color mode (~5.8 KB gz total)
 import {
   useColorMode,
   useColorModeValue,
   setColorScheme,
   toggleColorScheme,
+  setCustomColorMode,
+  clearCustomColorMode,
+  useCustomColorMode,
 } from 'react-native-small-ui/colormode';
 
-// Responsive utilities (~22KB total)
+// Responsive utilities (~6.0 KB gz total)
 import {
   useBreakPointValue,
   useMediaQuery,
   useOrientation,
 } from 'react-native-small-ui/utils';
 
-// Theme system (~65KB total) — optional
+// Theme system (~6.2 KB gz total) — optional
 import {
   useTheme,
   registerTheme,
@@ -82,7 +85,7 @@ import {
   ColorUtils,
 } from 'react-native-small-ui/theme';
 
-// Style presets (~0KB overhead — plain objects)
+// Style presets (~0 KB overhead — plain objects)
 import { elevation, shadow, inset, text, layout, border } from 'react-native-small-ui/presets';
 
 // Testing utilities (dev/test only)
@@ -295,6 +298,57 @@ function EmailField() {
   );
 }
 ```
+
+## createPressable
+
+Wraps `Pressable` with the full `createComponent` feature set plus `_pressed` and `_hovered` interactive state styles. Use this instead of `createComponent(Pressable, ...)` — `Pressable.style` accepts a function that `createComponent` cannot intercept.
+
+```tsx
+import { createPressable } from 'react-native-small-ui';
+
+// Module scope — same rule as createComponent
+const Button = createPressable({
+  base: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    _light: { backgroundColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#a070b8' },
+  },
+  _pressed: {
+    // Applied while the user presses and holds — resets on release
+    opacity: 0.8,
+  },
+  _hovered: {
+    // Applied on pointer hover — web only, no-op on iOS/Android
+    _web: { opacity: 0.92, cursor: 'pointer' } as any,
+  },
+});
+
+// Variants, .extend(), .withSlots(), .withVariantContext() all work identically
+const PressableCard = createPressable({
+  base: {
+    padding: 16, borderRadius: 12, borderWidth: 1,
+    _light: { backgroundColor: '#fff', borderColor: '#e5e5e5' },
+    _dark:  { backgroundColor: '#1e1e1e', borderColor: '#2a2a2a' },
+  },
+  _pressed: {
+    _light: { backgroundColor: '#f3eaf8', borderColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#2d1a3e', borderColor: '#8b59a0' },
+  },
+  variants: {
+    elevated: {
+      yes: { _web: { boxShadow: '0 2px 8px rgba(0,0,0,0.1)' } as any },
+      no: {},
+    },
+  },
+  defaultVariants: { elevated: 'yes' },
+});
+```
+
+**Style resolution order:** `base → variants → compoundVariants → direct props → _pressed → _hovered`
+
+All `Pressable` props (`onPress`, `onLongPress`, `disabled`, `hitSlop`, `android_ripple`) pass through unchanged. When neither `_pressed` nor `_hovered` is provided, no wrapper is added and the component is identical in cost to `createComponent`.
 
 ## Theme-Driven Components
 
@@ -563,7 +617,7 @@ const name = useThemeName(); // 'default' | 'ocean' | ...
 
 ### generateSpaceUnits
 
-Standalone spacing scale utility. No theme coupling.
+Generates a spacing scale from a base unit. A plain object (`{ xs: 4, sm: 8, md: 16 }`) works just as well for smaller scales.
 
 ```ts
 import { generateSpaceUnits } from 'react-native-small-ui/theme';
@@ -580,9 +634,19 @@ const space8 = generateSpaceUnits(8, { maxAmount: 20, withNegatives: true });
 ```ts
 import { ColorUtils } from 'react-native-small-ui/theme';
 
-ColorUtils.getHexAlpha('#f00', 0.5); // '#ff000080'
-ColorUtils.getContrastColor('#333'); // '#fff'
-ColorUtils.getContrastMode('#fff'); // 'light'
+// Alpha / format
+ColorUtils.getHexAlpha('#f00', 0.5)            // '#ff000080' — 8-digit hex with alpha
+ColorUtils.toRgba('#8b59a0', 0.5)              // 'rgba(139, 89, 160, 0.5)'
+
+// Contrast
+ColorUtils.getContrastColor('#333')            // '#ffffff' — black or white for max contrast
+ColorUtils.getContrastMode('#fff')             // 'dark' — color is light, needs dark text
+ColorUtils.getContrastRatio('#8b59a0', '#fff') // 4.73 — WCAG ratio (≥4.5 = AA)
+
+// HSL manipulation — preserves hue and saturation
+ColorUtils.darken('#8b59a0', 0.1)              // darker shade (pressed state)
+ColorUtils.lighten('#8b59a0', 0.4)             // lighter tint (badge surface)
+ColorUtils.mix('#8b59a0', '#ffffff', 0.85)     // very light brand tint
 ```
 
 ## Helpers
@@ -662,63 +726,6 @@ const Card = createComponent(View, {
 - `text` — `fixed`, `crisp`, `accessible` — cross-platform text rendering
 - `layout` — `fill`, `center`, `row`, `rowBetween`, `column`, `absoluteFill` — flex patterns
 - `border` — `hairline`, `thin`, `medium`, `thick`, `pill` — border widths and shapes
-
-## Migration Guide
-
-### Upgrading from monolithic imports (pre-modular)
-
-Imports that previously came from `'react-native-small-ui'` directly are now split across subpaths. Update as follows:
-
-```ts
-// Before
-import {
-  createComponent,
-  useColorMode,
-  useColorModeValue,
-  setColorScheme,
-  toggleColorScheme,
-  useTheme,
-  registerTheme,
-  getTheme,
-  setTheme,
-  useThemeName,
-  generateSpaceUnits,
-  ColorUtils,
-  useBreakPointValue,
-  useMediaQuery,
-  useOrientation,
-  getStatusBarColor,
-} from 'react-native-small-ui';
-
-// After
-import { createComponent, configure } from 'react-native-small-ui';
-import {
-  useColorMode,
-  useColorModeValue,
-  setColorScheme,
-  toggleColorScheme,
-} from 'react-native-small-ui/colormode';
-import {
-  useTheme,
-  registerTheme,
-  getTheme,
-  setTheme,
-  useThemeName,
-  generateSpaceUnits,
-  ColorUtils,
-} from 'react-native-small-ui/theme';
-import {
-  useBreakPointValue,
-  useMediaQuery,
-  useOrientation,
-} from 'react-native-small-ui/utils';
-```
-
-### Renamed APIs
-
-| Old            | New          | Notes                                                                         |
-| -------------- | ------------ | ----------------------------------------------------------------------------- |
-| `useSmallUI()` | _(removed)_  | Library auto-initializes on import. Use `configure()` for custom breakpoints. |
 
 ## Known Issues
 

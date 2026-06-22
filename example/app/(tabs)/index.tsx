@@ -32,6 +32,27 @@ const ITEMS: NavItem[] = [
     route: '/showcase/group',
     api: 'createComponentGroup',
   },
+  {
+    label: 'ctx Factory',
+    description:
+      'createComponent with a function — ctx.colorMode + ctx.breakpoint()',
+    route: '/showcase/ctx-factory',
+    api: 'ctx.colorMode · ctx.breakpoint',
+  },
+  {
+    label: 'cs() Helper',
+    description:
+      'Merge style objects with falsy filtering — the RN equivalent of cn()',
+    route: '/showcase/cs-helper',
+    api: 'cs()',
+  },
+  {
+    label: 'createPressable',
+    description:
+      '_pressed + _hovered state styles — Pressable with full createComponent support',
+    route: '/showcase/pressable',
+    api: 'createPressable · _pressed · _hovered',
+  },
 ];
 
 export default function ComponentsScreen() {

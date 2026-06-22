@@ -23,7 +23,7 @@ import {
 import { createComponent } from 'react-native-small-ui';
 ```
 
-This is part of the core package (~15KB) and has no heavy dependencies.
+This is part of the core package (~5.7 KB gzipped) and has no heavy dependencies.
 
 ---
 
@@ -112,7 +112,7 @@ const Card = createComponent(View, {
 
 ## Reactive Style Factory (ctx)
 
-Pass a function instead of a style object to access the reactive context. The function is called at render time with a stable `ctx` object — only re-evaluated when `colorMode` or breakpoints actually change.
+Pass a function instead of a style object to access the reactive context. The function runs on every render, but receives a stable `ctx` object — the same reference is reused when `colorMode` and breakpoints haven't changed, so the output is identical and no style recalculation occurs downstream.
 
 ```tsx
 import { createComponent } from 'react-native-small-ui';

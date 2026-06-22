@@ -1,0 +1,114 @@
+---
+title: Card
+sidebar:
+  order: 4
+---
+
+import { Code, Aside } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+A surface container with `Header`, `Body`, and `Footer` slots. Built with `.withSlots()` — all slots share `colorMode` and breakpoint context automatically.
+
+export const component = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+import { elevation } from 'react-native-small-ui/presets';
+
+const CardRoot = createComponent(View, {
+  borderRadius: 12,
+  overflow: 'hidden',
+  _light: { backgroundColor: '#ffffff', ...elevation.sm },
+  _dark:  { backgroundColor: '#1e1e1e', ...elevation.sm },
+});
+
+const CardHeader = createComponent(View, {
+  padding: 16,
+  borderBottomWidth: 0.5,
+  _light: { borderColor: '#e5e5e5' },
+  _dark:  { borderColor: '#2a2a2a' },
+});
+
+const CardBody = createComponent(View, { padding: 16 });
+
+const CardFooter = createComponent(View, {
+  padding: 12,
+  flexDirection: 'row',
+  justifyContent: 'flex-end',
+  gap: 8,
+  borderTopWidth: 0.5,
+  _light: { borderColor: '#e5e5e5' },
+  _dark:  { borderColor: '#2a2a2a' },
+});
+
+export const Card = CardRoot.withSlots({
+  Header: CardHeader,
+  Body:   CardBody,
+  Footer: CardFooter,
+});
+`
+
+<Code title="Card.tsx" code={component} lang="tsx" />
+
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. Copy it into your project and adapt it.
+</Aside>
+
+---
+
+## Usage
+
+```tsx
+<Card>
+  <Card.Header>
+    <Text style={{ fontWeight: '700' }}>Alex Rivera</Text>
+    <Text style={{ color: '#767676' }}>Senior Engineer</Text>
+  </Card.Header>
+
+  <Card.Body>
+    <Text>Building developer tools and design systems.</Text>
+  </Card.Body>
+
+  <Card.Footer>
+    <Button size="sm" intent="outline">Follow</Button>
+    <Button size="sm">Message</Button>
+  </Card.Footer>
+</Card>
+```
+
+<PreviewFrame src="/example/showcase/slots" height={320} />
+
+---
+
+## Slot overrides
+
+Every slot is a full `SmallUIComponent` — override any style prop at the call site:
+
+```tsx
+// Override Footer alignment for a specific instance
+<Card.Footer justifyContent="space-between">
+  <Text>Left</Text>
+  <Button size="sm">Right</Button>
+</Card.Footer>
+```
+
+---
+
+## Extending
+
+Use `.extend()` on any slot to create a specialized variant:
+
+```tsx
+const ElevatedCard = CardRoot.extend({
+  _ios: { shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
+  _android: { elevation: 10 },
+  _web: { boxShadow: '0 8px 24px rgba(0,0,0,0.12)' } as any,
+}).withSlots({ Header: CardHeader, Body: CardBody, Footer: CardFooter });
+```
+
+---
+
+## How it works
+
+`CardRoot.withSlots({ Header, Body, Footer })` attaches each slot as a static property on `Card`. All slots share the same reactive context — `colorMode` and breakpoints propagate implicitly with no prop drilling or providers.
+
+See [`.withSlots()`](/utilities/create-component#withslots) for the full API.

@@ -19,6 +19,8 @@ export default function ShowcaseLayout() {
           color: isDark ? '#f0f0f0' : '#1a1a1a',
         },
       }}
-    />
+    >
+      <Stack.Screen name="components" options={{ headerShown: false }} />
+    </Stack>
   );
 }

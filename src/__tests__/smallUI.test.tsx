@@ -7,7 +7,7 @@ import {
 } from '../smallUI';
 
 import { render, screen } from '@testing-library/react-native';
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 const mockConsoleWarn = jest.fn();
 jest.spyOn(console, 'warn').mockImplementation(mockConsoleWarn);
@@ -174,5 +174,79 @@ describe('resolvePropByType', () => {
       customProps: {},
       styleProp: {},
     });
+  });
+
+  test('TextInput — text style props are treated as atomic styles, not dropped', () => {
+    const props = {
+      fontSize: 14,
+      color: '#1a1a1a',
+      fontWeight: '600',
+      borderRadius: 8,
+      paddingVertical: 12,
+      backgroundColor: '#fff',
+    };
+    const resolvedProps = resolvePropByType(props, 'TextInput');
+
+    expect(resolvedProps.atomic).toEqual({
+      fontSize: 14,
+      color: '#1a1a1a',
+      fontWeight: '600',
+      borderRadius: 8,
+      paddingVertical: 12,
+      backgroundColor: '#fff',
+    });
+    expect(resolvedProps.styleProp).toEqual({});
+    expect(resolvedProps.customProps).toEqual({});
+  });
+
+  test('TextInput — text style props not present in ViewStyleProps are recognised', () => {
+    const props = {
+      fontSize: 16,
+      fontFamily: 'System',
+      lineHeight: 24,
+      letterSpacing: 0.5,
+      textAlign: 'center',
+    } as const;
+    const resolvedViewProps = resolvePropByType(props, 'View');
+    const resolvedTextInputProps = resolvePropByType(props, 'TextInput');
+
+    // Under 'View', text-only props fall through (not in ViewStyleProps atomic bucket)
+    expect(Object.keys(resolvedViewProps.atomic)).not.toContain('fontSize');
+    expect(Object.keys(resolvedViewProps.atomic)).not.toContain('fontFamily');
+
+    // Under 'TextInput', all text props are correctly routed to atomic
+    expect(resolvedTextInputProps.atomic).toMatchObject({
+      fontSize: 16,
+      fontFamily: 'System',
+      lineHeight: 24,
+      letterSpacing: 0.5,
+      textAlign: 'center',
+    });
+  });
+});
+
+describe('createComponent — TextInput style prop regression', () => {
+  test('createComponent wrapping TextInput applies text style props to the rendered element', () => {
+    const StyledInput = createComponent(TextInput, {
+      fontSize: 14,
+      color: '#1a1a1a',
+      borderRadius: 8,
+      paddingVertical: 12,
+    });
+    render(<StyledInput testID="styled-input" />);
+    const element = screen.getByTestId('styled-input');
+    expect(element).toBeOnTheScreen();
+    expect(element).toHaveStyle({
+      fontSize: 14,
+      color: '#1a1a1a',
+      borderRadius: 8,
+      paddingVertical: 12,
+    });
+  });
+
+  test('boxShadow is treated as an atomic style prop for View components', () => {
+    const props = { boxShadow: '0 2px 4px rgba(0,0,0,0.1)' };
+    const resolvedProps = resolvePropByType(props, 'View');
+    expect(resolvedProps.atomic).toHaveProperty('boxShadow');
   });
 });

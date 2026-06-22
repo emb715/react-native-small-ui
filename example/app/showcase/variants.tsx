@@ -1,5 +1,6 @@
 import { ScrollView } from 'react-native';
 import { Stack } from 'expo-router';
+import { useColorMode } from 'react-native-small-ui/colormode';
 import { ShowcaseSection } from '@/src/components';
 import {
   Button,
@@ -18,8 +19,12 @@ const INTENTS = [
 ] as const;
 
 export default function VariantsScreen() {
+  const { isDark } = useColorMode();
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 24 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: isDark ? '#121212' : '#ffffff' }}
+      contentContainerStyle={{ padding: 20, gap: 24 }}
+    >
       <Stack.Screen options={{ title: 'Variants' }} />
 
       <ShowcaseSection
