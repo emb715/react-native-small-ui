@@ -2,12 +2,13 @@ import * as coreExports from '../index';
 import * as colorModeExports from '../colormode';
 import * as themeExports from '../theme-exports';
 import * as utilsExports from '../utils-exports';
+import * as testingExports from '../testing';
 
 const expectedCoreExports = [
   'createComponent',
   'createComponentGroup',
+  'createPressable',
   'configure',
-  'getStatusBarStyle',
   'cs',
   'getResolvedStyles',
 ];
@@ -30,12 +31,13 @@ const expectedThemeExports = [
   'useThemeName',
   'ColorUtils',
   'generateSpaceUnits',
+  'getStatusBarStyle',
 ];
 
 const expectedUtilsExports = [
   'useOrientation',
   'useMediaQuery',
-  'useBreakPointValue',
+  'useBreakpointValue',
 ];
 
 function checkExports(
@@ -76,4 +78,19 @@ test('utils exports from react-native-small-ui/utils', () => {
     expectedUtilsExports
   );
   expect(matched.length).toEqual(expectedUtilsExports.length);
+});
+
+const expectedTestingExports = [
+  'renderWithSmallUI',
+  'assertStyles',
+  'setupSmallUITests',
+  'teardownSmallUI',
+];
+
+test('testing exports from react-native-small-ui/testing', () => {
+  const matched = checkExports(
+    testingExports as Record<string, unknown>,
+    expectedTestingExports
+  );
+  expect(matched.length).toEqual(expectedTestingExports.length);
 });

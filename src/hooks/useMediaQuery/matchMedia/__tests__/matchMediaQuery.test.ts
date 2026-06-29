@@ -1059,7 +1059,7 @@ describe('matchMediaQuery — always false on native', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 1: toDppx — unit coverage gaps
+// toDppx — unit coverage gaps
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — toDppx dpcm unit', () => {
@@ -1129,7 +1129,7 @@ describe('matchMediaQuery — toDppx dpcm unit', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 2: toRatio — edge cases
+// toRatio — edge cases
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — toRatio edge cases', () => {
@@ -1179,7 +1179,7 @@ describe('matchMediaQuery — toRatio edge cases', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 3: Boolean feature form (no colon)
+// Boolean feature form (no colon)
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — boolean feature form (no colon)', () => {
@@ -1205,7 +1205,7 @@ describe('matchMediaQuery — boolean feature form (no colon)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 4: Aspect ratio — floating point precision
+// Aspect ratio — floating point precision
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — aspect-ratio floating point precision', () => {
@@ -1286,7 +1286,7 @@ describe('matchMediaQuery — aspect-ratio floating point precision', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 5: `not` combined with new features
+// `not` combined with new features
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — not combined with new features', () => {
@@ -1364,7 +1364,7 @@ describe('matchMediaQuery — not combined with new features', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 6: `color: 0` spec correctness bug (fixed: bits > 0 && bits <= 8)
+// `color: 0` spec correctness bug (fixed: bits > 0 && bits <= 8)
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — color: 0 spec correctness (bug fix: bits must be > 0)', () => {
@@ -1388,7 +1388,7 @@ describe('matchMediaQuery — color: 0 spec correctness (bug fix: bits must be >
 });
 
 // ---------------------------------------------------------------------------
-// Gap 7: prefers-color-scheme unknown value
+// prefers-color-scheme unknown value
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — prefers-color-scheme unknown / empty value', () => {
@@ -1433,7 +1433,7 @@ describe('matchMediaQuery — prefers-color-scheme unknown / empty value', () =>
 });
 
 // ---------------------------------------------------------------------------
-// Gap 8: min/max-resolution with dpcm
+// min/max-resolution with dpcm
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — min/max-resolution with dpcm unit', () => {
@@ -1491,7 +1491,7 @@ describe('matchMediaQuery — min/max-resolution with dpcm unit', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 9: Combinator stress tests
+// Combinator stress tests
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — combinator stress tests', () => {
@@ -1583,7 +1583,7 @@ describe('matchMediaQuery — combinator stress tests', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 10: Whitespace extremes
+// Whitespace extremes
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — whitespace extremes', () => {
@@ -1643,7 +1643,7 @@ describe('matchMediaQuery — whitespace extremes', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 11: Resolution zero edge
+// Resolution zero edge
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — resolution zero edge cases', () => {
@@ -1712,7 +1712,7 @@ describe('matchMediaQuery — resolution zero edge cases', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Gap 12: Exact device-width/height equality (never previously tested)
+// Exact device-width/height equality (never previously tested)
 // ---------------------------------------------------------------------------
 
 describe('matchMediaQuery — exact device-width and device-height equality', () => {
@@ -1762,5 +1762,106 @@ describe('matchMediaQuery — exact device-width and device-height equality', ()
     expect(
       matchMediaQuery('(device-height: 600px)', dims({ 'device-height': 600 }))
     ).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// min-device-aspect-ratio and max-device-aspect-ratio (lines 199-207)
+// ---------------------------------------------------------------------------
+
+describe('matchMediaQuery — device-aspect-ratio features', () => {
+  test('min-device-aspect-ratio — 4/3 passes when device is wider (16:9 >= 4:3)', () => {
+    // 1920/1080 = 16/9 ≈ 1.778; 4/3 ≈ 1.333 → 1.778 >= 1.333 = true
+    expect(
+      matchMediaQuery(
+        '(min-device-aspect-ratio: 4/3)',
+        dims({ 'device-width': 1920, 'device-height': 1080 })
+      )
+    ).toBe(true);
+  });
+
+  test('min-device-aspect-ratio — 16/9 fails when device is 4:3 (4:3 < 16:9)', () => {
+    // 400/300 = 4/3 ≈ 1.333; 16/9 ≈ 1.778 → 1.333 >= 1.778 = false
+    expect(
+      matchMediaQuery(
+        '(min-device-aspect-ratio: 16/9)',
+        dims({ 'device-width': 400, 'device-height': 300 })
+      )
+    ).toBe(false);
+  });
+
+  test('max-device-aspect-ratio — 4/3 passes when device is exactly 4:3', () => {
+    // 400/300 = 4/3 ≈ 1.333; threshold 4/3 ≈ 1.333 → 1.333 <= 1.333 = true
+    expect(
+      matchMediaQuery(
+        '(max-device-aspect-ratio: 4/3)',
+        dims({ 'device-width': 400, 'device-height': 300 })
+      )
+    ).toBe(true);
+  });
+
+  test('max-device-aspect-ratio — 4/3 fails when device is 16:9 (16:9 > 4:3)', () => {
+    // 1920/1080 = 16/9 ≈ 1.778; threshold 4/3 ≈ 1.333 → 1.778 <= 1.333 = false
+    expect(
+      matchMediaQuery(
+        '(max-device-aspect-ratio: 4/3)',
+        dims({ 'device-width': 1920, 'device-height': 1080 })
+      )
+    ).toBe(false);
+  });
+
+  test('min-device-aspect-ratio — exact boundary passes (device-height=0 guard fires → false)', () => {
+    // Verify the zero device-height guard on the min branch
+    expect(
+      matchMediaQuery(
+        '(min-device-aspect-ratio: 1/1)',
+        dims({ 'device-width': 400, 'device-height': 0 })
+      )
+    ).toBe(false);
+  });
+
+  test('max-device-aspect-ratio — device-height=0 guard fires → false', () => {
+    expect(
+      matchMediaQuery(
+        '(max-device-aspect-ratio: 1/1)',
+        dims({ 'device-width': 400, 'device-height': 0 })
+      )
+    ).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// default branch in feature switch (line 289) — unknown feature with colon
+// ---------------------------------------------------------------------------
+
+describe('matchMediaQuery — unknown media feature returns false (default branch)', () => {
+  test('unknown media feature name returns false', () => {
+    // "unknown-feature" is not in any case in the switch → hits default: return false
+    expect(matchMediaQuery('(unknown-feature: value)', dims())).toBe(false);
+  });
+
+  test('completely unknown query string with numeric value returns false', () => {
+    // "not-a-real-feature" is not in any case → hits default: return false
+    expect(matchMediaQuery('(not-a-real-feature: 42)', dims())).toBe(false);
+  });
+
+  test('unknown feature does not throw', () => {
+    expect(() =>
+      matchMediaQuery('(unknown-feature: value)', dims())
+    ).not.toThrow();
+  });
+
+  test('unknown feature with empty value returns false', () => {
+    expect(matchMediaQuery('(made-up-feature: )', dims())).toBe(false);
+  });
+
+  test('unknown feature in AND chain short-circuits to false', () => {
+    // min-width passes (800 >= 600), but unknown-feature → default false → AND = false
+    expect(
+      matchMediaQuery(
+        '(min-width: 600px) and (unknown-feature: value)',
+        dims({ width: 800 })
+      )
+    ).toBe(false);
   });
 });

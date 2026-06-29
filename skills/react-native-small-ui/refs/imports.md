@@ -4,18 +4,21 @@
 
 | Export | Kind | Description |
 |---|---|---|
-| `createComponent` | function | Wrap any RN component with style props |
+| `createComponent` | function | Wrap any RN component with style props, variants, ctx factory |
 | `createComponentGroup` | function | Named group of components sharing reactive context |
+| `createPressable` | function | Wrap Pressable with `_pressed` + `_hovered` interactive state styles |
 | `configure` | function | Set custom breakpoints, platforms, color modes |
 | `cs` | function | Style merge utility (falsy-safe, last-write-wins) |
-| `getStatusBarStyle` | function | `'light-content'` or `'dark-content'` from a background color |
 | `getResolvedStyles` | function | Pure style resolver — no render needed (testing/tooling) |
 | `SmallUIComponent` | type | Type of any createComponent output |
 | `ComponentStyle` | type | Style arg accepted by createComponent |
 | `ComponentConfig` | type | Variant config shape |
+| `PressableConfig` | type | createPressable config shape (extends ComponentConfig with `_pressed`/`_hovered`) |
 | `VariantConfig` | type | Single variant definition |
 | `VariantProps` | type | Inferred variant prop types |
 | `CompoundVariant` | type | Compound variant entry |
+| `StyleCtx` | type | Context object passed to the ctx factory function |
+| `ExtendedProps` | type | Style props extended with platform/colormode variants |
 | `PlatformRegistry` | type | `configure({ platforms })` shape |
 | `ColorModeRegistry` | type | `configure({ colorModes })` shape |
 
@@ -27,15 +30,15 @@
 | `useColorModeValue` | hook | Returns light or dark value based on current mode |
 | `setColorScheme` | function | Set `'light'` or `'dark'` programmatically |
 | `toggleColorScheme` | function | Flip between light and dark |
-| `setCustomColorMode` | function | Activate a registered custom mode by name (or `null` to clear) |
-| `clearCustomColorMode` | function | Deactivate custom mode |
+| `setCustomColorMode` | function | Activate a registered custom mode by name |
+| `clearCustomColorMode` | function | Deactivate custom mode, return to OS light/dark |
 | `useCustomColorMode` | hook | `{ activeMode: string \| null }` |
 
 ## `react-native-small-ui/utils`
 
 | Export | Kind | Description |
 |---|---|---|
-| `useBreakPointValue` | hook | Returns value for largest matching breakpoint |
+| `useBreakpointValue` | hook | Returns value for largest matching breakpoint |
 | `useMediaQuery` | hook | CSS media query string → boolean |
 | `useOrientation` | hook | `'portrait'` or `'landscape'` |
 
@@ -48,8 +51,9 @@
 | `useTheme` | hook | Active theme as `unknown` — cast to your type |
 | `getTheme` | function | Active theme outside React |
 | `useThemeName` | hook | Name of the active theme slot |
-| `generateSpaceUnits` | function | Generate a spacing scale from a base unit |
-| `ColorUtils` | object | `getHexAlpha`, `getContrastColor`, `getContrastMode` |
+| `generateSpaceUnits` | function | Generate a spacing scale from a base unit (convenience — plain object is also valid) |
+| `ColorUtils` | object | `getHexAlpha`, `toRgba`, `getContrastColor`, `getContrastMode`, `getContrastRatio`, `darken`, `lighten`, `mix` |
+| `getStatusBarStyle` | function | `'light-content'` or `'dark-content'` from a background color |
 
 ## `react-native-small-ui/presets`
 
@@ -64,7 +68,11 @@
 
 ## `react-native-small-ui/testing` (test env only)
 
-| Export | Description |
-|---|---|
-| `renderWithSmallUI` | Wraps RNTL render with SmallUI store overrides |
-| `assertStyles` | Pure style resolver — assert styles without rendering |
+| Export | Kind | Description |
+|---|---|---|
+| `renderWithSmallUI` | function | Wraps RNTL render with SmallUI store overrides |
+| `assertStyles` | function | Pure style resolver — assert styles without rendering |
+| `setupSmallUITests` | function | Register one-time afterEach cleanup for window.innerWidth |
+| `teardownSmallUI` | function | Reset auto-init store state; use in afterEach/afterAll |
+| `RenderOptions` | type | `{ colorMode?, breakpointWidth? }` |
+| `AssertStylesCtx` | type | `{ colorMode?, breakpointWidth?, breakpoints? }` |

@@ -1,6 +1,13 @@
 ---
 name: react-native-small-ui
-description: Wraps React Native primitives with createComponent to add platform conditionals, color mode, and responsive breakpoints. Activates when using createComponent, useColorMode, useBreakPointValue, useTheme, useMediaQuery, or building with react-native-small-ui.
+description: Wraps React Native primitives with createComponent to add platform conditionals, color mode, and responsive breakpoints. Activates when using createComponent, createPressable, useColorMode, useBreakpointValue, useTheme, useMediaQuery, or building with react-native-small-ui.
+sources:
+  - CLAUDE.md
+  - src/index.tsx
+  - src/colormode.tsx
+  - src/utils-exports.tsx
+  - src/theme-exports.tsx
+  - src/hooks/useBreakPointValue/useBreakPointValue.tsx
 ---
 
 # react-native-small-ui
@@ -9,15 +16,20 @@ description: Wraps React Native primitives with createComponent to add platform 
 
 ```ts
 import { createComponent, createComponentGroup,
-         configure, cs, getStatusBarStyle }   from 'react-native-small-ui';
+         createPressable, configure,
+         cs, getResolvedStyles } from 'react-native-small-ui';
 import { useColorMode, useColorModeValue,
-         setColorScheme, toggleColorScheme }  from 'react-native-small-ui/colormode';
-import { useBreakPointValue, useMediaQuery,
-         useOrientation }                     from 'react-native-small-ui/utils';
+         setColorScheme, toggleColorScheme,
+         setCustomColorMode, clearCustomColorMode,
+         useCustomColorMode }                       from 'react-native-small-ui/colormode';
+import { useBreakpointValue, useMediaQuery,
+         useOrientation }                           from 'react-native-small-ui/utils';
 import { useTheme, getTheme, registerTheme,
-         setTheme, useThemeName, ColorUtils } from 'react-native-small-ui/theme';
+         setTheme, useThemeName,
+         generateSpaceUnits, ColorUtils,
+         getStatusBarStyle }                        from 'react-native-small-ui/theme';
 import { elevation, shadow, inset,
-         text, layout, border }               from 'react-native-small-ui/presets';
+         text, layout, border }                    from 'react-native-small-ui/presets';
 ```
 
 See [refs/imports.md](refs/imports.md) for full export table including types.
@@ -49,8 +61,40 @@ function Screen() { return <Button opacity={isDisabled ? 0.5 : 1} />; }
 |---|---|
 | `_light` / `_dark` | Current OS/app color scheme |
 | `_ios` / `_android` / `_web` / `_native` | Platform |
+| `_pressed` / `_hovered` | Interactive state — **createPressable only** |
 | `_<key>` (custom) | Registered platform predicate or custom color mode |
 | Any RN style prop | Always |
+
+### ctx factory function
+
+Pass a function instead of a style object to access `ctx.colorMode` and `ctx.breakpoint()` inline:
+
+```tsx
+const Card = createComponent(View, (ctx) => ({
+  padding: ctx.breakpoint({ default: 8, md: 16, lg: 24 }) ?? 8,
+  backgroundColor: ctx.colorMode === 'dark' ? '#1a1a1a' : '#fff',
+}));
+```
+
+`ctx.breakpoint()` subscribes only to the breakpoints the function actually reads — zero cost for unused ones.
+
+### `base:` rule — variants alongside flat props
+
+When `variants` is present in the config, **all flat style props must go inside `base:`**. Flat props at the config root are silently dropped when the library detects a `variants` key.
+
+```tsx
+// ✗ — fontSize and _light/_dark at root alongside variants — silently dropped
+createComponent(TextInput, { fontSize: 16, _light: { color: '#000' }, variants: { ... } });
+
+// ✓ — flat props in base:
+createComponent(TextInput, {
+  base: { fontSize: 16, _light: { color: '#000' }, _dark: { color: '#fff' } },
+  variants: { status: { default: { ... }, error: { ... } } },
+  defaultVariants: { status: 'default' },
+});
+```
+
+This rule applies to `createComponent`, `createComponentGroup` members, and `createPressable`.
 
 ### Extending
 
@@ -64,29 +108,31 @@ const Card  = Base.extend({ padding: 16, _dark: { backgroundColor: '#111' } });
 
 See [refs/variants.md](refs/variants.md) for full variant + compound variant examples.
 
-### `createComponentGroup` with variants — `base:` required
+## createPressable
 
-When a group member uses `variants`, flat style props **must** go inside `base:`.
-The library detects `'variants' in style` and treats the whole object as `ComponentConfig` —
-any flat props at the root are silently dropped.
+Wraps `Pressable` with the full `createComponent` feature set plus `_pressed` and `_hovered` interactive state styles. Use instead of `createComponent(Pressable, ...)` — `Pressable.style` accepts a function that `createComponent` cannot intercept.
 
 ```tsx
-// ✗ — flat props + variants at the same level; base styles lost silently
-FormInput: {
-  Component: TextInput,
-  style: { borderWidth: 1, fontSize: 14, variants: { status: { ... } } },
-}
+import { createPressable } from 'react-native-small-ui';
 
-// ✓ — flat props in base:, variants alongside
-FormInput: {
-  Component: TextInput,
-  style: {
-    base: { borderWidth: 1, borderRadius: 8, paddingVertical: 10, fontSize: 14 },
-    variants: { status: { idle: { ... }, error: { ... }, success: { ... } } },
-    defaultVariants: { status: 'idle' },
+// Module scope — same rule as createComponent
+const Button = createPressable({
+  base: {
+    padding: 12, borderRadius: 8, alignItems: 'center',
+    _light: { backgroundColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#a070b8' },
   },
-}
+  _pressed: { opacity: 0.8 },
+  _hovered: {
+    // _hovered fires on web via onHoverIn/onHoverOut — no-op on iOS/Android
+    _web: { opacity: 0.92, cursor: 'pointer' } as any,
+  },
+});
 ```
+
+Style resolution order: `base → variants → compoundVariants → direct props → _pressed → _hovered`
+
+All `createComponent` features work: variants, `.extend()`, `.withSlots()`, `.withVariantContext()`, ctx factory. All `Pressable` props (`onPress`, `disabled`, `hitSlop`, `android_ripple`) pass through unchanged.
 
 ## Compound components with variant propagation
 
@@ -121,19 +167,24 @@ const Button = createComponent(TouchableOpacity, {
 ## Color mode
 
 ```tsx
-import { useColorMode, useColorModeValue, setColorScheme } from 'react-native-small-ui/colormode';
+import { useColorMode, useColorModeValue, setColorScheme,
+         setCustomColorMode, clearCustomColorMode } from 'react-native-small-ui/colormode';
 
 const { colorMode, isDark } = useColorMode();
 const bg = useColorModeValue('#fff', '#000');
 setColorScheme('dark'); toggleColorScheme();
+
+// Custom app-managed modes (register first via configure({ colorModes: { sepia: true } }))
+setCustomColorMode('sepia');   // activates _sepia style props
+clearCustomColorMode();        // returns to OS light/dark
 ```
 
 ## Responsive
 
 ```tsx
-import { useBreakPointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
+import { useBreakpointValue, useMediaQuery, useOrientation } from 'react-native-small-ui/utils';
 
-const padding = useBreakPointValue({ default: 8, sm: 12, md: 16, lg: 24 });
+const padding = useBreakpointValue({ default: 8, sm: 12, md: 16, lg: 24 });
 const isWide = useMediaQuery('(min-width: 768px)');
 const orientation = useOrientation();
 ```
@@ -157,7 +208,7 @@ function ThemedButton() {
 }
 ```
 
-See [refs/theming.md](refs/theming.md) for named themes, selectors, and `getTheme()`.
+See [refs/theming.md](refs/theming.md) for named themes, selectors, `getTheme()`, and `ColorUtils`.
 
 ## Presets
 
@@ -173,8 +224,15 @@ See [refs/presets.md](refs/presets.md) for all available keys.
 ## Utilities
 
 ```tsx
-import { cs, getStatusBarStyle } from 'react-native-small-ui';
+import { cs, getResolvedStyles } from 'react-native-small-ui';
+import { getStatusBarStyle } from 'react-native-small-ui/theme';
 
+// cs — merge style objects, falsy-safe, last-write-wins
 const style = cs(base, isActive && { backgroundColor: '#007AFF' }, disabled && { opacity: 0.5 });
-const barStyle = getStatusBarStyle('#8b59a0'); // → 'light-content' or 'dark-content'
+
+// getStatusBarStyle — 'light-content' or 'dark-content' from background color
+const barStyle = getStatusBarStyle('#8b59a0');
+
+// getResolvedStyles — pure style resolver, no render needed (testing/tooling)
+const resolved = getResolvedStyles(styleDef, { colorMode: 'dark', breakpointWidth: 800 });
 ```

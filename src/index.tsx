@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * React Native Small UI - Core
  *
@@ -28,7 +29,9 @@ export type {
   VariantProps,
   CompoundVariant,
   PressableConfig,
+  StyleCtx,
+  ExtendedProps,
 } from './smallUI.types';
 
 // Lightweight helper utilities
-export { getStatusBarStyle, cs, getResolvedStyles } from './utils/helpers';
+export { cs, getResolvedStyles } from './utils/helpers';

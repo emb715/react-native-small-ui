@@ -75,3 +75,33 @@ describe('useOrientation ', () => {
     expect(result.current).toBe('landscape');
   });
 });
+
+// ---------------------------------------------------------------------------
+// useOrientation cleanup on unmount (useOrientation.tsx lines 37-39)
+// ---------------------------------------------------------------------------
+
+describe('useOrientation — cleanup on unmount', () => {
+  test('Dimensions event listener is removed when component unmounts', () => {
+    mockDimensionsGet.mockImplementation(() => ({
+      fontScale: 1,
+      scale: 1,
+      width: 400,
+      height: 300,
+    }));
+
+    // Spy on the subscription object's remove method.
+    // The mock addEventListener must return an object with a `remove` spy.
+    const removeSpy = jest.fn();
+    mockDimensionsAddEventListener.mockReturnValueOnce({
+      remove: removeSpy,
+    } as any);
+
+    const { unmount } = renderHook(() => useOrientation());
+
+    // Unmount triggers the cleanup function registered in useEffect.
+    expect(() => unmount()).not.toThrow();
+
+    // subscription.remove() must have been called exactly once on cleanup.
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+  });
+});

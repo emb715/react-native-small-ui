@@ -1,0 +1,77 @@
+# Why this matters:
+# createComponentGroup creates FormInput as a TextInput wrapper with status variants
+# (idle/error/success). Unit tests verify the variant style objects. This flow proves
+# that: (1) the TextInput accepts keyboard input on the real device (native text
+# handling), (2) the handleSubmit validation logic runs correctly, (3) FormError
+# components appear in the tree after the state update, and (4) the Button's intent
+# variant switches from "primary" to "destructive" when hasErrors is true — a
+# prop-driven variant change that only runs on a live component tree with real state.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to Kitchen Sink → Registration Form
+- tapOn: "Kitchen Sink"
+- tapOn: "Registration Form"
+
+# Confirm screen title and form header
+- assertVisible: "Registration Form"
+- assertVisible: "Create your account"
+- assertVisible: "Fill in your details to get started."
+
+# Confirm all three field labels are visible
+- assertVisible: "Email address"
+- assertVisible: "Password"
+- assertVisible: "Confirm password"
+
+# Confirm placeholders and hints render
+- assertVisible: "We'll never share your email."
+
+# Submit with all fields empty — triggers validation
+- tapOn: "Create Account"
+
+# After submit: error messages appear (FormError components mount)
+- assertVisible: "Enter a valid email address."
+- assertVisible: "Password must be at least 8 characters."
+- assertVisible: "Please confirm your password."
+
+# Button label and intent switched to destructive
+- assertVisible: "Fix errors above"
+
+# Now type a valid email — proves TextInput is functional on device
+- tapOn:
+    text: "Email address"
+- inputRandomText
+- clearTextField
+- typeText: "user@example.com"
+
+# Type a short password (still invalid — less than 8 chars)
+- tapOn:
+    text: "Password"
+- typeText: "short"
+
+# Submit again — email is now valid, password is still invalid
+- tapOn: "Fix errors above"
+- assertVisible: "Password must be at least 8 characters."
+
+# Email error should be gone (valid email)
+# Password error persists — FormError for email is conditionally rendered
+- assertVisible: "Fix errors above"
+
+# Type a valid password
+- tapOn:
+    text: "Password"
+- clearTextField
+- typeText: "securepassword123"
+
+# Confirm password — matching value
+- tapOn:
+    text: "Confirm password"
+- typeText: "securepassword123"
+
+# Submit — all fields valid
+- tapOn: "Fix errors above"
+
+# Button switches back to primary intent with success label
+- assertVisible: "Create Account"

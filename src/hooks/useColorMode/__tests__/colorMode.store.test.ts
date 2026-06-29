@@ -26,7 +26,7 @@ describe('getColorSchemeDefault', () => {
     AppearanceGetColorScheme.mockImplementation(() => value);
     const result = getColorSchemeDefault();
 
-    expect(AppearanceGetColorScheme).toHaveBeenCalledTimes(2);
+    expect(AppearanceGetColorScheme).toHaveBeenCalledTimes(1);
 
     expect(result).toBe(value);
   });
@@ -35,7 +35,7 @@ describe('getColorSchemeDefault', () => {
     AppearanceGetColorScheme.mockImplementation(() => value);
     const result = getColorSchemeDefault();
 
-    expect(AppearanceGetColorScheme).toHaveBeenCalledTimes(2);
+    expect(AppearanceGetColorScheme).toHaveBeenCalledTimes(1);
 
     expect(result).toBe(value);
   });

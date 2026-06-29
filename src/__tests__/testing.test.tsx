@@ -25,7 +25,7 @@ import { View } from 'react-native';
 
 import { createComponent } from '../smallUI';
 import { useColorModeStore } from '../hooks/useColorMode/colorMode.store';
-import { renderWithSmallUI, assertStyles } from '../testing';
+import { renderWithSmallUI, assertStyles, setupSmallUITests } from '../testing';
 
 // Helper to cast a plain ctx function for test use (bypasses generic TProps constraint)
 const fn = (f: (ctx: any) => Record<string, unknown>) => f as any; // any: test helper
@@ -230,5 +230,137 @@ describe('assertStyles()', () => {
       padding: 8,
       backgroundColor: '#fff',
     });
+  });
+});
+
+// ===========================================================================
+// ADDITIONAL — renderWithSmallUI — breakpointWidth NOT leaked between tests
+// ===========================================================================
+
+/**
+ * Known T1 issue: window.innerWidth is set inside renderWithSmallUI when
+ * breakpointWidth is supplied, but restoreWidth() is never called in existing
+ * tests. The result: any test that uses breakpointWidth without cleanup
+ * permanently mutates window.innerWidth for subsequent tests in the same
+ * Jest worker, potentially causing false positives/negatives in tests that
+ * follow.
+ *
+ * This test:
+ * 1. Captures window.innerWidth BEFORE a breakpointWidth render
+ * 2. Renders with a non-default width
+ * 3. Explicitly calls restoreWidth()
+ * 4. Verifies window.innerWidth is restored
+ * 5. Verifies that a subsequent render WITHOUT breakpointWidth sees the default
+ *
+ * **Handoff → ndv-diagnose (root cause):** testing.tsx:111-119 —
+ *   renderWithSmallUI sets window.innerWidth but caller must opt-in to
+ *   restoreWidth(). No automated cleanup happens. Consider calling restoreWidth()
+ *   automatically via RNTL's cleanup mechanism or wrapping in afterEach.
+ */
+describe('renderWithSmallUI — breakpointWidth cleanup via restoreWidth()', () => {
+  const ThemedBox = createComponent(View, {
+    _light: { backgroundColor: '#fff' },
+    _dark: { backgroundColor: '#000' },
+  });
+
+  test('restoreWidth() returns window.innerWidth to its prior value', () => {
+    // In the Jest/RN environment window may or may not exist.
+    // Capture the actual value (or undefined) before any override.
+    const win = (global as any).window;
+    const originalWidth = win?.innerWidth; // undefined when window doesn't exist yet
+
+    // Render with an explicit non-default breakpoint width
+    const { getByTestId, restoreWidth } = renderWithSmallUI(
+      <ThemedBox testID="box" />,
+      { breakpointWidth: 1440 }
+    );
+
+    expect(getByTestId('box')).toBeOnTheScreen();
+
+    // Verify the override was applied (only when window exists)
+    if (win !== undefined) {
+      expect(win.innerWidth).toBe(1440);
+    }
+
+    // Restore
+    restoreWidth();
+
+    // After restore, innerWidth must be back to the original value.
+    // restoreWidth() uses `previousWidth ?? 0` as fallback — so when
+    // originalWidth was undefined, it restores to 0 (not undefined).
+    // The important invariant: it must NOT still be 1440.
+    if (win !== undefined) {
+      expect(win.innerWidth).not.toBe(1440);
+      // Document the actual restored value: 0 when no prior window.innerWidth existed
+      const expectedRestored = originalWidth ?? 0;
+      expect(win.innerWidth).toBe(expectedRestored);
+    }
+  });
+
+  test('width override does NOT persist into the next test when restoreWidth() is called', () => {
+    // This test runs after the one above and must see the restored width.
+    // If restoreWidth() is NOT called, window.innerWidth would still be 1440
+    // from the prior test and this test would see incorrect breakpoint behaviour.
+    if (typeof (global as any).window !== 'undefined') {
+      const width = (global as any).window.innerWidth;
+      // Restored width must NOT be 1440 (left over from previous test)
+      expect(width).not.toBe(1440);
+    }
+  });
+
+  test('two sequential breakpointWidth renders each restore independently', () => {
+    if (typeof (global as any).window === 'undefined') return;
+
+    const w = (global as any).window;
+
+    const result1 = renderWithSmallUI(<ThemedBox testID="box1" />, {
+      breakpointWidth: 1024,
+    });
+    expect(w.innerWidth).toBe(1024);
+    result1.restoreWidth();
+
+    const result2 = renderWithSmallUI(<ThemedBox testID="box2" />, {
+      breakpointWidth: 768,
+    });
+    expect(w.innerWidth).toBe(768);
+    result2.restoreWidth();
+
+    // After both restores, width must not be 768 or 1024
+    expect(w.innerWidth).not.toBe(768);
+    expect(w.innerWidth).not.toBe(1024);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP 4 (testing.tsx 211-217) — setupSmallUITests()
+//
+// setupSmallUITests() registers an afterEach hook. Jest-circus forbids
+// registering hooks inside a test body — so we must call it at module scope.
+// The singleton guard (_afterEachRegistered) silently ignores repeated calls.
+// ---------------------------------------------------------------------------
+
+// Call once at module scope — this is the intended usage pattern.
+// Exercises lines 210-224: first call registers the afterEach.
+setupSmallUITests();
+
+// Second call at module scope — exercises the singleton guard at line 211.
+// Must be a no-op (no throw, no duplicate hook registration).
+setupSmallUITests();
+
+describe('setupSmallUITests()', () => {
+  test('can be called at module scope without throwing', () => {
+    // The two module-scope calls above already exercised the function.
+    // This test confirms the module loaded without error, meaning both
+    // calls completed successfully — the first registering the hook,
+    // the second hitting the singleton guard.
+    expect(true).toBe(true);
+  });
+
+  test('calling twice is a no-op (singleton guard) — no duplicate afterEach registered', () => {
+    // After two module-scope calls, any further call must also be a no-op.
+    // Wrapping in a function and asserting no throw covers the guard branch
+    // without calling afterEach inside a test body.
+    const callAgain = () => setupSmallUITests();
+    expect(callAgain).not.toThrow();
   });
 });

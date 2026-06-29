@@ -169,6 +169,34 @@ describe('custom color mode — unregistered key ignored', () => {
 });
 
 // ---------------------------------------------------------------------------
+// customColorModeStyle undefined when modeStyle is non-object
+//   Covers smallUI.tsx line 497-500: typeof modeStyle !== 'object' → return undefined
+// ---------------------------------------------------------------------------
+
+describe('customColorMode — non-object style value is ignored', () => {
+  test('custom mode style value that is not an object is silently ignored', () => {
+    configure({ colorModes: { sepia: true } });
+
+    // _sepia is intentionally set to a non-object value (a string).
+    // Line 497-500: modeStyle is truthy but typeof !== 'object' → return undefined
+    // The non-object value must never be applied as a style.
+    const Box = createComponent(View, {
+      backgroundColor: '#fff',
+      _sepia: 'not-an-object' as any,
+    } as Parameters<typeof createComponent>[1]);
+
+    render(<Box testID="box" />);
+
+    act(() => setCustomColorMode('sepia'));
+
+    // Component must render without error and base style must remain
+    expect(screen.getByTestId('box')).toBeOnTheScreen();
+    // The non-object string value was NOT applied as style; base color intact
+    expect(screen.getByTestId('box')).toHaveStyle({ backgroundColor: '#fff' });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 7. useCustomColorMode hook
 // ---------------------------------------------------------------------------
 describe('useCustomColorMode hook', () => {

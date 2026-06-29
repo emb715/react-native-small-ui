@@ -1,10 +1,12 @@
 import {
   _initSmallUI,
-  _useSmallUIStore,
   configure,
   createComponent,
   resolvePropByType,
+  teardownSmallUI,
 } from '../smallUI';
+import { _autoInit } from '../init';
+import { _useSmallUIStore } from '../config.store';
 
 import { render, screen } from '@testing-library/react-native';
 import { TextInput, View } from 'react-native';
@@ -248,5 +250,83 @@ describe('createComponent — TextInput style prop regression', () => {
     const props = { boxShadow: '0 2px 4px rgba(0,0,0,0.1)' };
     const resolvedProps = resolvePropByType(props, 'View');
     expect(resolvedProps.atomic).toHaveProperty('boxShadow');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// _autoInit already-initialized guard (init.ts line 23)
+// ---------------------------------------------------------------------------
+
+describe('_autoInit — guard when already initialized', () => {
+  test('_autoInit is a no-op when already initialized', () => {
+    // The Zustand mock resets state to init:false after each test.
+    // Call _autoInit() once to set init:true.
+    _autoInit();
+    expect(_useSmallUIStore.getState().init).toBe(true);
+
+    // Call again — must early-return (line 23: if (init) return)
+    const result = _autoInit();
+    expect(result).toBeUndefined(); // early return → undefined
+
+    // Store still has init:true — second call did not re-init
+    expect(_useSmallUIStore.getState().init).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP 7 — factory.helpers.ts line 32 — direct `style` prop passthrough
+// ---------------------------------------------------------------------------
+
+describe('createComponent — direct style prop passthrough', () => {
+  test('a style prop passed directly is merged into the component style', () => {
+    // factory.helpers.ts line 32-34: propKey === 'style' routes to styleProp bucket.
+    // This must pass through without error and the explicit style must be present.
+    const StyledView = createComponent(View, { padding: 8 });
+    render(<StyledView testID="sv" style={{ margin: 4 }} />);
+    const el = screen.getByTestId('sv');
+    expect(el).toBeOnTheScreen();
+    // margin=4 came from the direct `style` prop
+    expect(el).toHaveStyle({ margin: 4 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP 2 (smallUI.tsx 70-72) — _initSmallUI cleanup function
+// ---------------------------------------------------------------------------
+
+describe('_initSmallUI — cleanup function', () => {
+  test('_initSmallUI returns a cleanup function that removes the appearance listener', () => {
+    // The Zustand mock resets init to false after each test, so _initSmallUI
+    // will see init=false and proceed to register the listener.
+    // Verify it is false before calling (mock reset already ran).
+    expect(_useSmallUIStore.getState().init).toBe(false);
+
+    // Act: call _initSmallUI — must return a cleanup function (line 70-72).
+    const cleanup = _initSmallUI({});
+
+    // Assert: returned value is a function.
+    expect(typeof cleanup).toBe('function');
+
+    // Assert: calling the cleanup function does not throw.
+    expect(() => cleanup!()).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP 3 (init.ts 33-35) — teardownSmallUI resets init state
+// ---------------------------------------------------------------------------
+
+describe('teardownSmallUI — resets init state', () => {
+  test('teardownSmallUI resets store to init:false', () => {
+    // Ensure init is true before the test — call _initSmallUI manually since
+    // the Zustand mock already reset the store to init:false above.
+    _initSmallUI({});
+    expect(_useSmallUIStore.getState().init).toBe(true);
+
+    // Act: call teardownSmallUI.
+    teardownSmallUI();
+
+    // Assert: store is back to init:false.
+    expect(_useSmallUIStore.getState().init).toBe(false);
   });
 });

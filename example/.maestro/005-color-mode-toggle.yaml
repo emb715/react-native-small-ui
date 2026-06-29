@@ -1,0 +1,46 @@
+# Why this matters:
+# useColorMode(), toggleColorScheme(), and setColorScheme() read from and write to a
+# Zustand store. Unit tests reset the store between tests with teardownSmallUI(). On a
+# real device the store persists across navigation — this flow validates that the store
+# state is correct after a navigation round-trip and that Zustand subscriber callbacks
+# actually re-render the component tree. The dynamic label "Toggle (switch to dark)" is
+# only accurate if the store state matches the rendered output.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to Theming tab then Color Mode showcase
+- tapOn: "Theming"
+- tapOn: "Color Mode"
+
+# Confirm screen title
+- assertVisible: "Color Mode"
+
+# --- useColorMode section ---
+# In light mode the emoji is ☀️ and the label displays "light"
+- assertVisible: "useColorMode"
+- assertVisible: "light"
+
+# --- toggleColorScheme section ---
+# Button label is dynamic: "Toggle (switch to dark)" when currently light
+- assertVisible: "Toggle (switch to dark)"
+- tapOn: "Toggle (switch to dark)"
+
+# After toggle: mode is now dark — label flips and colorMode text changes
+- assertVisible: "dark"
+- assertVisible: "Toggle (switch to light)"
+
+# Toggle back
+- tapOn: "Toggle (switch to light)"
+- assertVisible: "light"
+- assertVisible: "Toggle (switch to dark)"
+
+# --- setColorScheme section ---
+# Tap the explicit "Dark" button
+- tapOn: "🌙 Dark"
+- assertVisible: "dark"
+
+# Tap the explicit "Light" button — proves setColorScheme with argument works
+- tapOn: "☀️ Light"
+- assertVisible: "light"

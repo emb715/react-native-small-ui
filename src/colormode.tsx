@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * Color Mode Utilities
  *

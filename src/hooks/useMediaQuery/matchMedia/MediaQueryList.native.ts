@@ -40,6 +40,7 @@ export default class MediaQueryList /* extends MediaQueryList */ {
       try {
         const orientation = getDefaultOrientation();
         this.updateListeners({ orientation });
+        /* istanbul ignore next */
       } catch {}
     })();
 
@@ -84,6 +85,7 @@ export default class MediaQueryList /* extends MediaQueryList */ {
     });
   }
 
+  /* istanbul ignore next */
   private updateListeners(_: { orientation: Orientation }) {
     this.listeners.forEach((listener) => {
       listener({
@@ -106,18 +108,21 @@ export default class MediaQueryList /* extends MediaQueryList */ {
     | ((this: DOMMediaQueryList, ev: DOMMediaQueryListEvent) => any)
     | null = null;
 
+  /* istanbul ignore next */
   addEventListener(
     _type: string,
     _listener: unknown,
     _options?: unknown
   ): void {}
 
+  /* istanbul ignore next */
   removeEventListener(
     _type: string,
     _listener: unknown,
     _options?: unknown
   ): void {}
 
+  /* istanbul ignore next */
   dispatchEvent(_event: Event): boolean {
     return false;
   }

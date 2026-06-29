@@ -7,7 +7,8 @@
  * @testing-library/react-native which must be installed as a devDependency.
  *
  * @example
- * import { renderWithSmallUI, assertStyles } from 'react-native-small-ui/testing';
+ * import { renderWithSmallUI, assertStyles, setupSmallUITests } from 'react-native-small-ui/testing';
+ * setupSmallUITests(); // call once at module scope for automatic afterEach cleanup
  *
  * const Box = createComponent(View, {
  *   padding: 8,
@@ -39,6 +40,7 @@ import { act, render } from '@testing-library/react-native';
 
 import { useColorModeStore } from './hooks/useColorMode/colorMode.store';
 import { getResolvedStyles } from './utils/helpers';
+import { teardownSmallUI } from './smallUI';
 import type { ComponentStyle } from './smallUI.types';
 
 // ---------------------------------------------------------------------------
@@ -79,11 +81,15 @@ export type AssertStylesCtx = {
  * - `breakpointWidth` — sets window.innerWidth to simulate a screen width
  *   (drives useMediaQuery and therefore breakpoint resolution in createComponent)
  *
- * Cleanup is automatic via RNTL's cleanup mechanism.
- *
  * ⚠️  Store overrides are applied via `act()` to flush React state updates.
  *     The Zustand store mock in `src/__mocks__/zustand.ts` resets all stores
  *     after each test — colorMode overrides are automatically cleaned up.
+ *     `restoreWidth` is returned on the result object and must be called
+ *     manually in `afterEach` if the test uses `breakpointWidth`.
+ *
+ * @note Requires the Zustand store mock to be active for store isolation between tests.
+ *       Add to your Jest setup: `setupFilesAfterFramework: ['<rootDir>/src/__mocks__/zustand.ts']`
+ *       See package.json `jest.setupFilesAfterEnv` for the project default.
  *
  * @example
  * const { getByTestId } = renderWithSmallUI(
@@ -110,6 +116,7 @@ export function renderWithSmallUI(
   let previousWidth: number | undefined;
   if (breakpointWidth !== undefined) {
     previousWidth = (global as any).window?.innerWidth;
+    /* istanbul ignore next */
     if (typeof (global as any).window !== 'undefined') {
       Object.defineProperty((global as any).window, 'innerWidth', {
         writable: true,
@@ -119,27 +126,29 @@ export function renderWithSmallUI(
     }
   }
 
+  /**
+   * Restore any window.innerWidth override applied during this render.
+   * Call this manually in `afterEach` when the test uses `breakpointWidth`.
+   */
+  /* istanbul ignore next */
+  const restoreWidth = () => {
+    if (
+      breakpointWidth !== undefined &&
+      typeof (global as any).window !== 'undefined'
+    ) {
+      Object.defineProperty((global as any).window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: previousWidth ?? 0,
+      });
+    }
+  };
+
   const result = render(element);
 
   return {
     ...result,
-    /**
-     * Restore any window.innerWidth override applied during this render.
-     * Called automatically when the test file uses afterEach cleanup,
-     * but exposed here for explicit teardown when needed.
-     */
-    restoreWidth() {
-      if (
-        breakpointWidth !== undefined &&
-        typeof (global as any).window !== 'undefined'
-      ) {
-        Object.defineProperty((global as any).window, 'innerWidth', {
-          writable: true,
-          configurable: true,
-          value: previousWidth ?? 0,
-        });
-      }
-    },
+    restoreWidth,
   };
 }
 
@@ -182,3 +191,53 @@ export function assertStyles<T extends { style?: unknown }>(
 ): Record<string, unknown> {
   return getResolvedStyles(styleDef, ctx);
 }
+
+// ---------------------------------------------------------------------------
+// setupSmallUITests — optional one-time afterEach registration
+// ---------------------------------------------------------------------------
+
+/**
+ * Optional setup helper. Call once in a `beforeAll` or at module scope
+ * to automatically restore `window.innerWidth` after every test in the file.
+ *
+ * Without this, call `restoreWidth()` manually in `afterEach` when using
+ * `breakpointWidth` in `renderWithSmallUI`.
+ *
+ * @example
+ * // In your test file (module scope):
+ * import { setupSmallUITests } from 'react-native-small-ui/testing';
+ * setupSmallUITests();
+ */
+let _afterEachRegistered = false;
+export function setupSmallUITests(): void {
+  if (_afterEachRegistered) return;
+  _afterEachRegistered = true;
+  if (typeof afterEach === 'function') {
+    /* istanbul ignore next */
+    afterEach(() => {
+      // Restore window.innerWidth to 0 after each test.
+      if (typeof (global as any).window !== 'undefined') {
+        Object.defineProperty((global as any).window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: 0,
+        });
+      }
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// teardownSmallUI
+// ---------------------------------------------------------------------------
+
+/**
+ * Reset the SmallUI auto-init state and remove the Appearance listener.
+ * Use in test `afterEach` or `afterAll` for a clean slate between test files.
+ * Also useful for HMR scenarios where the module is re-evaluated.
+ *
+ * @example
+ * import { teardownSmallUI } from 'react-native-small-ui/testing';
+ * afterAll(() => teardownSmallUI());
+ */
+export { teardownSmallUI };

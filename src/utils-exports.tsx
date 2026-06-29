@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * Responsive Utilities
  *
@@ -7,4 +8,4 @@
 
 export { useOrientation } from './hooks/useOrientation';
 export { useMediaQuery } from './hooks/useMediaQuery/useMediaQuery';
-export { useBreakPointValue } from './hooks/useBreakPointValue/useBreakPointValue';
+export { useBreakpointValue } from './hooks/useBreakPointValue/useBreakPointValue';

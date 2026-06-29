@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 /**
  * Theme System
  *
@@ -14,3 +15,4 @@ export {
   useThemeName,
 } from './hooks/useTheme/useTheme';
 export { ColorUtils } from './utils/colors.utils';
+export { getStatusBarStyle } from './utils/helpers';

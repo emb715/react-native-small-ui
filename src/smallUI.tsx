@@ -3,8 +3,7 @@ import React, {
   type ComponentType,
   useMemo,
 } from 'react';
-import { Platform, StyleSheet } from 'react-native';
-import { create } from 'zustand';
+import { Platform } from 'react-native';
 
 import {
   colorSchemeListener,
@@ -12,12 +11,10 @@ import {
   useCustomColorModeStore,
 } from './hooks/useColorMode/useColorMode';
 import { useColorModeStore } from './hooks/useColorMode/colorMode.store';
-import { useMediaQuery } from './hooks/useMediaQuery/useMediaQuery';
-import {
-  StylePropsLookUp,
-  type LookUpPropsComponentType,
-} from './utils/utils.style-props';
 import { getResolvedStyles } from './utils/helpers';
+import { _autoInit } from './init';
+import { resolvePropByType, createStyleSheet } from './factory.helpers';
+import type { LookUpPropsComponentType } from './utils/utils.style-props';
 import type {
   BreakPointKey,
   ComponentConfig,
@@ -28,91 +25,33 @@ import type {
   VariantConfig,
   VariantProps,
 } from './smallUI.types';
+import { defaultBreakPoints } from './breakpoints';
+import {
+  discoverBreakpoints,
+  useBreakpointMatches,
+  resolveBreakpoint,
+} from './breakpoint.helpers';
+import {
+  extractVariantProps,
+  resolveVariantStyles,
+  mergeStyles,
+} from './variant.helpers';
+import {
+  _useSmallUIStore,
+  defaultConfig,
+  type InitConfig,
+} from './config.store';
 
-const defaultBreakPoints = {
-  'default': 0, // 100%
-  'xs': 480,
-  'sm': 640,
-  'md': 768,
-  'lg': 1024,
-  'xl': 1280,
-  '2xl': 1536,
-};
-
-const defaultConfig = {
-  breakPoints: defaultBreakPoints,
-} satisfies InitConfig;
+export { configure, _useSmallUIStore } from './config.store';
+export type {
+  PlatformRegistry,
+  ColorModeRegistry,
+  InitConfig,
+} from './config.store';
 
 /*****************************
  * EMB Small UI
  *****************************/
-
-export const _useSmallUIStore = create<{
-  init: boolean;
-  config: InitConfig;
-}>(() => ({
-  init: false,
-  config: defaultConfig,
-}));
-
-/**
- * A map of custom platform names to predicate functions.
- * Each predicate is evaluated at render time — if it returns true,
- * the corresponding `_<key>` style prop is applied.
- *
- * @example
- * configure({
- *   platforms: {
- *     tablet: () => Dimensions.get('window').width >= 768,
- *     tv: () => Platform.isTV,
- *   },
- * });
- *
- * // Then in createComponent:
- * const Card = createComponent(View, {
- *   padding: 12,
- *   _tablet: { padding: 24 },
- *   _tv: { padding: 40 },
- * });
- */
-export type PlatformRegistry = Record<string, () => boolean>;
-
-/**
- * A map of custom color mode names.
- * Each key becomes a valid `_<key>` style prop on any createComponent output.
- * Activate a mode via setCustomColorMode(key); clear with clearCustomColorMode().
- * Unlike built-in light/dark, custom modes are fully app-managed — no OS delegation.
- *
- * @example
- * configure({
- *   colorModes: {
- *     highContrast: true,  // registered — activated via setCustomColorMode('highContrast')
- *     sepia: true,
- *   },
- * });
- */
-export type ColorModeRegistry = Record<string, true>;
-
-type InitConfig = {
-  breakPoints?: BreakPoints | false;
-  /** Custom platform predicates. Keys become valid `_<key>` style props. */
-  platforms?: PlatformRegistry;
-  /**
-   * Custom color mode names. Each key becomes a valid `_<key>` style prop.
-   * Activate via setCustomColorMode(key) from 'react-native-small-ui/colormode'.
-   */
-  colorModes?: ColorModeRegistry;
-};
-
-export type BreakPoints = {
-  'default': number;
-  'xs': number;
-  'sm': number;
-  'md': number;
-  'lg': number;
-  'xl': number;
-  '2xl': number;
-};
 
 export function _initSmallUI(config: InitConfig = defaultConfig) {
   try {
@@ -131,6 +70,7 @@ export function _initSmallUI(config: InitConfig = defaultConfig) {
     return () => {
       appearanceListener.remove();
     };
+    /* istanbul ignore next */
   } catch (error) {
     console.error('_initSmallUI.error:', error);
     return;
@@ -138,245 +78,10 @@ export function _initSmallUI(config: InitConfig = defaultConfig) {
 }
 
 /**
- * Configure library options. Call at module level before your app renders.
- * Safe to call multiple times — options are merged.
- *
- * @example
- * configure({ breakPoints: { sm: 600, md: 900, lg: 1200 } });
- */
-export function configure(config: InitConfig) {
-  const current = _useSmallUIStore.getState().config;
-  _useSmallUIStore.setState({ config: { ...current, ...config } });
-}
-
-/**
  * COMPONENT CREATION
  ***********************/
 
 const DEBUG_MODE = false;
-
-// ---------------------------------------------------------------------------
-// Breakpoint query helpers
-// ---------------------------------------------------------------------------
-
-/**
- * The ordered list of breakpoint keys, from largest to smallest.
- * Resolution walks this list and returns the first key whose pixel value
- * the current screen width meets or exceeds.
- */
-const BREAKPOINT_ORDER: BreakPointKey[] = [
-  '2xl',
-  'xl',
-  'lg',
-  'md',
-  'sm',
-  'xs',
-  'default',
-];
-
-/**
- * Build the media query string for a given breakpoint key using the
- * configured pixel values.
- */
-function buildMediaQuery(key: BreakPointKey, breakPoints: BreakPoints): string {
-  const px = breakPoints[key];
-  if (px === 0) return '(min-width: 0px)'; // 'default' — always matches
-  return `(min-width: ${px}px)`;
-}
-
-/**
- * Dry-run the style factory with a recording proxy to discover which
- * breakpoint keys it reads. Returns a stable frozen array of keys.
- * This runs once at createComponent call time (module level), never during
- * render — so hook counts derived from it are always stable.
- */
-function discoverBreakpoints(
-  styleFn: (ctx: StyleCtx) => unknown
-): BreakPointKey[] {
-  const discovered = new Set<BreakPointKey>();
-
-  const recordingCtx: StyleCtx = {
-    colorMode: 'light',
-    breakpoint: (values) => {
-      (Object.keys(values) as BreakPointKey[]).forEach((k) =>
-        discovered.add(k)
-      );
-      return undefined;
-    },
-  };
-
-  try {
-    styleFn(recordingCtx);
-  } catch {
-    // Style functions may access values that throw with dummy ctx — ignore.
-  }
-
-  // Filter to only keys that appear in BREAKPOINT_ORDER (valid keys),
-  // preserving resolution order (largest first).
-  return BREAKPOINT_ORDER.filter((k) => discovered.has(k));
-}
-
-/**
- * Given the discovered breakpoint keys and their live match states,
- * resolve a values map to the matching value.
- * Walks from largest to smallest and returns the first match.
- */
-function resolveBreakpoint<T>(
-  values: Partial<Record<BreakPointKey, T>>,
-  matchStates: Record<BreakPointKey, boolean>
-): T | undefined {
-  for (const key of BREAKPOINT_ORDER) {
-    if (key in values && matchStates[key]) {
-      return values[key];
-    }
-  }
-  return undefined;
-}
-
-// ---------------------------------------------------------------------------
-// useBreakpointMatches — stable hook, count fixed at definition time
-// ---------------------------------------------------------------------------
-
-/**
- * Calls useMediaQuery for each discovered breakpoint key.
- * The number of calls is fixed at createComponent definition time so
- * hook ordering rules are never violated.
- *
- * Returns a Record<BreakPointKey, boolean> of current match states.
- *
- * IMPORTANT: This function must only be called with a stable `orderedKeys`
- * array (same reference and length every render) — guaranteed because it
- * comes from the frozen discoverBreakpoints() result stored in the closure.
- */
-function useBreakpointMatches(
-  orderedKeys: BreakPointKey[],
-  breakPoints: BreakPoints
-): Record<BreakPointKey, boolean> {
-  // Each element is a useMediaQuery call. The array length never changes
-  // (fixed at definition time), so the hook call count is stable.
-  // useMediaQuery is a hook called inside map(). Hook count is stable because
-  // orderedKeys length is fixed at createComponent definition time — safe.
-  const matches = orderedKeys.map((key) =>
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useMediaQuery(buildMediaQuery(key, breakPoints))
-  );
-
-  const result = {} as Record<BreakPointKey, boolean>;
-  orderedKeys.forEach((key, i) => {
-    result[key] = matches[i] ?? false;
-  });
-  return result;
-}
-
-// ---------------------------------------------------------------------------
-// Variant resolution helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Merges two ExtendedProps objects shallowly.
- * Later values win on key conflicts.
- */
-function mergeStyles<TProps extends { style?: unknown }>(
-  a: ExtendedProps<TProps> | undefined,
-  b: ExtendedProps<TProps> | undefined
-): ExtendedProps<TProps> {
-  if (!a && !b) return {} as ExtendedProps<TProps>;
-  if (!a) return b as ExtendedProps<TProps>;
-  if (!b) return a;
-  return { ...a, ...b } as ExtendedProps<TProps>;
-}
-
-/**
- * Resolves the combined style from a variant config given the active
- * variant values. Merges: defaultVariants → prop variants → compound variants.
- *
- * Resolution order (later wins):
- *   1. defaultVariants
- *   2. prop-supplied variant values
- *   3. compoundVariants (all matching entries, in declaration order)
- */
-function resolveVariantStyles<
-  TProps extends { style?: unknown },
-  V extends VariantConfig<TProps>,
->(
-  config: ComponentConfig<TProps, V>,
-  variantProps: Partial<VariantProps<V>>
-): ExtendedProps<TProps> {
-  const { variants, compoundVariants, defaultVariants } = config;
-  let merged = {} as ExtendedProps<TProps>;
-
-  if (!variants) return merged;
-
-  // Active values = defaultVariants overridden by explicitly supplied props.
-  const activeValues: Partial<VariantProps<V>> = {
-    ...(defaultVariants ?? {}),
-    ...variantProps,
-  };
-
-  // 1. Individual variant styles.
-  for (const groupKey of Object.keys(variants) as (keyof V)[]) {
-    const activeValue = activeValues[groupKey];
-    if (activeValue === undefined) continue;
-    const groupStyles = variants[groupKey];
-    const style = groupStyles?.[activeValue as string];
-    if (style) {
-      merged = mergeStyles<TProps>(merged, style);
-    }
-  }
-
-  // 2. Compound variant styles — all matching entries applied in order.
-  if (compoundVariants) {
-    for (const compound of compoundVariants as CompoundVariant<TProps, V>[]) {
-      if (matchesCompound(compound.variants, activeValues)) {
-        merged = mergeStyles<TProps>(merged, compound.style);
-      }
-    }
-  }
-
-  return merged;
-}
-
-/**
- * Returns true when every key specified in `target` matches the
- * corresponding value in `active`.
- */
-function matchesCompound<V extends Record<string, Record<string, unknown>>>(
-  target: Partial<VariantProps<V>>,
-  active: Partial<VariantProps<V>>
-): boolean {
-  for (const key of Object.keys(target) as (keyof V)[]) {
-    if (target[key] !== active[key]) return false;
-  }
-  return true;
-}
-
-/**
- * Extracts variant prop keys from props, returning them separately from
- * the rest. Variant keys are determined by the keys of the variants config.
- */
-function extractVariantProps<
-  TProps extends { style?: unknown },
-  V extends VariantConfig<TProps>,
->(
-  props: Record<string, unknown>,
-  variantKeys: string[]
-): {
-  variantProps: Partial<VariantProps<V>>;
-  remainingProps: Record<string, unknown>;
-} {
-  const variantProps: Partial<VariantProps<V>> = {};
-  const remainingProps: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(props)) {
-    if (variantKeys.includes(key)) {
-      (variantProps as Record<string, unknown>)[key] = value;
-    } else {
-      remainingProps[key] = value;
-    }
-  }
-
-  return { variantProps, remainingProps };
-}
 
 // ---------------------------------------------------------------------------
 // The SmallUIComponent type — createComponent output with .extend()
@@ -443,7 +148,7 @@ export type SmallUIComponent<
    */
   extend: (
     stylesOrConfig: ComponentStyle<TProps> | ComponentConfig<TProps>
-  ) => SmallUIComponent<TProps>;
+  ) => SmallUIComponent<TProps, V>;
 
   /**
    * Attach named sub-components as dot-notation slots. Slots share the same
@@ -639,11 +344,13 @@ export function createComponent<
     // Subscribe to active custom color mode — fires when setCustomColorMode is called.
     const activeCustomMode = useCustomColorModeStore((s) => s.activeMode);
 
+    // Subscribe to store config — fires when configure() is called post-mount.
+    const storeConfig = _useSmallUIStore((s) => s.config);
+
     // Subscribe to breakpoint media queries.
-    const cfgState = _useSmallUIStore.getState().config;
     const breakPoints =
-      cfgState.breakPoints !== false && cfgState.breakPoints
-        ? cfgState.breakPoints
+      storeConfig.breakPoints !== false && storeConfig.breakPoints
+        ? storeConfig.breakPoints
         : defaultBreakPoints;
 
     const matchStates = useBreakpointMatches(
@@ -753,7 +460,7 @@ export function createComponent<
     // Apply custom platform styles from the registry.
     // Each registered platform predicate is evaluated synchronously;
     // matching platforms' styles are merged in registration order.
-    const registeredPlatforms = _useSmallUIStore.getState().config.platforms;
+    const registeredPlatforms = storeConfig.platforms;
     const customPlatformStyle = useMemo(() => {
       if (!registeredPlatforms) return undefined;
       let merged: Record<string, unknown> = {};
@@ -780,7 +487,7 @@ export function createComponent<
     );
 
     // Apply active custom color mode style (_highContrast, _sepia, etc.)
-    const registeredColorModes = _useSmallUIStore.getState().config.colorModes;
+    const registeredColorModes = storeConfig.colorModes;
     const customColorModeStyle = useMemo(() => {
       if (!activeCustomMode || !registeredColorModes) return undefined;
       if (!(activeCustomMode in registeredColorModes)) return undefined;
@@ -830,7 +537,7 @@ export function createComponent<
 
   SmallUIComp.extend = (
     stylesOrConfig: ComponentStyle<TProps> | ComponentConfig<TProps>
-  ): SmallUIComponent<TProps> => {
+  ): SmallUIComponent<TProps, V> => {
     const extendIsConfig =
       stylesOrConfig !== null &&
       typeof stylesOrConfig === 'object' &&
@@ -1096,17 +803,33 @@ export function createComponent<
 export type ComponentGroupInput = Record<
   string,
   {
-    Component: ComponentType<any>; // any: heterogeneous component types
+    Component: ComponentType<any>; // any: per-entry types cannot be preserved in a heterogeneous mapped type
     style?: ComponentStyle<any> | ComponentConfig<any>;
   }
 >;
 
+/** Extracts React component props from a ComponentGroupInput entry. */
+type GroupMemberProps<
+  E extends { Component: ComponentType<any>; style?: unknown },
+> = React.ComponentProps<E['Component']>;
+
 /**
- * The output of createComponentGroup: an object of named SmallUIComponents
- * that all share the same reactive context (colorMode, breakpoints) implicitly.
+ * The output of `createComponentGroup`: an object of named SmallUIComponents
+ * that all share the same reactive context (colorMode, breakpoints).
+ *
+ * Each member is typed as `SmallUIComponent<ComponentProps<T[K]['Component']>>`
+ * — component-specific prop types are preserved per key.
+ *
+ * @example
+ * const { FormLabel, FormInput } = createComponentGroup({
+ *   FormLabel: { Component: Text,      style: { fontSize: 14 } },
+ *   FormInput: { Component: TextInput, style: { borderWidth: 1 } },
+ * });
+ * // FormInput is SmallUIComponent<React.ComponentProps<typeof TextInput>>
+ * // placeholder, onChangeText etc. are all known to TypeScript.
  */
 export type ComponentGroup<T extends ComponentGroupInput> = {
-  [K in keyof T]: SmallUIComponent<any>; // any: each slot can wrap a different component type
+  [K in keyof T]: SmallUIComponent<GroupMemberProps<T[K]>>;
 };
 
 /**
@@ -1148,90 +871,8 @@ export function createComponentGroup<T extends ComponentGroupInput>(
   return result;
 }
 
-export function resolvePropByType<TProps extends object>(
-  props: TProps,
-  componentType?: LookUpPropsComponentType
-) {
-  const LookUpProps =
-    componentType && componentType in StylePropsLookUp
-      ? StylePropsLookUp[componentType]
-      : StylePropsLookUp._default;
+export { teardownSmallUI } from './init';
+export { resolvePropByType } from './factory.helpers';
 
-  const atomic = {} as Record<keyof typeof LookUpProps | string, unknown>;
-  let styleProp = {} as Record<string, unknown>;
-  // customProps holds all underscore-prefixed props: built-in (_light, _dark,
-  // _ios, _android, _web, _native) AND custom platform keys (_tablet, _tv, …)
-  const customProps = {} as Record<string, object>;
-
-  const exclusionList = ['children'];
-  Object.entries(props).forEach(([propKey, propValue]) => {
-    if (exclusionList.includes(propKey)) {
-      return;
-    }
-    if (propKey === 'style') {
-      styleProp = propValue;
-      return;
-    }
-    // Route any _-prefixed key to customProps (covers built-in + registered platforms)
-    if (propKey.startsWith('_')) {
-      customProps[propKey] = propValue;
-      return;
-    }
-    if (LookUpProps) {
-      if (propKey in LookUpProps) {
-        atomic[propKey as keyof typeof LookUpProps] = propValue;
-        return;
-      }
-    }
-  });
-
-  return {
-    styleProp,
-    atomic,
-    customProps,
-  };
-}
-
-type CreateStyleParams = {
-  styleProp?: object;
-  atomicStyles?: object;
-  light?: object;
-  dark?: object;
-  web?: object;
-  native?: object;
-  ios?: object;
-  android?: object;
-};
-
-function createStyleSheet({
-  styleProp = {},
-  atomicStyles = {},
-  light = {},
-  dark = {},
-  web = {},
-  native = {},
-  ios = {},
-  android = {},
-}: CreateStyleParams) {
-  return StyleSheet.create({
-    component: StyleSheet.flatten([atomicStyles, styleProp]),
-    light,
-    dark,
-    web,
-    native,
-    ios,
-    android,
-  });
-}
-
-// Auto-initialize on import: attaches the Appearance listener for runtime
-// light/dark system changes. The colorMode store already reads the initial
-// value from Appearance.getColorScheme() at module load, so components work
-// correctly from the first render even without this listener.
-function _autoInit() {
-  if (_useSmallUIStore.getState().init) return;
-  colorSchemeListener();
-  _useSmallUIStore.setState({ init: true, config: defaultConfig });
-}
-
+// Auto-initialize on module import.
 _autoInit();

@@ -61,11 +61,47 @@ import { getTheme } from 'react-native-small-ui/theme';
 const theme = getTheme() as AppTheme;
 ```
 
-## generateSpaceUnits
+## Custom color modes
 
-Generates a spacing scale from a base unit value.
+Register app-managed visual modes that layer on top of OS light/dark. Only one can be active at a time.
 
 ```tsx
+import { configure } from 'react-native-small-ui';
+import { setCustomColorMode, clearCustomColorMode, useCustomColorMode } from 'react-native-small-ui/colormode';
+
+// 1. Register at startup — keys become valid _<key> style props
+configure({ colorModes: { sepia: true, highContrast: true } });
+
+// 2. Define per-mode styles in components
+const Card = createComponent(View, {
+  _light: { backgroundColor: '#fff' },
+  _dark:  { backgroundColor: '#1a1a1a' },
+  _sepia: { backgroundColor: '#f4e4c1' },
+  _highContrast: { backgroundColor: '#000', borderWidth: 2, borderColor: '#fff' },
+});
+
+// 3. Activate from user interaction
+setCustomColorMode('sepia');   // activates _sepia styles
+clearCustomColorMode();        // returns to OS light/dark
+
+// 4. Reactive hook
+const { activeMode } = useCustomColorMode(); // string | null
+```
+
+## Spacing scale
+
+The theme system accepts any shape — store spacing tokens alongside color tokens:
+
+```tsx
+// Plain object — recommended for most apps
+export const tokens = {
+  light: { primary: '#8b59a0', background: '#fff' },
+  dark:  { primary: '#a070b8', background: '#0f0f0f' },
+  space:  { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 },
+  radius: { sm: 4, md: 8, lg: 16, full: 9999 },
+};
+
+// generateSpaceUnits — for large proportional scales
 import { generateSpaceUnits } from 'react-native-small-ui/theme';
 
 const space = generateSpaceUnits(4);
@@ -80,7 +116,17 @@ const space = generateSpaceUnits(8, { maxAmount: 20, withNegatives: true });
 ```tsx
 import { ColorUtils } from 'react-native-small-ui/theme';
 
-ColorUtils.getHexAlpha('#ff0000', 0.5)  // '#ff000080' — hex + alpha channel
-ColorUtils.getContrastColor('#333333')  // '#ffffff'   — black or white for max contrast
-ColorUtils.getContrastMode('#ffffff')   // 'light'     — 'light' | 'dark'
+// Alpha / format
+ColorUtils.getHexAlpha('#ff0000', 0.5)       // '#ff000080' — 8-digit hex with alpha
+ColorUtils.toRgba('#8b59a0', 0.5)            // 'rgba(139, 89, 160, 0.5)'
+
+// Contrast
+ColorUtils.getContrastColor('#333333')        // '#ffffff' — black or white for max contrast
+ColorUtils.getContrastMode('#ffffff')         // 'dark' — color is light, needs dark text
+ColorUtils.getContrastRatio('#8b59a0', '#fff') // 4.73 — WCAG ratio (≥4.5 = AA pass)
+
+// HSL manipulation — preserves hue and saturation
+ColorUtils.darken('#8b59a0', 0.1)            // darker purple (pressed state)
+ColorUtils.lighten('#8b59a0', 0.4)           // lighter purple (badge surface)
+ColorUtils.mix('#8b59a0', '#ffffff', 0.85)   // very light tint
 ```

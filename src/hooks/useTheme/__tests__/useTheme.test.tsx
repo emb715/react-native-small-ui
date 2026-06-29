@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, render, renderHook, screen } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import { useThemeStore } from '../theme.store';
 import {
   getTheme,
@@ -8,6 +9,7 @@ import {
   useThemeName,
 } from '../useTheme';
 import { generateSpaceUnits } from '../../../theme/theme';
+import { useColorModeStore } from '../../../hooks/useColorMode/colorMode.store';
 
 const resetStore = () =>
   useThemeStore.setState({
@@ -212,5 +214,168 @@ describe('generateSpaceUnits', () => {
     const stateBefore = useThemeStore.getState();
     generateSpaceUnits(4);
     expect(useThemeStore.getState()).toEqual(stateBefore);
+  });
+});
+
+// ===========================================================================
+// setTheme() triggers re-renders in ALL subscribed useTheme() components
+// ===========================================================================
+
+/**
+ * Existing useTheme tests only call renderHook and check result.current
+ * AFTER a synchronous setTheme() call — this tests that the store update
+ * is visible but does NOT test that React re-renders subscribed components
+ * reactively when setTheme() fires.
+ *
+ * This gap tests the REACTIVE cycle:
+ *   1. Mount a component that reads useTheme() / useThemeName()
+ *   2. Call setTheme() in an act() block
+ *   3. Assert the rendered output updated — proving the subscription works
+ */
+describe('setTheme() — reactive re-render of subscribed components', () => {
+  // Component that renders the active theme name (proves useThemeName re-renders)
+  const ThemeNameDisplay = () => {
+    const name = useThemeName();
+    return <Text testID="name">{name}</Text>;
+  };
+
+  // Component that reads a theme value via useTheme() (proves useTheme re-renders)
+  const ThemeValueDisplay = () => {
+    const theme = useTheme() as { brand?: string };
+    return <Text testID="brand">{theme?.brand ?? 'none'}</Text>;
+  };
+
+  test('useThemeName re-renders when setTheme() switches active theme', () => {
+    act(() => {
+      registerTheme('ocean', { brand: '#0af' });
+    });
+
+    render(<ThemeNameDisplay />);
+    expect(screen.getByTestId('name')).toHaveTextContent('default');
+
+    act(() => {
+      setTheme('ocean');
+    });
+
+    expect(screen.getByTestId('name')).toHaveTextContent('ocean');
+  });
+
+  test('useTheme() re-renders when setTheme() switches active theme — value updates', () => {
+    act(() => {
+      registerTheme({ brand: 'default-brand' });
+      registerTheme('summer', { brand: 'summer-brand' });
+    });
+
+    render(<ThemeValueDisplay />);
+    expect(screen.getByTestId('brand')).toHaveTextContent('default-brand');
+
+    act(() => {
+      setTheme('summer');
+    });
+
+    expect(screen.getByTestId('brand')).toHaveTextContent('summer-brand');
+  });
+
+  test('multiple components subscribed to useTheme() all re-render on setTheme()', () => {
+    act(() => {
+      registerTheme({ primary: 'blue', secondary: 'gray' });
+      registerTheme('warm', { primary: 'orange', secondary: 'red' });
+    });
+
+    const PrimaryDisplay = () => {
+      const t = useTheme() as { primary?: string };
+      return <Text testID="primary">{t?.primary ?? 'none'}</Text>;
+    };
+
+    const SecondaryDisplay = () => {
+      const t = useTheme() as { secondary?: string };
+      return <Text testID="secondary">{t?.secondary ?? 'none'}</Text>;
+    };
+
+    render(
+      <>
+        <PrimaryDisplay />
+        <SecondaryDisplay />
+      </>
+    );
+
+    expect(screen.getByTestId('primary')).toHaveTextContent('blue');
+    expect(screen.getByTestId('secondary')).toHaveTextContent('gray');
+
+    act(() => {
+      setTheme('warm');
+    });
+
+    // Both must re-render with warm theme values
+    expect(screen.getByTestId('primary')).toHaveTextContent('orange');
+    expect(screen.getByTestId('secondary')).toHaveTextContent('red');
+  });
+
+  test('switching back to default theme re-renders to original values', () => {
+    act(() => {
+      registerTheme({ brand: 'default-brand' });
+      registerTheme('ocean', { brand: 'ocean-brand' });
+      setTheme('ocean');
+    });
+
+    render(<ThemeValueDisplay />);
+    expect(screen.getByTestId('brand')).toHaveTextContent('ocean-brand');
+
+    act(() => {
+      setTheme('default');
+    });
+
+    expect(screen.getByTestId('brand')).toHaveTextContent('default-brand');
+  });
+
+  test('useThemeName selector update does not affect unrelated store state', () => {
+    act(() => {
+      registerTheme('mono', { brand: '#111' });
+    });
+
+    const initialColorMode = useColorModeStore.getState().colorMode;
+
+    act(() => {
+      setTheme('mono');
+    });
+
+    // Theme switch must not mutate the colorMode store
+    expect(useColorModeStore.getState().colorMode).toBe(initialColorMode);
+  });
+});
+
+// ===========================================================================
+// ADDITIONAL — Zustand mock reset covers ALL stores
+// ===========================================================================
+
+/**
+ * The zustand mock registers reset functions for every store created via
+ * create() or createStore() and fires them all in afterEach. This test
+ * verifies that the THEME store is also covered —
+ * i.e., that it is created via the mocked create() and appears in storeResetFns.
+ *
+ * Without this, theme mutations from one test bleed into the next.
+ */
+describe('zustand mock — theme store is included in afterEach reset', () => {
+  test('useThemeStore is reset to default state after each test', () => {
+    // Mutate the store in this test
+    act(() => {
+      registerTheme('temporary', { x: 1 });
+      setTheme('temporary');
+    });
+
+    expect(useThemeStore.getState().activeThemeName).toBe('temporary');
+
+    // afterEach will reset via the zustand mock — we cannot test that here,
+    // but we CAN verify that our manual resetStore() in beforeEach catches it.
+    // The companion test below runs AFTER this one and confirms isolation.
+  });
+
+  test('theme store is isolated from the mutation in the preceding test', () => {
+    // If the zustand mock or our manual resetStore() in beforeEach worked,
+    // activeThemeName must be 'default' again here.
+    expect(useThemeStore.getState().activeThemeName).toBe('default');
+    // 'temporary' theme must not exist in this test's store state
+    expect(useThemeStore.getState().themes['temporary']).toBeUndefined();
   });
 });

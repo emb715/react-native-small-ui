@@ -362,18 +362,30 @@ These appear in every commit and are expected — they do not block:
 ### Core Utilities
 
 - `createComponent(Component, styles)` - Factory for enhanced components
-- `configure(config)` - Optional: set custom breakpoints (library auto-initializes on import)
+- `createComponentGroup(group)` - Creates a named group of related SmallUI components sharing reactive context (colorMode, breakpoints); sibling sharing without parent-child hierarchy
+- `createPressable(styles)` - Factory for pressable-enhanced components
+- `configure(config)` - Optional: configure `breakPoints`, `platforms`, and `colorModes` (library auto-initializes on import)
+- `cs(...styles)` - Compose style arrays; merges styles in left-to-right order
+- `getResolvedStyles(props, context)` - Resolve platform/color-mode conditional props into a flat style object
+
+**Types:**
+
+- `StyleCtx` - Context type passed to style resolution (color mode, platform)
+- `ExtendedProps` - Type for the enhanced props added by `createComponent`
+- `SlotMap` - Map of slot names to component functions; used by `.withSlots()`
+- `ComponentGroupInput` - Input shape for `createComponentGroup`: maps component names to their base component and optional style definition
 
 ### Theming
 
 - `registerTheme(config)` - Register unnamed default theme
 - `registerTheme(name, config)` - Register named theme slot (silent, does not switch)
-- `setTheme(name)` - Switch active theme by name
+- `setTheme(name)` - Switch active theme by name (throws unconditionally if name not found)
 - `useTheme()` - Reactive hook: access active theme value (returns `unknown`, cast to your type)
 - `useTheme(selector)` - Reactive hook with selector for partial subscription
 - `getTheme()` - Get active theme outside React
 - `useThemeName()` - Reactive hook: returns active theme name
 - `generateSpaceUnits(base, options?)` - Standalone spacing scale utility
+- `getStatusBarStyle(bgColor)` - Returns `'light-content'` or `'dark-content'` based on background color contrast
 
 ### Color Mode
 
@@ -381,6 +393,9 @@ These appear in every commit and are expected — they do not block:
 - `useColorModeValue(light, dark)` - Conditional values by theme
 - `setColorScheme(mode)` - Set color scheme programmatically
 - `toggleColorScheme()` - Toggle between light/dark
+- `setCustomColorMode(mode)` - Set a custom color mode value
+- `clearCustomColorMode()` - Clear the custom color mode override
+- `useCustomColorMode()` - Reactive hook: access the current custom color mode
 
 ### Responsive Design
 
@@ -393,7 +408,17 @@ These appear in every commit and are expected — they do not block:
 - `ColorUtils.getHexAlpha(color, alpha)` - Add transparency
 - `ColorUtils.getContrastColor(color)` - Get contrast color
 - `ColorUtils.getContrastMode(color)` - Determine light/dark mode
-- `getStatusBarStyle(bgColor)` - Returns `'light-content'` or `'dark-content'` based on background color contrast
+
+### Testing (`react-native-small-ui/testing`)
+
+- `renderWithSmallUI(element, options?)` — renders with SmallUI context overrides (colorMode, breakpointWidth)
+- `assertStyles(styleDef, ctx?)` — resolves a ComponentStyle to a flat object without rendering
+- `setupSmallUITests()` — call once at module scope to auto-register afterEach cleanup for window.innerWidth
+- `teardownSmallUI()` — resets the auto-init store state; use in afterEach/afterAll for clean test isolation
+
+**Types:**
+- `RenderOptions` — `{ colorMode?, breakpointWidth? }`
+- `AssertStylesCtx` — `{ colorMode?, breakpointWidth?, breakpoints? }`
 
 ### Optional Components (Examples, NOT Main Exports)
 

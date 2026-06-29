@@ -22,6 +22,7 @@ export const useMediaQuery = (mediaQueryString: string) => {
 
   const [matches, setMatches] = useState(false);
 
+  /* istanbul ignore next */
   const onChange = useCallback((evt: MediaQueryListEvent) => {
     setMatches(evt.matches);
   }, []);

@@ -1,15 +1,15 @@
 # Responsive design
 
-## useBreakPointValue
+## useBreakpointValue
 
 Returns the value defined for the largest matching breakpoint.
 
 ```tsx
-import { useBreakPointValue } from 'react-native-small-ui/utils';
+import { useBreakpointValue } from 'react-native-small-ui/utils';
 
-const padding  = useBreakPointValue({ default: 8, sm: 12, md: 16, lg: 24 });
-const columns  = useBreakPointValue({ default: 1, md: 2, lg: 3 });
-const fontSize = useBreakPointValue({ default: 14, lg: 16 });
+const padding  = useBreakpointValue({ default: 8, sm: 12, md: 16, lg: 24 });
+const columns  = useBreakpointValue({ default: 1, md: 2, lg: 3 });
+const fontSize = useBreakpointValue({ default: 14, lg: 16 });
 ```
 
 Default breakpoints (px, min-width, largest match wins):

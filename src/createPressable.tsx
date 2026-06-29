@@ -3,7 +3,11 @@ import { Pressable } from 'react-native';
 
 import { createComponent } from './smallUI';
 import type { SmallUIComponent } from './smallUI';
-import type { PressableConfig, VariantConfig } from './smallUI.types';
+import type {
+  PressableConfig,
+  VariantConfig,
+  ComponentStyle,
+} from './smallUI.types';
 
 type ViewProps = React.ComponentProps<typeof Pressable>;
 
@@ -151,7 +155,49 @@ export function createPressable<
   const wrapperRecord = wrapper as unknown as Record<string, unknown>;
   const innerRecord = Inner as unknown as Record<string, unknown>;
 
-  wrapperRecord['extend'] = innerRecord['extend'];
+  wrapperRecord['extend'] = (
+    extensionStyles: PressableConfig<V> | ComponentStyle<ViewProps>
+  ) => {
+    const extObj = extensionStyles as Record<string, unknown>;
+    const isPressableConfig =
+      extObj !== null &&
+      typeof extObj === 'object' &&
+      !Array.isArray(extObj) &&
+      ('base' in extObj ||
+        'variants' in extObj ||
+        'compoundVariants' in extObj ||
+        'defaultVariants' in extObj ||
+        '_pressed' in extObj ||
+        '_hovered' in extObj ||
+        '_focused' in extObj ||
+        '_disabled' in extObj);
+
+    if (isPressableConfig) {
+      const extConfig = extensionStyles as Partial<PressableConfig<V>>;
+      return createPressable<V>({
+        ...componentConfig,
+        _pressed,
+        _hovered,
+        _focused,
+        _disabled,
+        ...extConfig,
+      } as PressableConfig<V>);
+    }
+
+    // Plain style object — merge into componentConfig.base, mirroring Inner.extend behaviour.
+    const mergedBase = {
+      ...(componentConfig.base as Record<string, unknown>),
+      ...(extensionStyles as Record<string, unknown>),
+    };
+    return createPressable<V>({
+      ...componentConfig,
+      base: mergedBase,
+      _pressed,
+      _hovered,
+      _focused,
+      _disabled,
+    } as PressableConfig<V>);
+  };
   wrapperRecord['withSlots'] = innerRecord['withSlots'];
   wrapperRecord['withVariantContext'] = innerRecord['withVariantContext'];
   wrapperRecord['__meta'] = innerRecord['__meta'];

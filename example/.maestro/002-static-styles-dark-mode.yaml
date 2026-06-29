@@ -1,0 +1,40 @@
+# Why this matters:
+# Jest mocks useColorMode — it never exercises the Zustand store subscriber chain that
+# propagates colorMode changes to _light/_dark style resolution inside createComponent.
+# This flow fires a real press event on the ColorModeToggle, lets React re-render the
+# full tree, and then asserts that _dark styles are active on the simulator's actual
+# rendered pixels. The conditional style resolution path (getResolvedStyles) only runs
+# at render time on a live component tree.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to Static Styles showcase
+- tapOn: "Static Styles"
+
+# Confirm we are on the Static Styles screen
+- assertVisible: "createComponent"
+- assertVisible: "Wireless Headphones"
+
+# The header ColorModeToggle starts as 🌙 (light mode) or ☀️ (dark mode).
+# Verify a known _light text is present first — proves light mode is default.
+- assertVisible: "Premium noise cancellation · 40h battery"
+
+# Tap the header ColorModeToggle (accessibilityLabel switches per mode)
+- tapOn:
+    label: "Switch to dark mode"
+
+# After toggle, the ColorModeToggle label has flipped
+- assertVisible:
+    label: "Switch to light mode"
+
+# The section description is always visible regardless of mode — proves screen did not crash
+- assertVisible: "Direct style props"
+- assertVisible: "Props override base styles"
+
+# Toggle back to light — proves the store subscriber correctly fires a second time
+- tapOn:
+    label: "Switch to light mode"
+- assertVisible:
+    label: "Switch to dark mode"

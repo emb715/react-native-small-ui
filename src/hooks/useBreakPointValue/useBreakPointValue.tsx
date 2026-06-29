@@ -1,5 +1,7 @@
 import { useWindowDimensions } from 'react-native';
-import { _useSmallUIStore, type BreakPoints } from '../../smallUI';
+import { _useSmallUIStore } from '../../config.store';
+import { defaultBreakPoints } from '../../breakpoints';
+import type { BreakPoints } from '../../breakpoints';
 
 // Example:
 // const maxWidth = useBreakPointValue({
@@ -13,36 +15,46 @@ import { _useSmallUIStore, type BreakPoints } from '../../smallUI';
 //   lg: 'large'
 // })
 
+const BREAKPOINT_ORDER: Array<keyof BreakPoints> = [
+  '2xl',
+  'xl',
+  'lg',
+  'md',
+  'sm',
+  'xs',
+  'default',
+];
+
 type UseBreakPointValueConfig = {
   breakPoints: BreakPoints;
 };
 type UseBreakPointValueProps<T> = Partial<Record<keyof BreakPoints, T>>;
-export const useBreakPointValue = <T,>(
+
+export const useBreakpointValue = <T,>(
   breakpointValues: UseBreakPointValueProps<T>,
   _config?: UseBreakPointValueConfig
 ) => {
   const dimensions = useWindowDimensions();
-  const store = _useSmallUIStore.getState();
-  const config = _config || store?.config;
-  if (!config || !config.breakPoints) {
-    throw 'useBreakPointValue: theme.breakpoints not defined';
-  }
+  const storeConfig = _useSmallUIStore((s) => s.config);
+  // Resolution order: explicit _config.breakPoints → storeConfig.breakPoints (unless false) → defaultBreakPoints.
+  // defaultBreakPoints is always a valid object so this never resolves to a falsy value.
+  const breakPoints =
+    _config?.breakPoints !== undefined
+      ? _config.breakPoints
+      : storeConfig?.breakPoints !== false && storeConfig?.breakPoints
+        ? storeConfig.breakPoints
+        : defaultBreakPoints;
 
-  const matchBreakpoint = Object.entries(config.breakPoints).findLast(
-    ([key, breakpoint]) => {
-      if (
-        typeof breakpoint === 'number' &&
-        Object.keys(breakpointValues).includes(key)
-      ) {
-        return dimensions.width >= breakpoint;
-      }
-      return false;
-    }
-  );
+  const matchedKey = BREAKPOINT_ORDER.find((key) => {
+    const bp = breakPoints[key];
+    return (
+      typeof bp === 'number' &&
+      key in breakpointValues &&
+      dimensions.width >= bp
+    );
+  });
 
-  if (matchBreakpoint) {
-    const [matchedKey] = matchBreakpoint;
-    return breakpointValues[matchedKey as keyof BreakPoints];
-  }
-  return breakpointValues?.default;
+  return matchedKey !== undefined
+    ? breakpointValues[matchedKey]
+    : breakpointValues?.default;
 };
