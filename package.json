@@ -74,6 +74,7 @@
     "bundle:check": "node scripts/bundle-check.js",
     "size": "size-limit",
     "intent:check": "npx @tanstack/intent stale --json",
+    "preflight": "yarn typecheck && yarn lint && yarn test && yarn bundle:check && yarn prepare && yarn size",
     "clean": "del-cli lib",
     "prepare": "bob build",
     "postinstall": "lefthook install"
