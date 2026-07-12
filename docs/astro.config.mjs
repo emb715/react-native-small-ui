@@ -112,11 +112,11 @@ export default defineConfig({
         },
         {
           label: 'Utilities',
-          autogenerate: { directory: 'utilities' },
+          items: [{ autogenerate: { directory: 'utilities' } }],
         },
         {
           label: 'Components',
-          autogenerate: { directory: 'components' },
+          items: [{ autogenerate: { directory: 'components' } }],
         },
       ],
     }),

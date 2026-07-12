@@ -11,9 +11,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.34.6",
+    "@astrojs/mdx": "latest",
+    "@astrojs/starlight": "^0.41.3",
     "@sapphire/docusaurus-plugin-npm2yarn2pnpm": "^2.0.2",
-    "astro": "^5.6.1",
+    "astro": "latest",
     "sharp": "^0.34.2"
   }
 }
