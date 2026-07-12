@@ -249,23 +249,23 @@
   },
   "size-limit": [
     {
-      "path": "src/index.tsx",
+      "path": "lib/module/index.js",
       "limit": "10 kB"
     },
     {
-      "path": "src/colormode.tsx",
+      "path": "lib/module/colormode.js",
       "limit": "5 kB"
     },
     {
-      "path": "src/utils-exports.tsx",
+      "path": "lib/module/utils-exports.js",
       "limit": "5 kB"
     },
     {
-      "path": "src/theme-exports.tsx",
+      "path": "lib/module/theme-exports.js",
       "limit": "10 kB"
     },
     {
-      "path": "src/presets.ts",
+      "path": "lib/module/presets.js",
       "limit": "2 kB"
     }
   ]

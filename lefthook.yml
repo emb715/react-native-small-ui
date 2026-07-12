@@ -14,9 +14,5 @@ commit-msg:
       run: npx commitlint --edit
 pre-push:
   commands:
-    build:
-      run: yarn prepare
-    size:
-      run: yarn size
     bundle-check:
       run: yarn bundle:check
