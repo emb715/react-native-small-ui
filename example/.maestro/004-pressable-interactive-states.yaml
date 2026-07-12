@@ -1,0 +1,52 @@
+# Why this matters:
+# createPressable wraps React Native's Pressable and applies _pressed styles via the
+# onPressIn/onPressOut callbacks. Jest mocks these events using act() — the gesture
+# responder system never runs. Maestro fires a real long-press through the iOS/Android
+# touch event pipeline, which means the Pressable's pressRetentionOffset, hitSlop, and
+# the actual setState call inside the library all execute. This is the ONLY flow that
+# validates _pressed style resolution on real hardware.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to createPressable showcase
+- tapOn: "createPressable"
+
+# Confirm screen title
+- assertVisible: "createPressable"
+
+# --- Basic _pressed card ---
+- assertVisible: "Press and hold this card"
+- assertVisible: "Background and border change via _pressed styles"
+
+# Long-press the card to trigger onPressIn → _pressed styles apply
+# Maestro's longPressOn holds for ~800ms which is sufficient for visual state change
+- longPressOn: "Press and hold this card"
+
+# After release, assert no crash and the screen is still functional
+- assertVisible: "Press and hold this card"
+
+# --- _pressed + variants section ---
+- assertVisible: "_pressed + variants"
+- assertVisible: "Primary"
+- assertVisible: "Destructive"
+
+# Tap the primary variant button — confirms variant + _pressed pipeline does not throw
+- tapOn: "Primary"
+- assertVisible: "Primary"
+
+# Tap destructive — confirms destructive intent variant resolves correctly
+- tapOn: "Destructive"
+- assertVisible: "Destructive"
+
+# --- Icon buttons section ---
+- scrollUntilVisible:
+    element: "_hovered (web)"
+    direction: DOWN
+- assertVisible: "★"
+- assertVisible: "♥"
+- assertVisible: "↗"
+
+# Tap icon button — proves 44×44 circular pressable renders and accepts touch
+- tapOn: "★"

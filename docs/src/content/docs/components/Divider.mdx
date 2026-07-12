@@ -1,0 +1,72 @@
+---
+title: Divider
+sidebar:
+  order: 7
+---
+
+import { Code, Aside } from '@astrojs/starlight/components';
+
+A hairline horizontal rule. Demonstrates `_light`/`_dark` on a zero-children component and the `border` preset from `react-native-small-ui/presets`.
+
+export const component = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+import { border } from 'react-native-small-ui/presets';
+
+export const Divider = createComponent(View, {
+  ...border.hairline,        // borderWidth: 0.5 — platform-appropriate hairline
+  alignSelf: 'stretch',      // fills the full width of its parent
+  _light: { borderColor: '#e5e5e5' },
+  _dark:  { borderColor: '#2a2a2a' },
+});
+`
+
+<Code title="Divider.tsx" code={component} lang="tsx" />
+
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. Copy it into your project and adapt it.
+</Aside>
+
+---
+
+## Usage
+
+```tsx
+<VStack>
+  <Text>First section</Text>
+  <Divider />
+  <Text>Second section</Text>
+</VStack>
+```
+
+---
+
+## Vertical divider
+
+For a vertical rule inside an `HStack`, override `alignSelf` and add an explicit height:
+
+```tsx
+<HStack>
+  <Text>Left</Text>
+  <Divider alignSelf="auto" height={20} />
+  <Text>Right</Text>
+</HStack>
+```
+
+---
+
+## Custom spacing
+
+Add `marginVertical` at the call site — no new component needed:
+
+```tsx
+<Divider marginVertical={16} />
+```
+
+---
+
+## How `border.hairline` works
+
+`border.hairline` spreads `{ borderWidth: 0.5 }`. On retina screens (most modern iOS and Android), 0.5 logical pixels render as a single physical pixel — the thinnest visible line. On non-retina screens it rounds up to 1px. This is the platform-idiomatic hairline weight.
+
+See [Presets](/guides/presets) for the full `border` preset catalog.

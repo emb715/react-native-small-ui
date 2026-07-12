@@ -1,11 +1,12 @@
 ---
 title: Text
-sidebar: {
+sidebar:
   order: 1
-}
 ---
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import { Code, Aside } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
 
+A minimal `RNText` wrapper with automatic light/dark color switching — a copy-paste starting point, not a shipped library component. Extend it with variants, font presets, or accessibility wrappers as your design system grows.
 
 export const component = `
 import { Text as RNText } from 'react-native';
@@ -21,13 +22,100 @@ const Text = createComponent(RNText, {
 });
 `
 
-Utility prop base component to copy/paste.
+<Code title="Text.tsx" code={component} lang="tsx" />
 
-Example usage:
-```tsx
-  <Text marginTop={12}>Hello!</Text>
-```
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. It is a starting point — copy it into your project and adapt it. The library provides the factory (`createComponent`); you own the design.
+</Aside>
 
 ---
 
-<Code title="Text.tsx" code={component} lang="tsx" />
+## Usage
+
+Every React Native style prop is available directly on the component. The `_light` and `_dark` props in the base definition apply automatically based on the active color scheme — no `useColorMode` call needed at the call site.
+
+```tsx
+// Basic — base color mode styles apply
+<Text>Hello world</Text>
+
+// Spacing and size via style props
+<Text marginTop={12} fontSize={16} lineHeight={24}>
+  Body text
+</Text>
+
+// Per-instance color override — _light/_dark work inline too
+<Text _light={{ color: '#666' }} _dark={{ color: '#aaa' }}>
+  Secondary text
+</Text>
+```
+
+<PreviewFrame src="/example/showcase/components/text-basic" height={240} />
+
+---
+
+## Adding variants
+
+For apps with a type scale, add a `preset` variant directly to the base definition. All variant props are type-inferred — no manual declarations needed.
+
+```tsx
+import { Text as RNText } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Text = createComponent(RNText, {
+  _light: { color: '#111' },
+  _dark:  { color: '#eee' },
+  variants: {
+    preset: {
+      h1:   { fontSize: 34, lineHeight: 41, fontWeight: '700' },
+      h2:   { fontSize: 28, lineHeight: 34, fontWeight: '600' },
+      body: { fontSize: 16, lineHeight: 24 },
+      caption: { fontSize: 12, lineHeight: 18 },
+    },
+  },
+  defaultVariants: { preset: 'body' },
+});
+
+// Variant prop is autocompleted: preset?
+<Text preset="h1">Page title</Text>
+<Text preset="caption" _light={{ color: '#888' }}>Last updated today</Text>
+```
+
+<PreviewFrame src="/example/showcase/components/text-variants" height={440} />
+
+See the [Typography component](/components/typography) for a fuller example that pairs font weight with size and adds an accessibility wrapper.
+
+---
+
+## React Native `Text` quirks
+
+`RNText` has a few platform behaviours worth knowing before you wrap it:
+
+<table>
+<thead><tr><th>Behaviour</th><th>Detail</th></tr></thead>
+<tbody>
+<tr>
+  <td><a href="https://reactnative.dev/docs/text#limited-style-inheritance" target="_blank" rel="noopener noreferrer"><strong>Font inheritance</strong></a></td>
+  <td>Unlike the web, <code>RNText</code> does not inherit <code>fontFamily</code> or <code>fontSize</code> from a parent <code>View</code>. Set them explicitly on every text component.</td>
+</tr>
+<tr>
+  <td><a href="https://reactnative.dev/docs/text#numberoflines" target="_blank" rel="noopener noreferrer"><strong><code>numberOfLines</code></strong></a> + <a href="https://reactnative.dev/docs/text#ellipsizemode" target="_blank" rel="noopener noreferrer"><strong><code>ellipsizeMode</code></strong></a></td>
+  <td>Truncation props are passed directly to the component — they work the same way as on a bare <code>RNText</code>.</td>
+</tr>
+<tr>
+  <td><a href="https://reactnative.dev/docs/text#selectable" target="_blank" rel="noopener noreferrer"><strong><code>selectable</code></strong></a></td>
+  <td>Text is not selectable by default on mobile. Pass <code>selectable</code> as a prop when needed.</td>
+</tr>
+<tr>
+  <td><a href="https://reactnative.dev/docs/text-style-props#fontweight" target="_blank" rel="noopener noreferrer"><strong>Android font weight</strong></a></td>
+  <td>Fractional weights (e.g. <code>'500'</code>) are mapped to the nearest available typeface. Use a custom <code>fontFamily</code> for precise weight control on Android.</td>
+</tr>
+</tbody>
+</table>
+
+---
+
+## How it works
+
+`createComponent` merges `_light` and `_dark` styles at render time using the active color scheme from `useColorMode` — no extra hook or context provider required at the call site. Direct style props (like `marginTop={12}`) always win over base styles on conflict.
+
+See [createComponent](/utilities/create-component) for the full API: platform props (`_ios`, `_android`), the variant system, `.extend()`, and `.withSlots()`.

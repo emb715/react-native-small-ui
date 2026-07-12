@@ -1,14 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Trigger the workflow every time you push to the `main` branch
-  # Using a different branch name? Replace `main` with your branch’s name
   push:
-    branches: [ main, feat/add-docs ]
-  # Allows you to run this workflow manually from the Actions tab on GitHub.
+    branches: [ main ]
   workflow_dispatch:
 
-# Allow this job to clone the repo and create a page deployment
 permissions:
   contents: read
   pages: write
@@ -18,14 +14,40 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository using git
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Install, build, and upload your site
-        uses: withastro/action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ./docs # The root location of your Astro project inside the repository. (optional)
-          # node-version: 20 # The specific version of Node that should be used to build your site. Defaults to 20. (optional)
-          # package-manager: yarn # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build example app (web export)
+        run: yarn build:example
+
+      - name: Verify example export exists
+        run: |
+          if [ ! -f docs/public/example/index.html ]; then
+            echo "::error::Example web export is missing — docs/public/example/index.html not found. Run 'yarn build:example' locally and commit the output, or fix the Expo web export."
+            exit 1
+          fi
+          echo "✅ Example export verified."
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build docs site
+        run: yarn build
+        working-directory: docs
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
 
   deploy:
     needs: build

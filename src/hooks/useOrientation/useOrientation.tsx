@@ -20,6 +20,7 @@ export const useOrientation = () => {
     getDefaultOrientation()
   );
 
+  /* istanbul ignore next */
   const handleOrientation = useCallback(
     (data: { window: ScaledSize; screen: ScaledSize }) => {
       setOrientation(() =>

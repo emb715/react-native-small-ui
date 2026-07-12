@@ -6,6 +6,7 @@ sidebar: {
 ---
 
 import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
 
 
 export const component = `
@@ -57,6 +58,8 @@ Example usage:
     <Content />
   </Box>
 ```
+
+<PreviewFrame src="/example/showcase/components/layout-box" height={240} />
 ---
 
 <Code title="Box.tsx" code={componentBox} lang="tsx" />
@@ -83,8 +86,29 @@ Example usage:
     <Content />
   </Box>
 ```
+
+<PreviewFrame src="/example/showcase/components/layout-center" height={280} />
 ---
 
 <Code title="Center.tsx" code={componentCenter} lang="tsx" />
 
 ---
+
+## Row & Column
+
+export const componentRowColumn = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Row = createComponent(View, {
+  flexDirection: 'row',
+});
+
+const Column = createComponent(View, {
+  flexDirection: 'column',
+});
+`
+
+<Code title="RowColumn.tsx" code={componentRowColumn} lang="tsx" />
+
+<PreviewFrame src="/example/showcase/components/layout-row-column" height={360} />

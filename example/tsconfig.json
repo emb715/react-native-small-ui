@@ -1,6 +1,21 @@
 {
-  "extends": "../tsconfig",
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    // Avoid expo-cli auto-generating a tsconfig
-  }
+    "strict": true,
+    "paths": {
+      "@/*": ["./*"],
+      "react-native-small-ui":           ["../lib/typescript/src/index.d.ts"],
+      "react-native-small-ui/colormode": ["../lib/typescript/src/colormode.d.ts"],
+      "react-native-small-ui/theme":     ["../lib/typescript/src/theme-exports.d.ts"],
+      "react-native-small-ui/utils":     ["../lib/typescript/src/utils-exports.d.ts"],
+      "react-native-small-ui/presets":   ["../lib/typescript/src/presets.d.ts"],
+      "react-native-small-ui/testing":   ["../lib/typescript/src/testing.d.ts"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

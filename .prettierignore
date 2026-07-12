@@ -1,0 +1,10 @@
+node_modules/
+lib/
+coverage/
+docs/dist/
+docs/.astro/
+docs/public/example/
+example/node_modules/
+example/.expo/
+example/expo-env.d.ts
+scripts/

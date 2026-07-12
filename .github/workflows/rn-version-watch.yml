@@ -1,0 +1,102 @@
+name: React Native Version Watch
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-rn-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest RN version from npm
+        id: npm
+        run: |
+          LATEST=$(curl -sf https://registry.npmjs.org/react-native/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Get pinned RN version from package.json
+        id: pinned
+        run: |
+          PINNED=$(python3 -c "import json; p=json.load(open('package.json')); print(p['devDependencies']['react-native'])")
+          echo "version=$PINNED" >> $GITHUB_OUTPUT
+
+      - name: Ensure rn-version-bump label exists
+        if: steps.npm.outputs.version != steps.pinned.outputs.version
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'rn-version-bump',
+                color: '0075ca',
+                description: 'React Native version update — style prop audit required',
+              });
+            } catch (e) {
+              // label already exists — ignore
+            }
+
+      - name: Check for existing issue
+        id: existing
+        if: steps.npm.outputs.version != steps.pinned.outputs.version
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'rn-version-bump',
+              state: 'open',
+            });
+            const newVer = '${{ steps.npm.outputs.version }}';
+            const exists = issues.data.some(i => i.title.includes(newVer));
+            core.setOutput('exists', exists ? 'true' : 'false');
+
+      - name: Open issue
+        if: steps.npm.outputs.version != steps.pinned.outputs.version && steps.existing.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const oldVer = '${{ steps.pinned.outputs.version }}';
+            const newVer = '${{ steps.npm.outputs.version }}';
+            const body = [
+              `## React Native ${newVer} — Style Prop Audit`,
+              '',
+              `A new React Native version was published. Check whether any style props were`,
+              `added, changed, or removed in \`ViewStyle\`, \`TextStyle\`, \`ImageStyle\`, or \`FlexStyle\`.`,
+              '',
+              `**Old version (pinned devDependency):** \`${oldVer}\``,
+              `**New version (npm latest):** \`${newVer}\``,
+              '',
+              '### Steps',
+              '',
+              `- [ ] Read the [RN changelog](https://github.com/facebook/react-native/blob/main/CHANGELOG.md) for ${newVer}`,
+              `- [ ] Check \`ViewStyle\` diff: compare \`Libraries/StyleSheet/StyleSheetTypes.d.ts\` in ${oldVer} vs ${newVer}`,
+              `- [ ] Update \`src/utils/utils.style-props.ts\` if any keys were added — the \`MatchStyleKey<T>\` constraint will catch them after bumping the devDependency`,
+              `- [ ] Bump \`react-native\` devDependency in \`package.json\` to ${newVer}`,
+              `- [ ] Run \`yarn typecheck\` — it will list any missing keys as compile errors`,
+              `- [ ] Add missing keys with inline version annotations`,
+              `- [ ] Run \`yarn test\` and confirm all pass`,
+              `- [ ] Open a PR with the changes`,
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `chore: react-native ${newVer} released — style prop audit needed`,
+              labels: ['rn-version-bump'],
+              body,
+            });

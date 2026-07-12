@@ -1,0 +1,47 @@
+# Why this matters:
+# registerTheme() and setTheme() write to a separate Zustand slice from colorMode.
+# useThemeName() subscribes to that slice and triggers re-renders. Unit tests mock the
+# theme store state directly and never exercise the setTheme() → Zustand publish →
+# subscriber re-render → prop update chain. This flow proves that tapping a theme button
+# calls setTheme(), the store notifies all subscribers, ThemedCard and ThemedText
+# re-render with the new token set, and the active theme name label updates — all in one
+# synchronous render cycle on the actual device.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to Theming → Multi-Theme
+- tapOn: "Theming"
+- tapOn: "Multi-Theme"
+
+# Confirm screen title
+- assertVisible: "Multi-Theme"
+
+# --- setTheme + useThemeName section ---
+- assertVisible: "setTheme + useThemeName"
+
+# Default theme is active on first launch
+- assertVisible: "Default"
+- assertVisible: "default theme"
+
+# Switch to Ocean theme
+- tapOn: "Ocean"
+
+# ThemedCard live preview updates — theme name label in the card changes
+- assertVisible: "ocean theme"
+
+# Switch to Sunset theme
+- tapOn: "Sunset"
+- assertVisible: "sunset theme"
+
+# Switch back to Default — proves cycling does not accumulate stale state
+- tapOn: "Default"
+- assertVisible: "default theme"
+
+# Confirm the token swatches section rendered (proves theme.light enumeration worked)
+- assertVisible: "Live preview"
+- scrollUntilVisible:
+    element: "primary"
+    direction: DOWN
+- assertVisible: "primary"

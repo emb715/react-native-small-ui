@@ -1,17 +1,75 @@
 import { renderHook } from '@testing-library/react-hooks';
 
-import { useBreakPointValue } from '../useBreakPointValue';
+import { useBreakpointValue } from '../useBreakPointValue';
 import { Dimensions } from 'react-native';
-import { _initSmallUI } from '../../../smallUI';
 
 afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('useBreakPointValue ', () => {
-  beforeEach(() => {
-    _initSmallUI();
+// ---------------------------------------------------------------------------
+// explicit _config.breakPoints override + missing key returns undefined
+// ---------------------------------------------------------------------------
+
+describe('useBreakpointValue — _config.breakPoints override', () => {
+  test('explicit _config.breakPoints overrides store config', () => {
+    // Default store breakpoints: md = 768.
+    // At width 900, md (768) would normally match.
+    // With custom config md = 1200, only 'default' (0) is satisfied at width 900.
+    jest.spyOn(Dimensions, 'get').mockReturnValue({
+      width: 900,
+      height: 900,
+      scale: 1,
+      fontScale: 1,
+    });
+
+    const { result } = renderHook(() =>
+      useBreakpointValue(
+        { default: 8, md: 16 },
+        {
+          breakPoints: {
+            'default': 0,
+            'xs': 480,
+            'sm': 640,
+            'md': 1200,
+            'lg': 1400,
+            'xl': 1500,
+            '2xl': 1600,
+          },
+        }
+      )
+    );
+
+    // With custom md=1200, 900px only matches 'default'.
+    expect(result.current).toBe(8);
   });
+});
+
+describe('useBreakpointValue — matched key not in breakpointValues returns undefined', () => {
+  test('returns undefined when matched breakpoint key is not in breakpointValues', () => {
+    // At width 500, the default breakpoints match 'xs' (480).
+    // 'xs' is NOT a key in the breakpointValues object.
+    // The hook finds matchedKey='xs', but breakpointValues['xs'] is undefined.
+    // Since matchedKey IS defined, it returns breakpointValues[matchedKey] which
+    // is undefined — NOT the fallback .default (also absent here).
+    jest.spyOn(Dimensions, 'get').mockReturnValue({
+      width: 500,
+      height: 900,
+      scale: 1,
+      fontScale: 1,
+    });
+
+    const { result } = renderHook(() =>
+      // Only 'lg' key provided — no 'xs', no 'default'.
+      useBreakpointValue({ lg: 'large' })
+    );
+
+    // xs key matched but not present in breakpointValues → undefined.
+    expect(result.current).toBeUndefined();
+  });
+});
+
+describe('useBreakpointValue', () => {
   it('default (with: 414)', () => {
     jest.spyOn(Dimensions, 'get').mockReturnValue({
       width: 414,
@@ -23,7 +81,7 @@ describe('useBreakPointValue ', () => {
     const value = 'default_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         default: value,
         md: 'NOT_THIS',
         lg: 'NOT_THIS',
@@ -44,7 +102,7 @@ describe('useBreakPointValue ', () => {
     const value = 'sm_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         'default': 'NOT_THIS',
         'sm': value,
         'md': 'NOT_THIS',
@@ -67,7 +125,7 @@ describe('useBreakPointValue ', () => {
     const value = 'md_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         'default': 'NOT_THIS',
         'md': value,
         'lg': 'NOT_THIS',
@@ -89,7 +147,7 @@ describe('useBreakPointValue ', () => {
     const value = 'lg_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         'default': 'NOT_THIS',
         'md': 'NOT_THIS',
         'lg': value,
@@ -111,7 +169,7 @@ describe('useBreakPointValue ', () => {
     const value = 'xl_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         'default': 'NOT_THIS',
         'md': 'NOT_THIS',
         'lg': 'NOT_THIS',
@@ -133,7 +191,7 @@ describe('useBreakPointValue ', () => {
     const value = '2xl_TEST';
 
     const { result } = renderHook(() =>
-      useBreakPointValue({
+      useBreakpointValue({
         'default': 'NOT_THIS',
         'xs': 'NOT_THIS',
         'sm': 'NOT_THIS',

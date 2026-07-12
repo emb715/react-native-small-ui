@@ -1,5 +1,158 @@
 ---
 title: Button
+sidebar:
+  order: 2
 ---
 
-...
+import { Code } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+A `TouchableOpacity`-based button with variants, slots, and automatic variant context propagation. Copy and adapt to your design system.
+
+export const component = `
+import { TouchableOpacity, Text } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+
+const Button = createComponent(TouchableOpacity, {
+  base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  variants: {
+    intent: {
+      primary: {
+        _light: { backgroundColor: '#007AFF' },
+        _dark:  { backgroundColor: '#0A84FF' },
+      },
+      danger: {
+        _light: { backgroundColor: '#e00c2c' },
+        _dark:  { backgroundColor: '#be0a25' },
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+        _light: { borderWidth: 1, borderColor: '#007AFF' },
+        _dark:  { borderWidth: 1, borderColor: '#0A84FF' },
+      },
+    },
+    size: {
+      sm: { paddingVertical: 6,  paddingHorizontal: 12 },
+      md: { paddingVertical: 10, paddingHorizontal: 20 },
+      lg: { paddingVertical: 14, paddingHorizontal: 28 },
+    },
+  },
+  defaultVariants: {
+    intent: 'primary',
+    size: 'md',
+  },
+}).withSlots({
+  // Button.Text and Button.Icon define the same intent variant as Button.
+  // withVariantContext below propagates the parent intent automatically —
+  // no prop needed on the slot at the call site.
+  Text: createComponent(Text, {
+    fontSize: 15,
+    fontWeight: '600',
+    variants: {
+      intent: {
+        primary: { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        danger:  { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        ghost:   { _light: { color: '#007AFF' },  _dark: { color: '#0A84FF' } },
+      },
+    },
+    defaultVariants: { intent: 'primary' },
+  }),
+  Icon: createComponent(Text, {
+    fontSize: 16,
+    marginRight: 6,
+    variants: {
+      intent: {
+        primary: { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        danger:  { _light: { color: '#fff' },     _dark: { color: '#fff' } },
+        ghost:   { _light: { color: '#007AFF' },  _dark: { color: '#0A84FF' } },
+      },
+    },
+    defaultVariants: { intent: 'primary' },
+  }),
+}).withVariantContext('intent');
+// intent on Button flows to Button.Text and Button.Icon automatically.
+// Explicit props on a slot always override the context.
+`;
+
+<Code title="Button.tsx" code={component} lang="tsx" />
+
+---
+
+## Usage
+
+`intent` propagates from `Button` to its slots — no prop needed on `Button.Text` or `Button.Icon`.
+
+```tsx
+// primary is the default — no props needed at all
+<Button onPress={onSubmit}>
+  <Button.Text>Submit</Button.Text>
+</Button>
+
+// with icon — both slots pick up the active intent
+<Button intent="primary" size="lg" onPress={onConfirm}>
+  <Button.Icon>✓</Button.Icon>
+  <Button.Text>Confirm</Button.Text>
+</Button>
+
+<Button intent="danger" size="sm" onPress={onDelete}>
+  <Button.Text>Delete</Button.Text>
+</Button>
+
+<Button intent="ghost" onPress={onCancel}>
+  <Button.Text>Cancel</Button.Text>
+</Button>
+```
+
+<PreviewFrame src="/example/showcase/components/button-basic" height={680} />
+
+Explicit slot props always override the context — useful when you need a slot styled differently from its parent:
+
+```tsx
+<Button intent="ghost">
+  <Button.Icon intent="primary">→</Button.Icon>
+  <Button.Text>Continue</Button.Text>
+</Button>
+```
+
+<PreviewFrame src="/example/showcase/components/button-slot-override" height={380} />
+
+---
+
+## Platform-specific shadow
+
+Extend the base definition to layer in platform styles:
+
+```tsx
+const Button = createComponent(TouchableOpacity, {
+  // ... variants and slots as above
+  base: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    _ios:     { shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
+    _android: { elevation: 4 },
+  },
+  // ...
+});
+```
+
+<PreviewFrame src="/example/showcase/components/button-platform-shadow" height={240} />
+
+---
+
+## How it works
+
+`Button` uses three APIs in combination:
+
+| API | Role |
+|-----|------|
+| `variants` + `defaultVariants` | Type-safe `intent` and `size` props with autocomplete |
+| `.withSlots()` | Attaches `Button.Text` and `Button.Icon` as dot-notation sub-components |
+| `.withVariantContext('intent')` | Propagates the parent's active `intent` to slots via React context — no prop drilling |
+
+Slots share **colorMode, breakpoints, and the specified variant keys** with the parent. Two `Button` trees never share context — each compound instance is isolated.

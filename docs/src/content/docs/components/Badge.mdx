@@ -1,0 +1,113 @@
+---
+title: Badge
+sidebar:
+  order: 6
+---
+
+import { Code, Aside } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+A small pill-shaped label with status variants. Teaches the `variants` system with semantic color tokens.
+
+export const component = `
+import { View } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+import { tokens } from './tokens';
+
+export const Badge = createComponent(View, {
+  base: {
+    borderRadius: 9999,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    alignSelf: 'flex-start',
+  },
+  variants: {
+    intent: {
+      info: {
+        _light: { backgroundColor: tokens.light.info },
+        _dark:  { backgroundColor: tokens.dark.info },
+      },
+      success: {
+        _light: { backgroundColor: tokens.light.success },
+        _dark:  { backgroundColor: tokens.dark.success },
+      },
+      warning: {
+        _light: { backgroundColor: tokens.light.warning },
+        _dark:  { backgroundColor: tokens.dark.warning },
+      },
+      destructive: {
+        _light: { backgroundColor: tokens.light.destructive },
+        _dark:  { backgroundColor: tokens.dark.destructive },
+      },
+    },
+  },
+  defaultVariants: { intent: 'info' },
+});
+`
+
+<Code title="Badge.tsx" code={component} lang="tsx" />
+
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. Copy it into your project and adapt it.
+</Aside>
+
+---
+
+## Usage
+
+```tsx
+<Badge intent="info">
+  <Text style={{ fontSize: 12 }}>New</Text>
+</Badge>
+
+<Badge intent="success">
+  <Text style={{ fontSize: 12 }}>Active</Text>
+</Badge>
+
+<Badge intent="warning">
+  <Text style={{ fontSize: 12 }}>Pending</Text>
+</Badge>
+
+<Badge intent="destructive">
+  <Text style={{ fontSize: 12 }}>Error</Text>
+</Badge>
+```
+
+<PreviewFrame src="/example/showcase/components/badge-demo" height={340} />
+
+---
+
+## With text color
+
+Add a `Text` slot to propagate the intent color to the label automatically:
+
+```tsx
+const BadgeText = createComponent(Text, {
+  fontSize: 12,
+  fontWeight: '600',
+  variants: {
+    intent: {
+      info:        { _light: { color: '#0077b6' }, _dark: { color: '#7ec8e3' } },
+      success:     { _light: { color: '#2d7a2d' }, _dark: { color: '#8fc477' } },
+      warning:     { _light: { color: '#7a5a00' }, _dark: { color: '#f0c040' } },
+      destructive: { _light: { color: '#c0392b' }, _dark: { color: '#ff6b80' } },
+    },
+  },
+  defaultVariants: { intent: 'info' },
+});
+
+export const Badge = createComponent(View, {
+  // ... same base + variants
+}).withSlots({ Text: BadgeText }).withVariantContext('intent');
+
+// Text color propagates automatically
+<Badge intent="success">
+  <Badge.Text>Active</Badge.Text>
+</Badge>
+```
+
+---
+
+## Design note
+
+All intent colors come from design system tokens. This is intentional — semantic states (`success`, `warning`, `destructive`) belong in the token system just like brand colors. See [Color Utilities](/utilities/colors) for `darken`, `lighten`, and `mix` to derive the tinted backgrounds from a single base color per intent.

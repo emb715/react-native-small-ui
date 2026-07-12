@@ -1,0 +1,136 @@
+---
+title: Input
+sidebar:
+  order: 8
+---
+
+import { Code, Aside } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+`TextInput` wrapped with `createComponent`. Teaches two important patterns: handling non-style props (`placeholderTextColor`, `selectionColor`) that live outside the style system, and the thin wrapper pattern for behavioral concerns.
+
+export const component = `
+import { TextInput } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
+import type { ComponentProps } from 'react';
+
+// createComponent handles all style props.
+const InputBase = createComponent(TextInput, {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 8,
+  borderWidth: 1,
+  fontSize: 16,
+  _light: {
+    backgroundColor: '#ffffff',
+    borderColor: '#e5e5e5',
+    color: '#1a1a1a',
+  },
+  _dark: {
+    backgroundColor: '#1e1e1e',
+    borderColor: '#2a2a2a',
+    color: '#f0f0f0',
+  },
+});
+
+type InputProps = ComponentProps<typeof InputBase>;
+
+// Thin wrapper handles non-style props that createComponent cannot express.
+// placeholderTextColor and selectionColor are component props, not style props.
+export function Input({ isDark, ...props }: InputProps & { isDark?: boolean }) {
+  return (
+    <InputBase
+      placeholderTextColor={isDark ? '#6b6b6b' : '#a0a0a0'}
+      selectionColor={isDark ? '#a070b8' : '#8b59a0'}
+      {...props}
+    />
+  );
+}
+`
+
+<Code title="Input.tsx" code={component} lang="tsx" />
+
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. Copy it into your project and adapt it.
+</Aside>
+
+---
+
+## Usage
+
+```tsx
+import { useColorMode } from 'react-native-small-ui/colormode';
+
+function EmailField() {
+  const { isDark } = useColorMode();
+
+  return (
+    <Input
+      isDark={isDark}
+      placeholder="you@example.com"
+      keyboardType="email-address"
+      autoCapitalize="none"
+    />
+  );
+}
+```
+
+<PreviewFrame src="/example/showcase/components/input-demo" height={420} />
+
+---
+
+## Status variants
+
+Add a `status` variant to express validation state:
+
+```tsx
+const InputBase = createComponent(TextInput, {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 8,
+  borderWidth: 1,
+  fontSize: 16,
+  _light: { backgroundColor: '#ffffff', color: '#1a1a1a' },
+  _dark:  { backgroundColor: '#1e1e1e', color: '#f0f0f0' },
+  variants: {
+    status: {
+      default: {
+        _light: { borderColor: '#e5e5e5' },
+        _dark:  { borderColor: '#2a2a2a' },
+      },
+      error: {
+        _light: { borderColor: '#e00c2c', backgroundColor: '#fff5f5' },
+        _dark:  { borderColor: '#ff6b80', backgroundColor: '#2a0a0a' },
+      },
+      success: {
+        _light: { borderColor: '#79a964' },
+        _dark:  { borderColor: '#8fc477' },
+      },
+    },
+  },
+  defaultVariants: { status: 'default' },
+});
+
+<Input status="error" placeholder="Invalid email" isDark={isDark} />
+<Input status="success" placeholder="Confirmed" isDark={isDark} />
+```
+
+---
+
+## React Native `TextInput` quirks
+
+| Prop | Notes |
+|------|-------|
+| `placeholderTextColor` | Component prop — not a style prop. Cannot be expressed as `_light`/`_dark`. Pass it in a wrapper function. |
+| `selectionColor` | Same — component prop. |
+| `multiline` | Changes layout: text grows vertically. Add `textAlignVertical: 'top'` on Android to align text to the top. |
+| `secureTextEntry` | Disables autocomplete on iOS. |
+| `autoCapitalize` | Defaults to `'sentences'` — set `'none'` for email/password fields. |
+
+---
+
+## Why a wrapper function
+
+`placeholderTextColor` and `selectionColor` must respond to the active color mode but are not style props — they live on the component, not inside `style`. `createComponent` cannot express them as `_light`/`_dark` values. The thin wrapper reads the color mode and passes the correct values imperatively.
+
+This is the same pattern as `accessibilityRole` in the [Typography](/components/typography) component — behavioral props that belong in a wrapper, not in the style definition.

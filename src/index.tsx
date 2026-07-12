@@ -1,21 +1,37 @@
-export { createComponent, useSmallUI } from './smallUI';
-export type { ComponentStyle } from './smallUI.types';
+/* istanbul ignore file */
+/**
+ * React Native Small UI - Core
+ *
+ * Minimal core utilities for component creation without heavy dependencies.
+ *
+ * For additional features, import from:
+ * - 'react-native-small-ui/colormode' - Color mode utilities
+ * - 'react-native-small-ui/theme' - Optional theming system
+ * - 'react-native-small-ui/utils' - Responsive utilities
+ */
 
-export type { ThemeConfig } from './theme/theme';
-export { useTheme, getTheme, registerTheme } from './hooks/useTheme/useTheme';
+// Core component creation
+export { createComponent, createComponentGroup, configure } from './smallUI';
+export { createPressable } from './createPressable';
+export type {
+  SmallUIComponent,
+  PlatformRegistry,
+  ColorModeRegistry,
+  SlotMap,
+  ComponentGroupInput,
+  ComponentGroup,
+  ComponentMeta,
+} from './smallUI';
+export type {
+  ComponentStyle,
+  ComponentConfig,
+  VariantConfig,
+  VariantProps,
+  CompoundVariant,
+  PressableConfig,
+  StyleCtx,
+  ExtendedProps,
+} from './smallUI.types';
 
-export * from './utils/helpers';
-export { ColorUtils } from './utils/colors.utils';
-export {
-  useColorMode,
-  useColorModeValue,
-  setColorScheme,
-  toggleColorScheme,
-} from './hooks/useColorMode/useColorMode';
-export { useOrientation } from './hooks/useOrientation';
-export { useMediaQuery } from './hooks/useMediaQuery/useMediaQuery';
-export { useBreakPointValue } from './hooks/useBreakPointValue/useBreakPointValue';
-
-// Components
-// export * from './components/primitives';
-// export * from './components/Typography';
+// Lightweight helper utilities
+export { cs, getResolvedStyles } from './utils/helpers';

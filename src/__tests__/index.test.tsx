@@ -1,28 +1,96 @@
-import * as inUseExports from '../index';
+import * as coreExports from '../index';
+import * as colorModeExports from '../colormode';
+import * as themeExports from '../theme-exports';
+import * as utilsExports from '../utils-exports';
+import * as testingExports from '../testing';
 
-const expectedExports = [
-  'ColorUtils',
+const expectedCoreExports = [
   'createComponent',
-  'getTheme',
-  'registerTheme',
-  'setColorScheme',
-  'toggleColorScheme',
-  'useBreakPointValue',
+  'createComponentGroup',
+  'createPressable',
+  'configure',
+  'cs',
+  'getResolvedStyles',
+];
+
+const expectedColorModeExports = [
   'useColorMode',
   'useColorModeValue',
-  'useMediaQuery',
-  'useOrientation',
+  'setColorScheme',
+  'toggleColorScheme',
+  'setCustomColorMode',
+  'clearCustomColorMode',
+  'useCustomColorMode',
+];
+
+const expectedThemeExports = [
   'useTheme',
-  'useSmallUI',
+  'getTheme',
+  'registerTheme',
+  'setTheme',
+  'useThemeName',
+  'ColorUtils',
+  'generateSpaceUnits',
   'getStatusBarStyle',
 ];
-test('check exports from package', () => {
-  const a = Object.keys(inUseExports);
-  let checkedIn = [];
-  a.forEach((key) => {
-    if (expectedExports.includes(key)) {
-      checkedIn.push(key);
-    }
-  });
-  expect(checkedIn.length).toEqual(expectedExports.length);
+
+const expectedUtilsExports = [
+  'useOrientation',
+  'useMediaQuery',
+  'useBreakpointValue',
+];
+
+function checkExports(
+  actual: Record<string, unknown>,
+  expected: string[]
+): string[] {
+  const keys = Object.keys(actual);
+  return expected.filter((name) => keys.includes(name));
+}
+
+test('core exports from react-native-small-ui', () => {
+  const matched = checkExports(
+    coreExports as Record<string, unknown>,
+    expectedCoreExports
+  );
+  expect(matched.length).toEqual(expectedCoreExports.length);
+});
+
+test('color mode exports from react-native-small-ui/colormode', () => {
+  const matched = checkExports(
+    colorModeExports as Record<string, unknown>,
+    expectedColorModeExports
+  );
+  expect(matched.length).toEqual(expectedColorModeExports.length);
+});
+
+test('theme exports from react-native-small-ui/theme', () => {
+  const matched = checkExports(
+    themeExports as Record<string, unknown>,
+    expectedThemeExports
+  );
+  expect(matched.length).toEqual(expectedThemeExports.length);
+});
+
+test('utils exports from react-native-small-ui/utils', () => {
+  const matched = checkExports(
+    utilsExports as Record<string, unknown>,
+    expectedUtilsExports
+  );
+  expect(matched.length).toEqual(expectedUtilsExports.length);
+});
+
+const expectedTestingExports = [
+  'renderWithSmallUI',
+  'assertStyles',
+  'setupSmallUITests',
+  'teardownSmallUI',
+];
+
+test('testing exports from react-native-small-ui/testing', () => {
+  const matched = checkExports(
+    testingExports as Record<string, unknown>,
+    expectedTestingExports
+  );
+  expect(matched.length).toEqual(expectedTestingExports.length);
 });

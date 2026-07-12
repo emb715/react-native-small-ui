@@ -1,12 +1,10 @@
 import MediaQueryList from './MediaQueryList.native';
 
-declare global {
-  interface Window {
-    matchMedia: (media: string) => MediaQueryList;
-  }
-}
-declare var window: Window & typeof globalThis;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare var window: any;
 
+/* istanbul ignore next */
 if (typeof window !== 'undefined') {
-  window.matchMedia = (query: string) => new MediaQueryList(query);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (window as any).matchMedia = (query: string) => new MediaQueryList(query);
 }

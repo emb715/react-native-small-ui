@@ -1,6 +1,6 @@
 {
   "name": "react-native-small-ui",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "Small UI library for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -8,13 +8,45 @@
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.tsx",
       "types": "./lib/typescript/src/index.d.ts",
       "import": "./lib/module/index.js",
       "require": "./lib/commonjs/index.js"
+    },
+    "./theme": {
+      "source": "./src/theme-exports.tsx",
+      "types": "./lib/typescript/src/theme-exports.d.ts",
+      "import": "./lib/module/theme-exports.js",
+      "require": "./lib/commonjs/theme-exports.js"
+    },
+    "./utils": {
+      "source": "./src/utils-exports.tsx",
+      "types": "./lib/typescript/src/utils-exports.d.ts",
+      "import": "./lib/module/utils-exports.js",
+      "require": "./lib/commonjs/utils-exports.js"
+    },
+    "./colormode": {
+      "source": "./src/colormode.tsx",
+      "types": "./lib/typescript/src/colormode.d.ts",
+      "import": "./lib/module/colormode.js",
+      "require": "./lib/commonjs/colormode.js"
+    },
+    "./testing": {
+      "source": "./src/testing.tsx",
+      "types": "./lib/typescript/src/testing.d.ts",
+      "import": "./lib/module/testing.js",
+      "require": "./lib/commonjs/testing.js"
+    },
+    "./presets": {
+      "source": "./src/presets.ts",
+      "types": "./lib/typescript/src/presets.d.ts",
+      "import": "./lib/module/presets.js",
+      "require": "./lib/commonjs/presets.js"
     }
   },
   "files": [
     "src",
+    "skills",
     "lib",
     "android",
     "ios",
@@ -33,17 +65,24 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-small-ui-example start",
+    "build:example": "yarn workspace react-native-small-ui-example expo export --platform web --output-dir ../docs/public/example",
     "test": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "format": "prettier --write \"**/*.{js,ts,tsx}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx}\"",
+    "bundle:check": "node scripts/bundle-check.js",
+    "size": "size-limit",
+    "intent:check": "npx @tanstack/intent stale --json",
     "clean": "del-cli lib",
     "prepare": "bob build",
-    "release": "release-it"
+    "postinstall": "lefthook install"
   },
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "tanstack-intent"
   ],
   "repository": {
     "type": "git",
@@ -55,38 +94,38 @@
     "url": "https://github.com/emb715/react-native-small-ui/issues"
   },
   "homepage": "https://github.com/emb715/react-native-small-ui#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
+    "@react-native/babel-preset": "0.83.6",
     "@react-native/eslint-config": "^0.73.1",
-    "@release-it/conventional-changelog": "^5.0.0",
+    "@size-limit/preset-small-lib": "^11.0.0",
+    "@tanstack/intent": "0.3.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^12.6.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/css-mediaquery": "^0.1.4",
     "@types/jest": "^29.5.5",
     "@types/lodash": "^4.17.7",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
+    "esbuild": "^0.28.1",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-ft-flow": "^3.0.11",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-testing-library": "latest",
+    "eslint-plugin-testing-library": "^7.0.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
-    "react": "18.2.0",
-    "react-dom": "^18.3.1",
-    "react-native": "0.74.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.83.6",
     "react-native-builder-bob": "^0.26.0",
     "react-test-renderer": "^18.3.1",
-    "release-it": "15.11.0",
+    "size-limit": "^11.0.0",
     "typescript": "^5.2.2"
   },
   "resolutions": {
@@ -97,8 +136,8 @@
     "semver": "7.5.2"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=18.0.0",
+    "react-native": ">=0.73.0"
   },
   "workspaces": [
     "example"
@@ -113,7 +152,14 @@
     ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
-      "<rootDir>/lib/"
+      "<rootDir>/lib/",
+      "<rootDir>/src/__tests__/coverage",
+      "<rootDir>/src/__tests__/exports-map.jest.config.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/lib/",
+      "<rootDir>/src/__tests__/componentGroup.types.test.tsx"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
@@ -125,24 +171,6 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true,
-      "tokenRef": "GITHUB_TOKEN"
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
   },
   "eslintConfig": {
     "root": true,
@@ -204,13 +232,36 @@
     "version": "0.38.2"
   },
   "dependencies": {
-    "@ctrl/tinycolor": "^4.1.0",
-    "css-mediaquery": "^0.1.2",
-    "lodash-es": "^4.17.21",
-    "zod": "^3.23.8",
     "zustand": "^4.5.4"
   },
   "directories": {
     "example": "example"
-  }
+  },
+  "intent": {
+    "skills": [
+      "skills/react-native-small-ui/SKILL.md"
+    ]
+  },
+  "size-limit": [
+    {
+      "path": "src/index.tsx",
+      "limit": "10 kB"
+    },
+    {
+      "path": "src/colormode.tsx",
+      "limit": "5 kB"
+    },
+    {
+      "path": "src/utils-exports.tsx",
+      "limit": "5 kB"
+    },
+    {
+      "path": "src/theme-exports.tsx",
+      "limit": "10 kB"
+    },
+    {
+      "path": "src/presets.ts",
+      "limit": "2 kB"
+    }
+  ]
 }

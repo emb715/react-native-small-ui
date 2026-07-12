@@ -1,0 +1,213 @@
+---
+title: Pressable
+sidebar:
+  order: 5
+---
+
+import { Code, Aside } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+`createPressable` wraps React Native's `Pressable` with the full `createComponent` feature set plus two new style keys: `_pressed` and `_hovered`. Every `createComponent` feature — `_light/_dark`, platform props, variants, `.extend()`, `.withSlots()` — works identically.
+
+export const component = `
+import { createPressable } from 'react-native-small-ui';
+
+const Button = createPressable({
+  base: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    _light: { backgroundColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#a070b8' },
+  },
+  _pressed:  { opacity: 0.8 },
+  _hovered:  { _web: { opacity: 0.92, cursor: 'pointer' } },
+  _focused:  { _web: { outlineWidth: 2, outlineColor: '#8b59a0', outlineStyle: 'solid' } },
+  _disabled: { opacity: 0.4 },
+});
+`
+
+<Code title="Button.tsx" code={component} lang="tsx" />
+
+<Aside type="note" title="Reference implementation">
+This component is **not exported by the library**. It is a starting point — copy it into your project and adapt it.
+</Aside>
+
+---
+
+## Why not `createComponent(Pressable)`?
+
+`Pressable.style` accepts a function: `({pressed}) => StyleProp<ViewStyle>`. `createComponent` passes a static style array — it has no access to `pressed` state. `createPressable` solves this by managing pressed and hovered state internally and merging `_pressed`/`_hovered` styles on top of the resolved base styles.
+
+```tsx
+// ❌ This loses pressed state — createComponent can't intercept it
+const Button = createComponent(Pressable, { ... });
+
+// ✅ This handles pressed and hovered correctly
+const Button = createPressable({ base: { ... }, _pressed: { ... } });
+```
+
+---
+
+## `_pressed`
+
+Applied when the user presses and holds. Resets when they release.
+
+```tsx
+import { createPressable } from 'react-native-small-ui';
+
+const Card = createPressable({
+  base: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    _light: { backgroundColor: '#ffffff', borderColor: '#e5e5e5' },
+    _dark:  { backgroundColor: '#1e1e1e', borderColor: '#2a2a2a' },
+  },
+  _pressed: {
+    // Overrides base styles while pressed
+    _light: { backgroundColor: '#f3eaf8', borderColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#2d1a3e', borderColor: '#8b59a0' },
+  },
+});
+
+<Card onPress={handlePress}>
+  <Text>Press and hold</Text>
+</Card>
+```
+
+<PreviewFrame src="/example/showcase/components/pressable-demo" height={320} />
+
+---
+
+## `_hovered` (web)
+
+Applied when the pointer hovers over the component. No-op on iOS and Android — hover events never fire on touch devices.
+
+```tsx
+const Card = createPressable({
+  base: { borderRadius: 12, padding: 16 },
+  _pressed: { opacity: 0.85 },
+  _hovered: {
+    // _web is the natural home for hover styles
+    _web: {
+      boxShadow: '0 4px 16px rgba(139,89,160,0.2)',
+      cursor: 'pointer',
+    } as any,
+  },
+});
+```
+
+---
+
+## `_focused` (keyboard / accessibility)
+
+Applied when the component receives keyboard focus (`Tab` key on web) or accessibility focus (screen readers, tvOS). No-op on touch-only devices where `onFocus`/`onBlur` never fire.
+
+```tsx
+const Button = createPressable({
+  base: {
+    padding: 12, borderRadius: 8,
+    borderWidth: 2, borderColor: 'transparent', // reserve space for focus ring
+    _light: { backgroundColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#a070b8' },
+  },
+  _focused: {
+    borderColor: '#c084dc',
+    _web: { outlineWidth: 0 } as any, // suppress default browser outline — use border instead
+  },
+});
+```
+
+---
+
+## `_disabled`
+
+Applied when `props.disabled` is `true`. No event subscription — reads the prop directly. Resolves last, so it always wins over pressed/hovered/focused styles.
+
+```tsx
+const Button = createPressable({
+  base: {
+    padding: 12, borderRadius: 8,
+    _light: { backgroundColor: '#8b59a0' },
+    _dark:  { backgroundColor: '#a070b8' },
+  },
+  _pressed:  { opacity: 0.85 },
+  _disabled: {
+    opacity: 0.4,
+    _light: { backgroundColor: '#c0a3cc' },
+    _dark:  { backgroundColor: '#5a4068' },
+  },
+});
+
+<Button disabled onPress={handlePress}>
+  <Text>Disabled — _disabled styles apply, _pressed does not fire</Text>
+</Button>
+
+<Button onPress={handlePress}>
+  <Text>Enabled</Text>
+</Button>
+```
+
+---
+
+## With variants
+
+`_pressed` and `_hovered` compose with the full variant system. They override after variants are resolved.
+
+```tsx
+import { createPressable } from 'react-native-small-ui';
+
+const Button = createPressable({
+  base: {
+    borderRadius: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  variants: {
+    intent: {
+      primary: {
+        _light: { backgroundColor: '#8b59a0' },
+        _dark:  { backgroundColor: '#a070b8' },
+      },
+      destructive: {
+        _light: { backgroundColor: '#e00c2c' },
+        _dark:  { backgroundColor: '#be0a25' },
+      },
+    },
+  },
+  defaultVariants: { intent: 'primary' },
+  _pressed: { opacity: 0.8 },
+  _hovered: {
+    _web: { opacity: 0.9, cursor: 'pointer' } as any,
+  },
+});
+
+<Button intent="primary" onPress={handlePress}>
+  <Text style={{ color: '#fff' }}>Primary</Text>
+</Button>
+
+<Button intent="destructive" onPress={handleDelete}>
+  <Text style={{ color: '#fff' }}>Delete</Text>
+</Button>
+```
+
+---
+
+## Style resolution order
+
+```
+base → variants → compoundVariants → direct props → _pressed → _hovered → _focused → _disabled
+```
+
+`_disabled` resolves last — a disabled component always looks disabled regardless of other active states.
+
+---
+
+## How it works
+
+`createPressable` tracks pressed and hovered state internally via `useState`. When active, the corresponding style object is spread as direct props onto the inner `SmallUIComponent` — using the same override mechanism as any prop passed at the call site. When neither `_pressed` nor `_hovered` is provided, no wrapper is added and the component is identical in cost to `createComponent`.
+
+All `Pressable` props (`onPress`, `onLongPress`, `hitSlop`, `disabled`, `android_ripple`) pass through unchanged.

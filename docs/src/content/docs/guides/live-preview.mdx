@@ -1,0 +1,78 @@
+---
+title: Live Preview
+description: Interactive showcase of all react-native-small-ui features running on the web
+sidebar:
+  order: 0
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The example app below runs directly in your browser via React Native Web. Every API surface is demonstrated — `createComponent`, variants, `.extend()`, `.withSlots()`, component groups, color mode, custom platforms, responsive hooks, theming, presets, and more.
+
+<Aside type="tip">
+  Use the **tabs at the bottom** to navigate between sections. Tap any item on the Components tab to drill into a showcase screen.
+</Aside>
+
+<div style="display:flex; justify-content:center; margin: 2rem 0;">
+  <div style="
+    position: relative;
+    width: 390px;
+    height: 760px;
+    border-radius: 48px;
+    background: #1a1a1a;
+    padding: 12px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
+  ">
+    {/* notch */}
+    <div style="
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 32px;
+      background: #1a1a1a;
+      border-radius: 20px;
+      z-index: 10;
+    " />
+    <iframe
+      src="/example/"
+      title="react-native-small-ui live preview"
+      style="
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 38px;
+        background: #ffffff;
+        display: block;
+      "
+      loading="lazy"
+      allow="same-origin"
+    />
+  </div>
+</div>
+
+<Aside type="note">
+  The preview runs the same source code as the native app — no stubs, no mocks. Behaviour on iOS and Android is identical; only platform-specific style overrides (`_ios`, `_android`) differ visually. Open DevTools to inspect React Native Web's CSS output.
+</Aside>
+
+## What's showcased
+
+| Screen | APIs demonstrated |
+|--------|-------------------|
+| Static Styles | `createComponent`, `_light`, `_dark`, `_ios`, `_android`, `_web` |
+| Variants | `variants`, `compoundVariants`, `defaultVariants` |
+| `.extend()` | Style composition — BaseCard → ElevatedCard → FeaturedCard |
+| `.withSlots()` | Compound component pattern — `Card.Header` / `Body` / `Footer` |
+| Component Group | `createComponentGroup` — sibling components sharing reactive context |
+| Color Mode | `useColorMode`, `setColorScheme`, `toggleColorScheme`, `useColorModeValue` |
+| Custom Color Mode | `configure({ colorModes })`, `setCustomColorMode`, `_sepia`, `_highContrast` |
+| Configure | `configure({ platforms })`, custom `_tablet`, `_compact` predicates |
+| Media Query | `useMediaQuery` — width, orientation, prefers-color-scheme, resolution |
+| Breakpoint Value | `useBreakPointValue` — responsive values across all breakpoints |
+| Orientation | `useOrientation` |
+| Theming | `registerTheme`, `setTheme`, `useTheme`, `useThemeName` — multi-theme switching |
+| Multi-Theme | Named theme slots — default / ocean / sunset |
+| Presets | `elevation`, `shadow`, `inset`, `text`, `layout`, `border` spread into components |
+| Theme-Driven | `createComponent` + `useTheme` — token values as props, updates on theme switch |
+| Color Utils | `ColorUtils.getHexAlpha`, `getContrastColor`, `getContrastMode` |

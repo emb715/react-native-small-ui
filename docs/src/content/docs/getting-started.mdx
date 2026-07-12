@@ -2,62 +2,260 @@
 title: Getting Started
 ---
 
-import { npmToBun, npmToYarn, npmToPnpm } from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import {
+  npmToBun,
+  npmToYarn,
+  npmToPnpm,
+} from '@sapphire/docusaurus-plugin-npm2yarn2pnpm';
+import {
+  Card,
+  CardGrid,
+  Code,
+  Tabs,
+  TabItem,
+  LinkButton,
+  Aside,
+} from '@astrojs/starlight/components';
 
 ## Installation
 
-	<Tabs>
-		<TabItem label="yarn" icon="seti:yarn">
-			<Code code={npmToYarn("npm install react-native-small-ui")} lang="sh"/>
-		</TabItem>
-		<TabItem label="npm" icon="seti:npm">
-			<Code code="npm install react-native-small-ui" lang="sh"/>
-		</TabItem>
-		<TabItem label="pnpm" icon="pnpm">
-			<Code code={npmToPnpm("npm install react-native-small-ui")} lang="sh"/>
-		</TabItem>
-		<TabItem label="bun" icon="bun">
-			<Code code={npmToBun("npm install react-native-small-ui")} lang="sh"/>
-		</TabItem>
-	</Tabs>
+React Native Small UI uses a modular architecture. Install only what you need to keep your bundle size minimal.
 
+### Core Package (Required)
 
-#### Web support
-<LinkButton href="https://necolas.github.io/react-native-web/docs/installation/" variant="minimal"  icon="external"  target="_blank">
+The core package provides `createComponent` and essential utilities with minimal footprint (~5.7 KB gzipped).
+
+<Tabs>
+  <TabItem label="yarn" icon="seti:yarn">
+    <Code code={npmToYarn('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
+  <TabItem label="npm" icon="seti:npm">
+    <Code code="npm install react-native-small-ui" lang="sh" />
+  </TabItem>
+  <TabItem label="pnpm" icon="pnpm">
+    <Code code={npmToPnpm('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
+  <TabItem label="bun" icon="bun">
+    <Code code={npmToBun('npm install react-native-small-ui')} lang="sh" />
+  </TabItem>
+</Tabs>
+
+### Optional Features
+
+Import additional features as needed through modular paths:
+
+<CardGrid>
+  <Card title="Core Only (~5.7 KB gz)" icon="rocket">
+    Basic component creation with platform-specific and color mode styling ```js
+    import {createComponent} from 'react-native-small-ui'; ```
+  </Card>
+  <Card title="+ Color Mode (~5.8 KB gz)" icon="sun">
+    Programmatic theme switching and color mode utilities ```js import{' '}
+    {useColorMode} from 'react-native-small-ui/colormode'; ```
+  </Card>
+  <Card title="+ Responsive (~6.0 KB gz)" icon="laptop">
+    Breakpoints, media queries, and orientation detection ```js import{' '}
+    {useBreakPointValue} from 'react-native-small-ui/utils'; ```
+  </Card>
+  <Card title="+ Theme System (~6.2 KB gz)" icon="seti:config">
+    Full theming with color utilities and semantic tokens ```js import{' '}
+    {useTheme} from 'react-native-small-ui/theme'; ```
+  </Card>
+</CardGrid>
+
+<Aside type="tip" title="Bundle Size">
+  The modular import system ensures you only bundle what you use. See the
+  [Bundle Optimization](/guides/bundle-optimization) guide for more details.
+</Aside>
+
+#### Web Support
+
+<LinkButton
+  href="https://necolas.github.io/react-native-web/docs/installation/"
+  variant="minimal"
+  icon="external"
+  target="_blank"
+>
   React Native Web
 </LinkButton>
 
 ---
 
-## Usage
+## Quick Start
 
-Get started by adding **`useSmallUI`** hook in your App. This will enable the utilities that might be in used, detect changes and adapt the ui.
+### Minimal Setup (Core Only)
+
+Import `createComponent` and start building. The library auto-initializes on import — no setup hook required.
 
 ```js
 import * as React from 'react';
-import {View} from 'react-native';
-import { useSmallUI, createComponent } from 'react-native-small-ui';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { createComponent } from 'react-native-small-ui';
 
+// Create styled components outside render
 const Box = createComponent(View, {
-  backgroundColor: '#ccc'
-})
+  padding: 16,
+  borderRadius: 8,
+  _light: { backgroundColor: '#f5f5f5' },
+  _dark: { backgroundColor: '#1a1a1a' },
+  _ios: { shadowOpacity: 0.1 },
+  _android: { elevation: 2 },
+});
 
-function App() {
+const Button = createComponent(TouchableOpacity, {
+  padding: 12,
+  borderRadius: 6,
+  backgroundColor: '#007AFF',
+  alignItems: 'center',
+});
+
+export default function App() {
   return (
     <View>
       <Box marginTop={112}>
-        <Text>Example</Text>
+        <Text>Hello Small UI!</Text>
+        <Button>
+          <Text style={{ color: '#fff' }}>Click me</Text>
+        </Button>
       </Box>
     </View>
   );
 }
+```
 
-export default function Main() {
-  useSmallUI()
+### With Color Mode
+
+Add programmatic theme control:
+
+```js
+import { createComponent } from 'react-native-small-ui';
+import {
+  useColorMode,
+  toggleColorScheme,
+} from 'react-native-small-ui/colormode';
+import { View, Text, TouchableOpacity } from 'react-native';
+
+const Box = createComponent(View, {
+  padding: 16,
+  _light: { backgroundColor: '#fff' },
+  _dark: { backgroundColor: '#000' },
+});
+
+export default function ThemeToggle() {
+  const { colorMode } = useColorMode();
+
   return (
-    <App />
+    <Box>
+      <Text>Current mode: {colorMode}</Text>
+      <TouchableOpacity onPress={toggleColorScheme}>
+        <Text>Toggle Theme</Text>
+      </TouchableOpacity>
+    </Box>
+  );
+}
+```
+
+### With Responsive Utilities
+
+Build responsive layouts:
+
+```js
+import { createComponent } from 'react-native-small-ui';
+import { useBreakPointValue } from 'react-native-small-ui/utils';
+import { View, Text } from 'react-native';
+
+const Box = createComponent(View, {
+  backgroundColor: '#f5f5f5',
+});
+
+export default function ResponsiveBox() {
+  const padding = useBreakPointValue({
+    default: 8,
+    sm: 12,
+    md: 16,
+    lg: 24,
+  });
+
+  return (
+    <Box padding={padding}>
+      <Text>Responsive padding based on screen size</Text>
+    </Box>
+  );
+}
+```
+
+### With Theme System
+
+Register your own colors and access them via `useTheme`. The theme is shape-agnostic — store whatever your app needs:
+
+```js
+import { createComponent } from 'react-native-small-ui';
+import { registerTheme, useTheme } from 'react-native-small-ui/theme';
+import { View, Text, TouchableOpacity } from 'react-native';
+
+// Register at startup — any shape you want
+registerTheme({
+  light: { primary: '#007AFF', background: '#fff' },
+  dark:  { primary: '#0A84FF', background: '#000' },
+});
+
+// Define your type once
+type AppTheme = {
+  light: { primary: string; background: string };
+  dark:  { primary: string; background: string };
+};
+
+// Create component outside render
+const Button = createComponent(TouchableOpacity, {
+  borderRadius: 8,
+  padding: 12,
+});
+
+function ThemedButton() {
+  const theme = useTheme() as AppTheme;
+
+  return (
+    <Button
+      _light={{ backgroundColor: theme.light.primary }}
+      _dark={{ backgroundColor: theme.dark.primary }}
+    >
+      <Text style={{ color: '#fff' }}>Themed Button</Text>
+    </Button>
   );
 }
 
+export default function ThemedButtonScreen() {
+  return <ThemedButton />;
+}
 ```
+
+---
+
+## Next Steps
+
+<CardGrid>
+  <Card title="createComponent" icon="rocket">
+    Variants, slots, .extend(), and the reactive ctx API
+    <LinkButton href="/utilities/create-component" variant="secondary">
+      Read More
+    </LinkButton>
+  </Card>
+  <Card title="Variant System" icon="puzzle">
+    Type-safe variants, compound variants, and defaults
+    <LinkButton href="/guides/variants" variant="secondary">
+      View Guide
+    </LinkButton>
+  </Card>
+  <Card title="Platform & Color Mode Registry" icon="laptop">
+    Custom platforms and app-managed color modes
+    <LinkButton href="/guides/platform-registry" variant="secondary">
+      View Guide
+    </LinkButton>
+  </Card>
+  <Card title="Helpers" icon="seti:config">
+    cs(), getResolvedStyles(), getStatusBarStyle
+    <LinkButton href="/utilities/helpers" variant="secondary">
+      View Helpers
+    </LinkButton>
+  </Card>
+</CardGrid>

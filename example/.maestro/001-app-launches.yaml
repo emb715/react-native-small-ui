@@ -1,0 +1,32 @@
+# Why this matters:
+# Unit tests mock the JS environment. This proves the real Expo bundle boots on device,
+# the tab bar initialises from expo-router's file-based routing, and all 8 NavigationGrid
+# cards actually render (not just the visible ones above the fold). A build error, a
+# missing metro bundler alias (@/ path), or a bad zustand import all show up here and
+# nowhere in Jest.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Default tab is Components (index.tsx)
+- assertVisible: "Components"
+
+# First card in the NavigationGrid — proves the grid rendered at all
+- assertVisible: "Static Styles"
+
+# Middle items — proves layout did not clip early
+- assertVisible: "Variants"
+- assertVisible: "Component Group"
+- assertVisible: "ctx Factory"
+
+# Last card — proves the full list rendered (8 items, requires scroll)
+- scrollUntilVisible:
+    element: "createPressable"
+    direction: DOWN
+- assertVisible: "createPressable"
+
+# Tab bar is present with all expected tabs
+- assertVisible: "Responsive"
+- assertVisible: "Theming"
+- assertVisible: "Kitchen Sink"

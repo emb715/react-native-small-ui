@@ -1,0 +1,53 @@
+# Why this matters:
+# The variants system (variants, compoundVariants, defaultVariants) resolves style objects
+# at render time by merging variant keys into a flat style. Unit tests verify the merge
+# logic with plain objects. This flow proves the FULL pipeline: the Button primitives
+# created at module scope actually appear on screen as tappable elements and do not crash
+# when pressed — confirming that variant style objects are valid ViewStyle shapes the
+# native renderer accepts.
+
+appId: com.embsmallui.example
+---
+- launchApp
+
+# Navigate to Variants showcase
+- tapOn: "Variants"
+
+# Confirm screen header
+- assertVisible: "Variants"
+
+# --- size variant section ---
+- assertVisible: "size variant"
+- assertVisible: "xs"
+- assertVisible: "sm"
+# "md" is the default button label — assert the section description mentions it
+- assertVisible: "md (default)"
+- assertVisible: "lg"
+
+# --- intent variant section ---
+- assertVisible: "intent variant"
+- assertVisible: "primary"
+- assertVisible: "secondary"
+- assertVisible: "ghost"
+- assertVisible: "destructive"
+- assertVisible: "outline"
+
+# Tap a button — proves it does not crash (real touch event through the Pressable responder)
+- tapOn: "primary"
+
+# --- compoundVariants section ---
+- scrollUntilVisible:
+    element: "compoundVariants"
+    direction: DOWN
+- assertVisible: "xs + destructive"
+- assertVisible: "ghost + sm"
+
+# Tap compound variant button — proves compound style merge produces valid styles
+- tapOn: "xs + destructive"
+
+# --- defaultVariants section ---
+- scrollUntilVisible:
+    element: "defaultVariants"
+    direction: DOWN
+- assertVisible: "Default (md + primary)"
+- tapOn: "Default (md + primary)"

@@ -1,133 +1,113 @@
 ---
 title: Typography
-sidebar: {
+sidebar:
   order: 2
-}
 ---
 
-import { Card, CardGrid, Code, Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
+import { Code } from '@astrojs/starlight/components';
+import PreviewFrame from '@components/PreviewFrame.astro';
+
+A production-ready typography component built entirely on `createComponent` primitives — variants for scale and weight, color mode at the base, font families in the weight variant, and a thin wrapper for accessibility. Copy and adapt to your design system.
 
 export const component = `
 import React from 'react';
 import { Text as RNText } from 'react-native';
 import { createComponent } from 'react-native-small-ui';
 
-const Text = createComponent(RNText);
+// ─── Base ─────────────────────────────────────────────────────────────────────
+// createComponent handles scale, weight, font families, and color mode.
+// Typography is kept internal — Text is what consumers use.
 
-const Presets = {
-  h1: {
-    fontFamily: 'Inter',
-    fontSize: 34,
-    lineHeight: 41,
+const Typography = createComponent(RNText, {
+  variants: {
+    preset: {
+      h1:      { fontSize: 34, lineHeight: 41 },
+      h2:      { fontSize: 28, lineHeight: 34 },
+      h3:      { fontSize: 22, lineHeight: 28 },
+      h4:      { fontSize: 20, lineHeight: 28 },
+      h5:      { fontSize: 17, lineHeight: 24 },
+      h6:      { fontSize: 14, lineHeight: 18 },
+      body:    { fontSize: 16, lineHeight: 24 },
+      caption: { fontSize: 12, lineHeight: 18 },
+      small:   { fontSize: 10, lineHeight: 14 },
+    },
+    weight: {
+      thin:      { fontWeight: '200', fontFamily: 'Inter-Thin' },
+      light:     { fontWeight: '300', fontFamily: 'Inter-Light' },
+      normal:    { fontWeight: '400', fontFamily: 'Inter' },
+      semibold:  { fontWeight: '600', fontFamily: 'Inter-SemiBold' },
+      bold:      { fontWeight: '700', fontFamily: 'Inter-Bold' },
+      extrabold: { fontWeight: '900', fontFamily: 'Inter-ExtraBold' },
+    },
   },
-  h2: {
-    fontFamily: 'Inter',
-    fontSize: 28,
-    lineHeight: 34,
+  defaultVariants: {
+    preset: 'body',
+    weight: 'normal',
   },
-  h3: {
-    fontFamily: 'Inter',
-    fontSize: 22,
-    lineHeight: 28,
-  },
-  h4: {
-    fontFamily: 'Inter',
-    fontSize: 20,
-    lineHeight: 28,
-  },
-  h5: {
-    fontFamily: 'Inter',
-    fontSize: 17,
-    lineHeight: 24,
-  },
-  h6: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  medium: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  small: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  smallest: {
-    fontSize: 10,
-    lineHeight: 14,
-  },
-} as const;
+  // Global text color — every instance inherits this unless overridden at the call site.
+  _light: { color: '#1a1a1a' },
+  _dark:  { color: '#f0f0f0' },
+});
 
-const Variants = {
-  thin: {
-    fontFamily: 'Inter-Thin',
-    fontWeight: 200,
-  },
-  light: {
-    fontFamily: 'Inter-Light',
-    fontWeight: 300,
-  },
-  normal: {
-    fontFamily: 'Inter',
-    fontWeight: 400,
-  },
-  semibold: {
-    fontFamily: 'Inter-SemiBold',
-    fontWeight: 600,
-  },
-  bold: {
-    fontFamily: 'Inter-Bold',
-    fontWeight: 700,
-  },
-  extrabold: {
-    fontFamily: 'Inter-ExtraBold',
-    fontWeight: 900,
-  },
-} as const;
+// ─── Thin wrapper — handles the one concern createComponent can't ──────────────
+// accessibilityRole is a behavioral prop, not a style. Three lines, fully transparent:
+// all library features (style props, _light/_dark, .extend()) reach through via ...props.
 
+const HEADING_PRESETS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
 
-type TextComponentProps = React.ComponentProps<typeof Text>;
+type TypographyProps = React.ComponentProps<typeof Typography>;
 
-type TypographyProps = TextComponentProps & {
-  preset?: keyof typeof Presets;
-  variant?: keyof typeof Variants;
-};
-
-export const Typography = ({
-  children,
-  preset = 'default',
-  variant = 'normal',
-  ...textProps
-}: TypographyProps) => {
-  const propStyles: TextComponentProps = {
-    ...Presets[preset],
-    ...Variants[variant],
-  };
+export function Text({ preset = 'body', weight = 'normal', ...props }: TypographyProps) {
   return (
-    <Text
-      role={preset.startsWith('h') ? 'heading' : undefined}
-      {...propStyles}
-      {...textProps}
-    >
-      {children}
-    </Text>
+    <Typography
+      preset={preset}
+      weight={weight}
+      accessibilityRole={HEADING_PRESETS.has(preset) ? 'header' : undefined}
+      {...props}
+    />
   );
-};
-
-`
-
-Utility prop base component to copy/paste.
-Set the preset and variant that you design requires.
-
-Example usage:
-```tsx
-  <Typography preset="h1">Welcome Back!</Typography>
-```
----
+}
+`;
 
 <Code title="Typography.tsx" code={component} lang="tsx" />
+
+---
+
+## Usage
+
+```tsx
+// Defaults apply — body size, normal weight, color mode from base
+<Text>Some paragraph content</Text>
+
+// Heading — accessibilityRole="header" set automatically
+<Text preset="h1" weight="bold">Welcome Back</Text>
+<Text preset="h3" weight="semibold">Section Title</Text>
+
+// Per-instance color override — _light/_dark work on Text just like any createComponent output
+<Text preset="caption" weight="semibold" _light={{ color: '#666' }} _dark={{ color: '#aaa' }}>
+  Last updated today
+</Text>
+```
+
+<PreviewFrame src="/example/showcase/components/typography-overrides" height={240} />
+
+---
+
+## Type scale
+
+All preset values — `h1` through `small`. The `accessibilityRole="header"` wrapper applies automatically for h1–h6.
+
+<PreviewFrame src="/example/showcase/components/typography-scale" height={500} />
+
+---
+
+## Why this structure
+
+| Concern | Where it lives | Why |
+|---------|---------------|-----|
+| Size scale | `preset` variant | Typed prop, autocompleted, no manual spread |
+| Font weight + family | `weight` variant | Weight and face are always paired — one prop selects both |
+| Text color | Base `_light`/`_dark` | Every instance inherits it; callers override per-instance |
+| `accessibilityRole` | Thin wrapper | Behavioral prop, not a style — can't live in a variant |
+
+`Typography` (the `createComponent` output) is internal. `Text` is what the rest of the app imports — it has the same API surface as any `SmallUIComponent`, plus the accessibility behaviour baked in.

@@ -4,6 +4,7 @@ import {
   type ColorSchemeName as RNColorSchemeName,
 } from 'react-native';
 import { useColorModeStore, type ColorSchemeName } from './colorMode.store';
+import { useCustomColorModeStore } from './customColorMode.store';
 
 export function setColorMode(newColorMode: RNColorSchemeName) {
   if (newColorMode) {
@@ -34,6 +35,48 @@ export function useColorMode() {
   const { colorMode } = useColorModeStore();
   return { colorMode, isDark: colorMode === 'dark' };
 }
+
+// ---------------------------------------------------------------------------
+// Custom Color Mode Registry
+// ---------------------------------------------------------------------------
+
+/**
+ * Activates a custom color mode by name.
+ * The name must be registered via configure({ colorModes: { ... } }).
+ * Pass null to clear any active custom mode.
+ *
+ * @example
+ * configure({ colorModes: { highContrast: () => true } });
+ * setCustomColorMode('highContrast');
+ *
+ * // Then in createComponent:
+ * const Text = createComponent(RNText, {
+ *   color: '#000',
+ *   _highContrast: { color: '#fff', fontWeight: 'bold' },
+ * });
+ */
+export function setCustomColorMode(mode: string | null) {
+  useCustomColorModeStore.setState({ activeMode: mode });
+}
+
+/**
+ * Clears the active custom color mode, returning to OS-driven light/dark only.
+ */
+export function clearCustomColorMode() {
+  useCustomColorModeStore.setState({ activeMode: null });
+}
+
+/**
+ * Returns the currently active custom color mode name, or null.
+ * Reactive — triggers re-renders when the active mode changes.
+ */
+export function useCustomColorMode() {
+  const { activeMode } = useCustomColorModeStore();
+  return { activeMode };
+}
+
+/** Re-export the store for internal use in createComponent */
+export { useCustomColorModeStore };
 
 function getColorModeValue<
   TLight extends ColorSchemeValue,
