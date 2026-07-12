@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # Root workspace — devDependencies (Jest, ESLint, TypeScript, esbuild, size-limit, etc.)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Argentina/Buenos_Aires
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      include: scope
+    ignore:
+      # React Native — intentionally pinned to match the example app
+      - dependency-name: react-native
+      - dependency-name: react
+      - dependency-name: react-dom
+      # Expo — major bumps require manual migration
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+
+  # Docs site — Astro, Starlight, remark plugins
+  - package-ecosystem: npm
+    directory: /docs
+    schedule:
+      interval: monthly
+      day: monday
+      time: "09:00"
+      timezone: America/Argentina/Buenos_Aires
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - documentation
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # GitHub Actions — keep action versions current
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      day: monday
+      time: "09:00"
+      timezone: America/Argentina/Buenos_Aires
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: chore
+      include: scope
