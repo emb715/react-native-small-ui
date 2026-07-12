@@ -1,40 +1,26 @@
 # react-native-small-ui
 
+[![npm version](https://img.shields.io/npm/v/react-native-small-ui?style=flat&colorA=000&colorB=000)](https://www.npmjs.com/package/react-native-small-ui)
+[![npm downloads](https://img.shields.io/npm/dw/react-native-small-ui?style=flat&colorA=000&colorB=000)](https://www.npmjs.com/package/react-native-small-ui)
+[![CI](https://img.shields.io/github/actions/workflow/status/emb715/react-native-small-ui/ci.yml?branch=main&style=flat&colorA=000&colorB=000&label=CI)](https://github.com/emb715/react-native-small-ui/actions)
+[![license](https://img.shields.io/github/license/emb715/react-native-small-ui?style=flat&colorA=000&colorB=000)](LICENSE)
+
 A utility-first toolkit for React Native. Gives you the tools to build styled components with platform-specific styling, dark mode, and responsive design — without locking you into pre-built components or coupled theming systems.
 
 **Philosophy: utilities, not opinions.** This is a component factory and hook toolkit, not a design system. You control every styling decision.
 
+**[Documentation](https://emb715.github.io/react-native-small-ui)** · [npm](https://www.npmjs.com/package/react-native-small-ui) · [Changelog](CHANGELOG.md)
+
 ## Table of Contents
 
 - [Installation](#installation)
-- [Modular Imports](#modular-imports)
 - [Quick Start](#quick-start)
 - [createComponent](#createcomponent)
-  - [Reactive Style Factory](#reactive-style-factory-ctx)
-  - [Variant System](#variant-system)
-  - [.extend()](#extend)
-  - [.withSlots()](#withslots)
 - [createPressable](#createpressable)
-- [createComponentGroup](#createcomponentgroup)
 - [Hooks](#hooks)
-  - [useColorModeValue](#usecolormodevalue)
-  - [useColorMode](#usecolormode)
-  - [useCustomColorMode](#usecustomcolormode)
-  - [useOrientation](#useorientation)
-  - [useMediaQuery](#usemediaquery)
-  - [useBreakPointValue](#usebreakpointvalue)
-- [Platform Registry](#platform-registry)
-- [Custom Color Mode Registry](#custom-color-mode-registry)
-- [Theme System (Optional)](#theme-system-optional)
-  - [registerTheme](#registertheme)
-  - [setTheme](#settheme)
-  - [getTheme](#gettheme)
-  - [useTheme](#usetheme)
-  - [useThemeName](#usethemename)
-  - [generateSpaceUnits](#generatespaceunits)
-- [Color Utilities](#color-utilities)
-- [Helpers](#helpers)
-- [Known Issues](#known-issues)
+- [Theme System](#theme-system-optional)
+- [Presets](#style-presets)
+- [Upgrading from v0.x](#upgrading-from-v0x)
 
 ## Installation
 
@@ -43,6 +29,18 @@ npm install react-native-small-ui
 # or
 yarn add react-native-small-ui
 ```
+
+## Compatibility
+
+| | Version |
+|---|---|
+| React Native | ≥ 0.73 |
+| React | ≥ 18 |
+| Expo | ✅ compatible |
+| iOS | ✅ |
+| Android | ✅ |
+| Web (React Native Web) | ✅ |
+| TypeScript | ≥ 5.0 |
 
 #### Web Support
 
@@ -69,7 +67,7 @@ import {
 
 // Responsive utilities (~6.0 KB gz total)
 import {
-  useBreakPointValue,
+  useBreakpointValue,
   useMediaQuery,
   useOrientation,
 } from 'react-native-small-ui/utils';
@@ -83,6 +81,7 @@ import {
   useThemeName,
   generateSpaceUnits,
   ColorUtils,
+  getStatusBarStyle,
 } from 'react-native-small-ui/theme';
 
 // Style presets (~0 KB overhead — plain objects)
@@ -130,6 +129,21 @@ export default function App() {
 ```
 
 > **Critical**: Always create components **outside** render functions. Creating inside a render causes remounts on every render, losing state and animations.
+
+## Why react-native-small-ui?
+
+Most React Native UI libraries give you pre-built components with opinions baked in. When your design system doesn't match theirs, you fight the library.
+
+| | react-native-small-ui | NativeBase / gluestack | NativeWind |
+|---|---|---|---|
+| Ships pre-built components | ❌ you build yours | ✅ opinionated | ❌ |
+| Styling approach | Style props + variants | Theme tokens | Tailwind classes |
+| Bundle impact | ~5.8 KB core | Heavy | Build-time |
+| Dark mode | Built-in `_light`/`_dark` | Token-based | `dark:` modifier |
+| TypeScript autocomplete | ✅ per-component props | ✅ | ✅ |
+| Bring your own design system | ✅ | ⚠️ opinionated tokens | ✅ |
+
+**The rule of thumb:** if you want drop-in components, use gluestack. If you want Tailwind, use NativeWind. If you want full control over your design system with typed style props, variant system, and zero pre-built opinions — use this.
 
 ## createComponent
 
@@ -411,7 +425,7 @@ import {
 } from 'react-native-small-ui/colormode';
 
 function ThemeToggle() {
-  const { colorMode } = useColorMode(); // 'light' | 'dark' | 'auto'
+  const { colorMode } = useColorMode(); // 'light' | 'dark'
 
   return (
     <TouchableOpacity onPress={toggleColorScheme}>
@@ -423,7 +437,6 @@ function ThemeToggle() {
 // Programmatic control
 setColorScheme('dark');
 setColorScheme('light');
-setColorScheme('auto'); // follow system
 ```
 
 ### useCustomColorMode
@@ -466,16 +479,16 @@ import { useMediaQuery } from 'react-native-small-ui/utils';
 const isLargeScreen = useMediaQuery('(min-width: 768px)');
 ```
 
-### useBreakPointValue
+### useBreakpointValue
 
 Returns different values based on screen width breakpoint.
 
 **Breakpoints:** `default`, `xs` (480px+), `sm` (640px+), `md` (768px+), `lg` (1024px+), `xl` (1280px+), `2xl` (1536px+)
 
 ```jsx
-import { useBreakPointValue } from 'react-native-small-ui/utils';
+import { useBreakpointValue } from 'react-native-small-ui/utils';
 
-const padding = useBreakPointValue({
+const padding = useBreakpointValue({
   default: 8,
   sm: 12,
   md: 16,
@@ -652,11 +665,8 @@ ColorUtils.mix('#8b59a0', '#ffffff', 0.85)     // very light brand tint
 ## Helpers
 
 ```ts
-import {
-  getStatusBarStyle,
-  cs,
-  getResolvedStyles,
-} from 'react-native-small-ui';
+import { cs, getResolvedStyles } from 'react-native-small-ui';
+import { getStatusBarStyle } from 'react-native-small-ui/theme'; // moved in v1.0.0
 ```
 
 ### getStatusBarStyle
@@ -727,6 +737,28 @@ const Card = createComponent(View, {
 - `layout` — `fill`, `center`, `row`, `rowBetween`, `column`, `absoluteFill` — flex patterns
 - `border` — `hairline`, `thin`, `medium`, `thick`, `pill` — border widths and shapes
 
+## Upgrading from v0.x
+
+See the full [changelog](CHANGELOG.md) for details.
+
+**Breaking changes in v1.0.0:**
+
+- `getStatusBarStyle` moved from `react-native-small-ui` to `react-native-small-ui/theme`
+  ```diff
+  - import { getStatusBarStyle } from 'react-native-small-ui';
+  + import { getStatusBarStyle } from 'react-native-small-ui/theme';
+  ```
+- `useBreakPointValue` renamed to `useBreakpointValue` (camelCase)
+  ```diff
+  - import { useBreakPointValue } from 'react-native-small-ui/utils';
+  + import { useBreakpointValue } from 'react-native-small-ui/utils';
+  ```
+- `_teardownSmallUI` renamed to `teardownSmallUI` and moved to `react-native-small-ui/testing`
+  ```diff
+  - import { _teardownSmallUI } from 'react-native-small-ui';
+  + import { teardownSmallUI } from 'react-native-small-ui/testing';
+  ```
+
 ## Known Issues
 
 ### Expo — Color Mode Detection
@@ -748,11 +780,12 @@ Or `app.json`:
 
 ---
 
-## Built With
+## Contributing
 
-- [React Native](https://reactnative.dev/)
-- [zustand](https://zustand-demo.pmnd.rs/)
-- [react-native-builder-bob](https://github.com/callstack/react-native-builder-bob)
+Bug reports, feature requests, and PRs are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
+
+- [Open an issue](https://github.com/emb715/react-native-small-ui/issues)
+- [Start a discussion](https://github.com/emb715/react-native-small-ui/discussions)
 
 ## License
 
