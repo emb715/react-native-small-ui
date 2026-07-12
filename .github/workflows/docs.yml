@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Build library
+        run: yarn prepare
+
       - name: Build example app (web export)
         run: yarn build:example
 
