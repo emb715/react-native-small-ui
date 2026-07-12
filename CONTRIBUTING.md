@@ -12,19 +12,25 @@ The library lives in the root directory. To get started:
 yarn install
 ```
 
-Run the tests before and after your changes:
+Run the full local CI check before and after your changes:
 
 ```sh
-yarn test
-yarn typecheck
-yarn lint
+yarn preflight
 ```
 
-Build the library to verify the output compiles cleanly:
+This runs: typecheck → lint → tests → bundle isolation check → library build → bundle size check.
+
+> The pre-push hook runs `prepare`, `size`, and `bundle:check` automatically when you `git push` — so a clean push means the build is verified.
+
+### Working with AI agents
+
+This repo ships an [Intent skill](skills/react-native-small-ui/SKILL.md) that teaches agents the correct API patterns (module-scope rule, variant config shape, entry point imports). Load it before working on the library:
 
 ```sh
-yarn clean && yarn prepare
+npx @tanstack/intent load react-native-small-ui
 ```
+
+The skill is validated against source on every CI run. If you change the public API, update `skills/react-native-small-ui/SKILL.md` and the ref files in `skills/react-native-small-ui/refs/`.
 
 ### Commit message convention
 
@@ -65,6 +71,6 @@ npm publish is intentionally manual — no npm token is stored in CI.
 
 - Fork the repository and create a feature branch
 - Make your changes with tests
-- Run `yarn test && yarn typecheck && yarn lint` — all must pass
+- Run `yarn preflight` — all checks must pass
 - Open a PR against `main`
 - CI runs lint, typecheck, tests, and build automatically
