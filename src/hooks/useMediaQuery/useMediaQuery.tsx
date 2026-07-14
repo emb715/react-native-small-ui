@@ -1,6 +1,6 @@
 import './matchMedia/matchMedia.polyfill';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import type { MediaQueryListEvent } from './matchMedia/mediaQuery.types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,36 +16,42 @@ interface NativeMQL {
 
 let _warnedNoMatchMedia = false;
 
-export const useMediaQuery = (mediaQueryString: string) => {
-  const supportsMatchMedia =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+function getSnapshot(mediaQueryString: string): boolean {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
+    return false;
+  }
+  return (window.matchMedia(mediaQueryString) as unknown as NativeMQL).matches;
+}
 
-  const [matches, setMatches] = useState(false);
-
-  /* istanbul ignore next */
-  const onChange = useCallback((evt: MediaQueryListEvent) => {
-    setMatches(evt.matches);
-  }, []);
-
-  useEffect(() => {
-    if (!supportsMatchMedia) {
-      if (!_warnedNoMatchMedia) {
-        _warnedNoMatchMedia = true;
-        console.warn('useMediaQuery: window.matchMedia not supported.');
-      }
-      return;
+function subscribe(mediaQueryString: string, callback: () => void): () => void {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
+    if (!_warnedNoMatchMedia) {
+      _warnedNoMatchMedia = true;
+      console.warn('useMediaQuery: window.matchMedia not supported.');
     }
+    return () => {};
+  }
+  const mq = window.matchMedia(mediaQueryString) as unknown as NativeMQL;
+  mq.addListener(callback);
+  return () => {
+    mq.removeListener(callback);
+    mq._unmount?.();
+  };
+}
 
-    const mq = window.matchMedia(mediaQueryString) as unknown as NativeMQL;
-    setMatches(mq.matches); // sync initial value from the single instance
-    mq.addListener(onChange);
-    return () => {
-      mq.removeListener(onChange);
-      mq._unmount?.(); // ← removes the Dimensions subscription on native
-    };
-  }, [supportsMatchMedia, mediaQueryString, onChange]);
-
-  return matches;
+export const useMediaQuery = (mediaQueryString: string) => {
+  return useSyncExternalStore(
+    (callback) => subscribe(mediaQueryString, callback),
+    () => getSnapshot(mediaQueryString),
+    // Server snapshot: always false — matches initial SSR render, no hydration mismatch
+    () => false
+  );
 };
 
 // Example: useMediaQuery('(min-width: 48rem)')
