@@ -18,6 +18,9 @@ jobs:
   validate:
     name: Check Documentation Sync
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
