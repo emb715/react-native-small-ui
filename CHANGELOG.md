@@ -6,6 +6,15 @@ Changelog is now generated automatically by [Release Please](https://github.com/
 
 ---
 
+## [1.0.1](https://github.com/emb715/react-native-small-ui/compare/v1.0.0...v1.0.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **example:** use canonical useBreakpointValue casing, revert accidental alias re-add ([105a888](https://github.com/emb715/react-native-small-ui/commit/105a888d58ce40d4421df8c169771054df159d32))
+* **useMediaQuery:** replace useState/useEffect with useSyncExternalStore to fix SSR hydration mismatch ([#418](https://github.com/emb715/react-native-small-ui/issues/418)) ([#19](https://github.com/emb715/react-native-small-ui/issues/19)) ([b86ec3c](https://github.com/emb715/react-native-small-ui/commit/b86ec3c8d8d5907fcf467208fa12a35517ec780f))
+* **useMediaQuery:** use useSyncExternalStore to fix SSR hydration mismatch ([#418](https://github.com/emb715/react-native-small-ui/issues/418)) ([33663d0](https://github.com/emb715/react-native-small-ui/commit/33663d0bbbde13ea3e9224923689e35af2b0c69e))
+
 ## [1.0.0](https://github.com/emb715/react-native-small-ui/compare/v0.3.7...v1.0.0) (2026-07-12)
 
 
