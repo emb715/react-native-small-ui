@@ -15,7 +15,8 @@
  *   no isolateModules complexity.
  *
  * Implementation notes confirmed before writing:
- *   - Flag is set inside `useEffect` → effects run synchronously inside `act()`.
+ *   - Flag is set inside the `subscribe` argument of `useSyncExternalStore` → fires
+ *     synchronously during the commit phase, not as a useEffect.
  *   - `renderHook` from @testing-library/react-native is the project convention.
  *   - `window.matchMedia` is deleted to simulate the unsupported environment.
  */

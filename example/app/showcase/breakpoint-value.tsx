@@ -1,6 +1,6 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { Stack } from 'expo-router';
-import { useBreakPointValue } from 'react-native-small-ui/utils';
+import { useBreakpointValue } from 'react-native-small-ui/utils';
 import { useColorMode } from 'react-native-small-ui/colormode';
 import { ShowcaseSection } from '@/src/components';
 import { AppText, VStack, HStack } from '@/src/design-system/primitives';
@@ -8,9 +8,9 @@ import { AppText, VStack, HStack } from '@/src/design-system/primitives';
 export default function BreakpointValueScreen() {
   const { isDark } = useColorMode();
 
-  const columns = useBreakPointValue({ default: 1, sm: 2, lg: 3 });
-  const fontSize = useBreakPointValue({ default: 14, md: 16, lg: 18 });
-  const padding = useBreakPointValue({ default: 12, sm: 16, lg: 24 });
+  const columns = useBreakpointValue({ default: 1, sm: 2, lg: 3 });
+  const fontSize = useBreakpointValue({ default: 14, md: 16, lg: 18 });
+  const padding = useBreakpointValue({ default: 12, sm: 16, lg: 24 });
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 24 }}>

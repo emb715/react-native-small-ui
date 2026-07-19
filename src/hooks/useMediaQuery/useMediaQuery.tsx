@@ -1,6 +1,6 @@
 import './matchMedia/matchMedia.polyfill';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import type { MediaQueryListEvent } from './matchMedia/mediaQuery.types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,36 +16,64 @@ interface NativeMQL {
 
 let _warnedNoMatchMedia = false;
 
-export const useMediaQuery = (mediaQueryString: string) => {
-  const supportsMatchMedia =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+// Module-level cache: at most one MediaQueryList instance per unique query string.
+// Prevents the native polyfill from registering a new Dimensions listener on every
+// getSnapshot call (which has no cleanup path).
+const _mqCache = new Map<string, NativeMQL>();
 
-  const [matches, setMatches] = useState(false);
+function getMQ(mediaQueryString: string): NativeMQL | null {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
+    return null;
+  }
+  const cached = _mqCache.get(mediaQueryString);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const mq = window.matchMedia(mediaQueryString) as unknown as NativeMQL;
+  _mqCache.set(mediaQueryString, mq);
+  return mq;
+}
 
-  /* istanbul ignore next */
-  const onChange = useCallback((evt: MediaQueryListEvent) => {
-    setMatches(evt.matches);
-  }, []);
+function getSnapshot(mediaQueryString: string): boolean {
+  const mq = getMQ(mediaQueryString);
+  if (mq === null) {
+    return false;
+  }
+  return mq.matches;
+}
 
-  useEffect(() => {
-    if (!supportsMatchMedia) {
-      if (!_warnedNoMatchMedia) {
-        _warnedNoMatchMedia = true;
-        console.warn('useMediaQuery: window.matchMedia not supported.');
-      }
-      return;
+function subscribe(mediaQueryString: string, callback: () => void): () => void {
+  const mq = getMQ(mediaQueryString);
+  if (mq === null) {
+    if (!_warnedNoMatchMedia) {
+      _warnedNoMatchMedia = true;
+      console.warn('useMediaQuery: window.matchMedia not supported.');
     }
+    return () => {};
+  }
+  mq.addListener(callback);
+  // Do NOT call mq._unmount() on cleanup — the instance is shared via _mqCache
+  // and must persist for the process lifetime.
+  return () => {
+    mq.removeListener(callback);
+  };
+}
 
-    const mq = window.matchMedia(mediaQueryString) as unknown as NativeMQL;
-    setMatches(mq.matches); // sync initial value from the single instance
-    mq.addListener(onChange);
-    return () => {
-      mq.removeListener(onChange);
-      mq._unmount?.(); // ← removes the Dimensions subscription on native
-    };
-  }, [supportsMatchMedia, mediaQueryString, onChange]);
+export const useMediaQuery = (mediaQueryString: string) => {
+  const stableSubscribe = useCallback(
+    (callback: () => void) => subscribe(mediaQueryString, callback),
+    [mediaQueryString]
+  );
 
-  return matches;
+  return useSyncExternalStore(
+    stableSubscribe,
+    () => getSnapshot(mediaQueryString),
+    // Server snapshot: always false — matches initial SSR render, no hydration mismatch
+    () => false
+  );
 };
 
 // Example: useMediaQuery('(min-width: 48rem)')
@@ -53,4 +81,9 @@ export const useMediaQuery = (mediaQueryString: string) => {
 /** @internal — test-only: reset the module-level warn-once flag between test runs. */
 export const __resetWarnFlagForTesting = () => {
   _warnedNoMatchMedia = false;
+};
+
+/** @internal — test-only: clear the MQ instance cache between test runs. */
+export const __resetMQCacheForTesting = () => {
+  _mqCache.clear();
 };
