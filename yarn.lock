@@ -12424,7 +12424,7 @@ __metadata:
     react-native: 0.83.6
     react-native-builder-bob: ^0.26.0
     react-test-renderer: ^18.3.1
-    size-limit: ^11.0.0
+    size-limit: ^12.1.0
     typescript: ^5.2.2
     zustand: ^4.5.4
   peerDependencies:
@@ -13352,7 +13352,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"size-limit@npm:11.2.0, size-limit@npm:^11.0.0":
+"size-limit@npm:11.2.0":
   version: 11.2.0
   resolution: "size-limit@npm:11.2.0"
   dependencies:
@@ -13366,6 +13366,26 @@ __metadata:
   bin:
     size-limit: bin.js
   checksum: 12e94419cd0e10fc8d27d0df90c09d12d595155c1cd5c24b4a25c5584451fafcc98544eb83ea9ae2b5387107f4d741cd08607ef21ae47f47626f0e06bebfb6ce
+  languageName: node
+  linkType: hard
+
+"size-limit@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "size-limit@npm:12.1.0"
+  dependencies:
+    bytes-iec: ^3.1.1
+    lilconfig: ^3.1.3
+    nanospinner: ^1.2.2
+    picocolors: ^1.1.1
+    tinyglobby: ^0.2.16
+  peerDependencies:
+    jiti: ^2.0.0
+  peerDependenciesMeta:
+    jiti:
+      optional: true
+  bin:
+    size-limit: bin.js
+  checksum: 0c70cd0aa63ecac8d13df37aa663e6e6581a68c8e5e80a0a9b78c840560df70e5a85f32ecf986e805998a6d7295a2072d7cbda6926df35e514dfded5e83345cc
   languageName: node
   linkType: hard
 
@@ -13922,7 +13942,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyglobby@npm:^0.2.11, tinyglobby@npm:^0.2.15":
+"tinyglobby@npm:^0.2.11, tinyglobby@npm:^0.2.15, tinyglobby@npm:^0.2.16":
   version: 0.2.17
   resolution: "tinyglobby@npm:0.2.17"
   dependencies:
