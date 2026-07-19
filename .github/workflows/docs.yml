@@ -41,7 +41,7 @@ jobs:
           echo "✅ Example export verified."
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Install docs dependencies
         run: yarn install --immutable
