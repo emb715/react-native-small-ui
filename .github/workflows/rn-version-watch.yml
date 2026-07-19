@@ -31,7 +31,7 @@ jobs:
 
       - name: Ensure rn-version-bump label exists
         if: steps.npm.outputs.version != steps.pinned.outputs.version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -50,7 +50,7 @@ jobs:
       - name: Check for existing issue
         id: existing
         if: steps.npm.outputs.version != steps.pinned.outputs.version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -66,7 +66,7 @@ jobs:
 
       - name: Open issue
         if: steps.npm.outputs.version != steps.pinned.outputs.version && steps.existing.outputs.exists == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
